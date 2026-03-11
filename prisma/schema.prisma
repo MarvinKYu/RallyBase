@@ -35,6 +35,7 @@ model PlayerProfile {
   eventEntries       EventEntry[]
   matchesAsPlayer1   Match[]                 @relation("Player1")
   matchesAsPlayer2   Match[]                 @relation("Player2")
+  wonMatches         Match[]                 @relation("Winner")
   submittedResults   MatchResultSubmission[]
 }
 
@@ -181,21 +182,25 @@ model EventEntry {
 // ─── Matches ─────────────────────────────────────────────────────────────────
 
 model Match {
-  id       String      @id @default(cuid())
-  eventId  String
-  round    Int
-  position Int
-  player1Id String?
-  player2Id String?
-  winnerId  String?
-  status   MatchStatus @default(PENDING)
-  createdAt DateTime   @default(now())
+  id          String      @id @default(cuid())
+  eventId     String
+  round       Int
+  position    Int
+  player1Id   String?
+  player2Id   String?
+  winnerId    String?
+  nextMatchId String?
+  status      MatchStatus @default(PENDING)
+  createdAt   DateTime    @default(now())
 
-  event              Event                   @relation(fields: [eventId], references: [id], onDelete: Cascade)
-  player1            PlayerProfile?          @relation("Player1", fields: [player1Id], references: [id])
-  player2            PlayerProfile?          @relation("Player2", fields: [player2Id], references: [id])
-  matchGames         MatchGame[]
-  submissions        MatchResultSubmission[]
+  event           Event                   @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  player1         PlayerProfile?          @relation("Player1", fields: [player1Id], references: [id])
+  player2         PlayerProfile?          @relation("Player2", fields: [player2Id], references: [id])
+  winner          PlayerProfile?          @relation("Winner", fields: [winnerId], references: [id])
+  nextMatch       Match?                  @relation("BracketTree", fields: [nextMatchId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  previousMatches Match[]                 @relation("BracketTree")
+  matchGames      MatchGame[]
+  submissions     MatchResultSubmission[]
   ratingTransactions RatingTransaction[]
 }
 

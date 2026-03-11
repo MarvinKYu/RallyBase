@@ -3,8 +3,10 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { auth } from "@clerk/nextjs/server";
 import { getEventDetail } from "@/server/services/tournament.service";
+import { bracketExists } from "@/server/services/bracket.service";
 import { searchPlayers } from "@/server/services/player.service";
 import { addEntrantAction } from "@/server/actions/tournament.actions";
+import { generateBracketAction } from "@/server/actions/bracket.actions";
 import { EntrantSearchForm } from "@/components/tournaments/EntrantSearchForm";
 
 type Props = {
@@ -33,7 +35,10 @@ export default async function EventDetailPage({ params, searchParams }: Props) {
   const { q = "" } = await searchParams;
   const { userId } = await auth();
 
-  const event = await getEventDetail(eventId);
+  const [event, hasBracket] = await Promise.all([
+    getEventDetail(eventId),
+    bracketExists(eventId),
+  ]);
   if (!event) notFound();
 
   const enteredIds = new Set(event.eventEntries.map((e) => e.playerProfileId));
@@ -54,6 +59,26 @@ export default async function EventDetailPage({ params, searchParams }: Props) {
             {event.ratingCategory.name} ·{" "}
             {formatLabel[event.format] ?? event.format} · First to {event.gamePointTarget}
           </p>
+          <div className="mt-3 flex items-center gap-3">
+            {hasBracket && (
+              <Link
+                href={`/tournaments/${id}/events/${eventId}/bracket`}
+                className="rounded-md bg-zinc-900 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-zinc-700"
+              >
+                View bracket
+              </Link>
+            )}
+            {!hasBracket && userId && event.eventEntries.length >= 2 && (
+              <form action={generateBracketAction.bind(null, eventId, id)}>
+                <button
+                  type="submit"
+                  className="rounded-md bg-zinc-900 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-zinc-700"
+                >
+                  Generate bracket
+                </button>
+              </form>
+            )}
+          </div>
         </div>
 
         {/* Entrants */}
