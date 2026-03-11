@@ -1,0 +1,74 @@
+import { notFound, redirect } from "next/navigation";
+import Link from "next/link";
+import { auth } from "@clerk/nextjs/server";
+import { getMatchWithSubmission } from "@/server/services/match.service";
+import { MAX_GAMES } from "@/server/algorithms/match-validation";
+import { SubmitResultForm } from "@/components/matches/SubmitResultForm";
+
+type Props = { params: Promise<{ matchId: string }> };
+
+export const metadata = { title: "Submit Result — RallyBase" };
+
+export default async function SubmitResultPage({ params }: Props) {
+  const { matchId } = await params;
+  const { userId } = await auth();
+  if (!userId) redirect("/sign-in");
+
+  const match = await getMatchWithSubmission(matchId);
+  if (!match) notFound();
+
+  // Can't submit to a completed or already-awaiting match
+  if (match.status === "COMPLETED") {
+    redirect(
+      `/tournaments/${match.event.tournament.id}/events/${match.event.id}/bracket`,
+    );
+  }
+  if (match.status === "AWAITING_CONFIRMATION") {
+    redirect(`/matches/${matchId}/confirm`);
+  }
+
+  const tournamentId = match.event.tournament.id;
+  const eventId = match.event.id;
+  const maxGames = MAX_GAMES[match.event.format] ?? 5;
+
+  return (
+    <main className="mx-auto max-w-lg px-4 py-16">
+      <div className="mb-8 space-y-1">
+        <p className="text-sm text-zinc-400">
+          <Link
+            href={`/tournaments/${tournamentId}/events/${eventId}/bracket`}
+            className="hover:text-zinc-700"
+          >
+            {match.event.tournament.name}
+          </Link>
+        </p>
+        <h1 className="text-2xl font-semibold text-zinc-900">Submit match result</h1>
+        <p className="text-sm text-zinc-500">
+          {match.player1?.displayName ?? "TBD"} vs {match.player2?.displayName ?? "TBD"}
+        </p>
+        <p className="text-xs text-zinc-400">
+          {match.event.format.replace("_", " ")} · First to {match.event.gamePointTarget}
+        </p>
+      </div>
+
+      <SubmitResultForm
+        matchId={matchId}
+        tournamentId={tournamentId}
+        eventId={eventId}
+        format={match.event.format}
+        maxGames={maxGames}
+        player1Name={match.player1?.displayName ?? "Player 1"}
+        player2Name={match.player2?.displayName ?? "Player 2"}
+      />
+
+      <div className="mt-6">
+        <Link
+          href={`/tournaments/${tournamentId}/events/${eventId}/bracket`}
+          className="text-sm text-zinc-500 transition-colors hover:text-zinc-900"
+        >
+          ← Back to bracket
+        </Link>
+      </div>
+    </main>
+  );
+}

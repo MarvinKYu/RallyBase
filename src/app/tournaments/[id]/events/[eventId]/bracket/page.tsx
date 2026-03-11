@@ -20,8 +20,10 @@ type BracketMatch = Awaited<ReturnType<typeof getEventBracket>>[number];
 
 function MatchCard({ match }: { match: BracketMatch }) {
   const isBye = match.player2Id === null && match.status === "COMPLETED";
+  const isActionable =
+    match.status === "PENDING" || match.status === "AWAITING_CONFIRMATION";
 
-  const rowClass = (playerId: string | null, isWinner: boolean) =>
+  const rowClass = (isWinner: boolean) =>
     [
       "flex items-center justify-between px-3 py-1.5 text-sm",
       isWinner ? "font-semibold text-zinc-900" : "text-zinc-500",
@@ -32,24 +34,42 @@ function MatchCard({ match }: { match: BracketMatch }) {
   const p1Wins = match.winnerId === match.player1Id;
   const p2Wins = match.winnerId === match.player2Id;
 
+  const cardHeight = isActionable ? MATCH_H + 24 : MATCH_H;
+
   return (
     <div
       className="w-44 overflow-hidden rounded-md border border-zinc-200 bg-white shadow-sm"
-      style={{ height: MATCH_H }}
+      style={{ height: cardHeight }}
     >
-      <div className={rowClass(match.player1Id, p1Wins)}>
+      <div className={rowClass(p1Wins)}>
         <span className="truncate">{p1}</span>
         {p1Wins && <span className="ml-1 text-xs text-green-600">W</span>}
       </div>
       <div className="border-t border-zinc-100" />
-      <div className={rowClass(match.player2Id, p2Wins)}>
+      <div className={rowClass(p2Wins)}>
         <span className={`truncate ${isBye ? "italic text-zinc-300" : ""}`}>{p2}</span>
         {p2Wins && <span className="ml-1 text-xs text-green-600">W</span>}
       </div>
-      <div className="border-t border-zinc-100 bg-zinc-50 px-3 py-1">
+      <div className="flex items-center justify-between border-t border-zinc-100 bg-zinc-50 px-3 py-1">
         <span className="text-[10px] uppercase tracking-wide text-zinc-400">
-          {isBye ? "bye" : match.status.toLowerCase().replace("_", " ")}
+          {isBye ? "bye" : match.status.toLowerCase().replace(/_/g, " ")}
         </span>
+        {match.status === "PENDING" && match.player1Id && match.player2Id && (
+          <Link
+            href={`/matches/${match.id}/submit`}
+            className="text-[10px] font-medium text-zinc-500 underline-offset-2 hover:text-zinc-900 hover:underline"
+          >
+            Submit
+          </Link>
+        )}
+        {match.status === "AWAITING_CONFIRMATION" && (
+          <Link
+            href={`/matches/${match.id}/confirm`}
+            className="text-[10px] font-medium text-zinc-500 underline-offset-2 hover:text-zinc-900 hover:underline"
+          >
+            Confirm
+          </Link>
+        )}
       </div>
     </div>
   );
