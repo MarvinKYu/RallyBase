@@ -5,3 +5,6 @@
 node_modules/
 .next/
 prisma/generated/
+
+# clerk configuration (can include secrets)
+/.clerk/
