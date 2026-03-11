@@ -1,0 +1,110 @@
+## Session Log — 2026-03-10
+
+### Objective
+Establish all project planning documents and complete Phase 1 (Foundation): initialize the Next.js project, configure tooling, implement the full Prisma schema, and create the database seed.
+
+### Work Completed
+
+**Documentation (pre-implementation)**
+- Defined project vision and 12-step core demo narrative.
+- Documented domain rules: one-account/multi-role system, org-scoped ratings, match verification workflow, per-game scoring, single-elimination MVP bracket.
+- Designed modular monolith architecture and layered folder structure.
+- Designed the full MVP database schema across 6 entity groups.
+- Wrote the 8-phase implementation roadmap.
+- Defined MVP acceptance criteria.
+- Configured `CLAUDE.md` for AI-assisted development.
+
+**Phase 1 — Foundation**
+- Initialized Next.js 16.1.6 project (`rallybase`) with TypeScript and App Router.
+- Configured Tailwind CSS v4 with PostCSS.
+- Installed and configured Clerk authentication: `@clerk/nextjs` middleware protecting all routes, `ClerkProvider` wrapping the root layout with sign-in/sign-up/user buttons in the header.
+- Installed Prisma v5 with `@prisma/client`; configured `DATABASE_URL` connection via `.env`.
+- Implemented the full Prisma schema covering all 6 domain groups (see schema details below).
+- Ran initial migration (`20260311005925_init`) — database tables created.
+- Created `src/lib/prisma.ts` singleton client (dev-mode query logging, global instance to prevent hot-reload leaks).
+- Wrote `prisma/seed.ts`: seeds all 4 roles, 2 organizations (USATT, NCTTA), 2 disciplines (Singles each), and 2 rating categories (USATT Singles, NCTTA Singles) using upserts.
+- Installed supporting dependencies: `react-hook-form`, `@hookform/resolvers`, `zod`, `tsx` (for seed runner).
+- Added npm scripts: `db:migrate`, `db:seed`, `db:studio`.
+
+**Not completed this session**
+- shadcn/ui was planned but not installed or configured.
+
+### Files Created / Modified
+
+**Docs**
+- `docs/00-project-overview.md` — Project goal and 12-step demo narrative
+- `docs/01-domain-rules.md` — Domain rules (roles, rating scoping, match verification, scoring, bracket format)
+- `docs/02-architecture.md` — Tech stack, folder structure, and architecture rules
+- `docs/03-database-schema.md` — Full schema entity list and key principles
+- `docs/04-implementation-plan.md` — 8-phase implementation roadmap
+- `docs/05-acceptance-criteria.md` — MVP completion checklist
+- `docs/session-log.md` — This file
+- `CLAUDE.md` — AI context: tech stack, commands, architecture, domain rules, schema groups, phase order
+
+**Application**
+- `package.json` — Project `rallybase`; all Phase 1 dependencies and db scripts
+- `next.config.ts` — Next.js config
+- `tsconfig.json` — TypeScript config
+- `postcss.config.mjs` — PostCSS/Tailwind config
+- `src/app/layout.tsx` — Root layout with `ClerkProvider`, auth header (sign-in/sign-up/user buttons)
+- `src/app/globals.css` — Global Tailwind styles
+- `src/app/page.tsx` — Default home page (Next.js scaffold)
+- `src/middleware.ts` — Clerk middleware protecting all non-static routes
+- `src/lib/prisma.ts` — Prisma singleton client with dev-mode logging and hot-reload guard
+- `prisma/schema.prisma` — Full Prisma schema (13 models, 5 enums)
+- `prisma/seed.ts` — Seed script: roles, orgs (USATT, NCTTA), disciplines, rating categories
+- `prisma/migrations/20260311005925_init/migration.sql` — Initial migration (all tables)
+- `.env` / `.env.local` — Database and Clerk environment variables
+
+### Key Technical Decisions
+
+- **Decision**: App name is `rallybase`.
+  - **Reasoning**: Product name chosen during initialization.
+
+- **Decision**: Prisma singleton pattern in `src/lib/prisma.ts` using `globalThis`.
+  - **Reasoning**: Prevents Next.js hot-reload from creating multiple PrismaClient instances in development, which exhausts database connection pools.
+
+- **Decision**: `confirmationCode` on `MatchResultSubmission` uses `@default(cuid())` — auto-generated, unique.
+  - **Reasoning**: Avoids a separate code-generation step; cuid provides sufficient uniqueness and URL-safety for the confirmation workflow.
+
+- **Decision**: `PlayerRating.rating` defaults to `1500` (standard Elo starting point).
+  - **Reasoning**: Conventional Elo baseline; ensures new players start at the same level before any matches are played.
+
+- **Decision**: `MatchGame` and `MatchResultSubmissionGame` are separate tables (not a single shared table).
+  - **Reasoning**: Enforces the domain rule that submitted scores and official scores are independent until confirmation. Official scores in `MatchGame` are only written after the submission is confirmed.
+
+- **Decision**: Seed uses `upsert` throughout.
+  - **Reasoning**: Makes the seed script idempotent — safe to re-run without duplicating data.
+
+- **Decision**: shadcn/ui deferred.
+  - **Reasoning**: Not needed until Phase 2 (Player System) when UI components are first built. Installing it without using it adds noise.
+
+### Issues Encountered
+
+None. All Phase 1 tasks completed without blockers (except shadcn/ui intentionally deferred).
+
+### Current State
+
+- **Build status**: Next.js app initializes. Migration has run. Database schema is live.
+- **Working features**:
+  - Clerk auth middleware active — all routes protected.
+  - Root layout renders with sign-in/sign-up/user buttons.
+  - Prisma client configured and connected to Postgres.
+  - Seed script populates roles, orgs, disciplines, and rating categories.
+- **Incomplete**:
+  - shadcn/ui not installed.
+  - No player profile, tournament, bracket, match, or rating features yet (Phases 2–8).
+
+### Next Steps
+
+- [ ] Install and configure shadcn/ui (deferred from Phase 1)
+- [ ] Phase 2: Player profile creation flow (form + server action/route)
+- [ ] Phase 2: Player profile page (display name, bio, ratings)
+- [ ] Phase 2: Player search
+- [ ] Phase 2: Rating display per org/discipline
+
+### Notes
+
+- The Prisma schema is fully implemented and matches the domain design — no schema changes should be needed to begin Phase 2.
+- Consider whether the default home page (`src/app/page.tsx`) should redirect authenticated users to a dashboard or player profile; this can be addressed during Phase 2 polish.
+- The confirmation code workflow (cuid auto-generated on submission) means the UX flow is: submit result → system generates code → submitter shares code with opponent → opponent enters code to confirm.
