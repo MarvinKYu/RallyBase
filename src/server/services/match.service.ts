@@ -6,6 +6,7 @@ import {
   createSubmission,
   confirmSubmission,
 } from "@/server/repositories/match.repository";
+import { applyRatingResult } from "@/server/services/rating.service";
 
 // ── Queries ───────────────────────────────────────────────────────────────────
 
@@ -140,6 +141,15 @@ export async function confirmMatchResult(
       player1Points: g.player1Points,
       player2Points: g.player2Points,
     })),
+  });
+
+  // Apply Elo rating changes for both players
+  const loserId = winnerId === match.player1Id ? match.player2Id! : match.player1Id!;
+  await applyRatingResult({
+    winnerProfileId: winnerId,
+    loserProfileId: loserId,
+    ratingCategoryId: match.event.ratingCategoryId,
+    matchId,
   });
 
   return {

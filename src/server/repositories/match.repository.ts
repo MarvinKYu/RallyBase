@@ -47,6 +47,7 @@ export async function findSubmissionByCode(confirmationCode: string) {
               id: true,
               format: true,
               gamePointTarget: true,
+              ratingCategoryId: true,
               tournament: { select: { id: true } },
             },
           },

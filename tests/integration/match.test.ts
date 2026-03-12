@@ -2,6 +2,7 @@ import { describe, it, expect, afterAll } from "vitest";
 import { PrismaClient } from "@prisma/client";
 import { generateBracket, getEventBracket } from "@/server/services/bracket.service";
 import { submitMatchResult, confirmMatchResult } from "@/server/services/match.service";
+import { DEFAULT_RATING } from "@/server/algorithms/elo";
 
 const prisma = new PrismaClient();
 
@@ -14,7 +15,8 @@ let profileIds: string[] = [];
 
 afterAll(async () => {
   if (eventId) {
-    // Order matters: games → submissions → matches → entries → event
+    // Order matters: transactions/games → submissions → matches → entries → event
+    await prisma.ratingTransaction.deleteMany({ where: { match: { eventId } } });
     await prisma.matchGame.deleteMany({ where: { match: { eventId } } });
     await prisma.matchResultSubmissionGame.deleteMany({
       where: { submission: { match: { eventId } } },
@@ -230,6 +232,76 @@ describe("Match result submission — full submit → confirm flow", () => {
     const final = matches.find((m) => m.round === 2)!;
     // Position 1 → odd → player1Id slot in the final
     expect(final.player1Id).toBe(profileIds[0]);
+  });
+
+  it("winner's rating increases and loser's rating decreases", async () => {
+    const category = await prisma.ratingCategory.findFirst({
+      where: { events: { some: { id: eventId } } },
+    });
+
+    const [winnerRating, loserRating] = await Promise.all([
+      prisma.playerRating.findUnique({
+        where: {
+          playerProfileId_ratingCategoryId: {
+            playerProfileId: profileIds[0],
+            ratingCategoryId: category!.id,
+          },
+        },
+      }),
+      prisma.playerRating.findUnique({
+        where: {
+          playerProfileId_ratingCategoryId: {
+            playerProfileId: profileIds[3],
+            ratingCategoryId: category!.id,
+          },
+        },
+      }),
+    ]);
+
+    expect(winnerRating).not.toBeNull();
+    expect(loserRating).not.toBeNull();
+    expect(winnerRating!.rating).toBeGreaterThan(DEFAULT_RATING);
+    expect(loserRating!.rating).toBeLessThan(DEFAULT_RATING);
+    expect(winnerRating!.gamesPlayed).toBe(1);
+    expect(loserRating!.gamesPlayed).toBe(1);
+  });
+
+  it("rating transactions are inserted for both players", async () => {
+    const category = await prisma.ratingCategory.findFirst({
+      where: { events: { some: { id: eventId } } },
+    });
+
+    const [winnerTx, loserTx] = await Promise.all([
+      prisma.ratingTransaction.findFirst({
+        where: { playerProfileId: profileIds[0], matchId },
+      }),
+      prisma.ratingTransaction.findFirst({
+        where: { playerProfileId: profileIds[3], matchId },
+      }),
+    ]);
+
+    expect(winnerTx).not.toBeNull();
+    expect(loserTx).not.toBeNull();
+
+    // Winner delta is positive, loser delta is negative
+    expect(winnerTx!.delta).toBeGreaterThan(0);
+    expect(loserTx!.delta).toBeLessThan(0);
+
+    // Before = DEFAULT_RATING for both (first match)
+    expect(winnerTx!.ratingBefore).toBe(DEFAULT_RATING);
+    expect(loserTx!.ratingBefore).toBe(DEFAULT_RATING);
+
+    // After = before + delta
+    expect(winnerTx!.ratingAfter).toBe(DEFAULT_RATING + winnerTx!.delta);
+    expect(loserTx!.ratingAfter).toBe(DEFAULT_RATING + loserTx!.delta);
+
+    // Deltas are equal and opposite
+    expect(winnerTx!.delta).toBe(-loserTx!.delta);
+
+    // Transactions are linked to the match
+    expect(winnerTx!.matchId).toBe(matchId);
+    expect(loserTx!.matchId).toBe(matchId);
+    expect(winnerTx!.ratingCategoryId).toBe(category!.id);
   });
 
   it("rejects a third attempt to submit after match is completed", async () => {
