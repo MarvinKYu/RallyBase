@@ -1,7 +1,7 @@
 "use client";
 
 import { useActionState } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, type Resolver } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { createEventSchema, type CreateEventInput } from "@/lib/schemas/tournament";
 import {
@@ -29,7 +29,9 @@ export function EventForm({
     handleSubmit,
     formState: { errors },
   } = useForm<CreateEventInput>({
-    resolver: zodResolver(createEventSchema),
+    // Cast required: Zod v4 pipe transforms cause a type-level mismatch with
+    // @hookform/resolvers; runtime validation is correct.
+    resolver: zodResolver(createEventSchema) as Resolver<CreateEventInput>,
     defaultValues: { format: "BEST_OF_5", gamePointTarget: 11 },
   });
 

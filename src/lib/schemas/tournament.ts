@@ -23,7 +23,7 @@ export const createEventSchema = z.object({
   gamePointTarget: z.coerce
     .number()
     .int()
-    .refine((v) => v === 11 || v === 21, { message: "Game point target must be 11 or 21" }),
+    .pipe(z.union([z.literal(11), z.literal(21)])),
 });
 
 export type CreateEventInput = z.infer<typeof createEventSchema>;
