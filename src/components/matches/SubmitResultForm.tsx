@@ -1,11 +1,7 @@
 "use client";
 
 import { useActionState } from "react";
-import { useForm } from "react-hook-form";
 import { submitResultAction, type MatchActionState } from "@/server/actions/match.actions";
-
-type GameRow = { player1Points: number; player2Points: number };
-type FormValues = { games: GameRow[] };
 
 interface Props {
   matchId: string;
@@ -32,26 +28,8 @@ export function SubmitResultForm({
     null,
   );
 
-  const { register, handleSubmit } = useForm<FormValues>({
-    defaultValues: {
-      games: Array.from({ length: maxGames }, () => ({
-        player1Points: 0,
-        player2Points: 0,
-      })),
-    },
-  });
-
-  const onSubmit = handleSubmit((data) => {
-    const fd = new FormData();
-    data.games.forEach((g, i) => {
-      fd.set(`games.${i}.player1Points`, String(g.player1Points));
-      fd.set(`games.${i}.player2Points`, String(g.player2Points));
-    });
-    dispatch(fd);
-  });
-
   return (
-    <form onSubmit={onSubmit} className="space-y-6">
+    <form action={dispatch} className="space-y-6">
       {state?.error && (
         <p className="rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
           {state.error}
@@ -76,14 +54,16 @@ export function SubmitResultForm({
             <input
               type="number"
               min={0}
-              {...register(`games.${i}.player1Points`, { valueAsNumber: true })}
+              name={`games.${i}.player1Points`}
+              defaultValue={0}
               className="w-full rounded-md border border-zinc-300 px-3 py-1.5 text-sm shadow-sm focus:border-zinc-500 focus:outline-none focus:ring-1 focus:ring-zinc-500"
               placeholder="0"
             />
             <input
               type="number"
               min={0}
-              {...register(`games.${i}.player2Points`, { valueAsNumber: true })}
+              name={`games.${i}.player2Points`}
+              defaultValue={0}
               className="w-full rounded-md border border-zinc-300 px-3 py-1.5 text-sm shadow-sm focus:border-zinc-500 focus:outline-none focus:ring-1 focus:ring-zinc-500"
               placeholder="0"
             />
@@ -92,9 +72,7 @@ export function SubmitResultForm({
       </div>
 
       <p className="text-xs text-zinc-400">
-        Leave unplayed games as 0 – 0. Scores must satisfy first-to-
-        {/* pointTarget shown by parent */}
-        the-point-target, win by 2.
+        Leave unplayed games as 0 – 0. Scores must satisfy first-to-the-point-target, win by 2.
       </p>
 
       <button

@@ -1,13 +1,7 @@
 "use client";
 
 import { useActionState } from "react";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { createTournamentSchema, type CreateTournamentInput } from "@/lib/schemas/tournament";
-import {
-  createTournamentAction,
-  type TournamentActionState,
-} from "@/server/actions/tournament.actions";
+import { createTournamentAction, type TournamentActionState } from "@/server/actions/tournament.actions";
 
 type Org = { id: string; name: string };
 
@@ -17,26 +11,8 @@ export function TournamentForm({ organizations }: { organizations: Org[] }) {
     null,
   );
 
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-  } = useForm<CreateTournamentInput>({
-    resolver: zodResolver(createTournamentSchema),
-  });
-
-  const onSubmit = handleSubmit((data) => {
-    const fd = new FormData();
-    fd.set("organizationId", data.organizationId);
-    fd.set("name", data.name);
-    if (data.location) fd.set("location", data.location);
-    fd.set("startDate", data.startDate);
-    if (data.endDate) fd.set("endDate", data.endDate);
-    dispatch(fd);
-  });
-
   return (
-    <form onSubmit={onSubmit} className="space-y-6">
+    <form action={dispatch} className="space-y-6">
       {state?.error && (
         <p className="rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
           {state.error}
@@ -49,7 +25,7 @@ export function TournamentForm({ organizations }: { organizations: Org[] }) {
         </label>
         <select
           id="organizationId"
-          {...register("organizationId")}
+          name="organizationId"
           className="w-full rounded-md border border-zinc-300 px-3 py-2 text-sm shadow-sm focus:border-zinc-500 focus:outline-none focus:ring-1 focus:ring-zinc-500"
         >
           <option value="">Select an organization…</option>
@@ -59,10 +35,8 @@ export function TournamentForm({ organizations }: { organizations: Org[] }) {
             </option>
           ))}
         </select>
-        {(errors.organizationId || state?.fieldErrors?.organizationId) && (
-          <p className="text-sm text-red-600">
-            {errors.organizationId?.message ?? state?.fieldErrors?.organizationId?.[0]}
-          </p>
+        {state?.fieldErrors?.organizationId && (
+          <p className="text-sm text-red-600">{state.fieldErrors.organizationId[0]}</p>
         )}
       </div>
 
@@ -72,15 +46,13 @@ export function TournamentForm({ organizations }: { organizations: Org[] }) {
         </label>
         <input
           id="name"
+          name="name"
           type="text"
-          {...register("name")}
           placeholder="e.g. Spring Open 2026"
           className="w-full rounded-md border border-zinc-300 px-3 py-2 text-sm shadow-sm focus:border-zinc-500 focus:outline-none focus:ring-1 focus:ring-zinc-500"
         />
-        {(errors.name || state?.fieldErrors?.name) && (
-          <p className="text-sm text-red-600">
-            {errors.name?.message ?? state?.fieldErrors?.name?.[0]}
-          </p>
+        {state?.fieldErrors?.name && (
+          <p className="text-sm text-red-600">{state.fieldErrors.name[0]}</p>
         )}
       </div>
 
@@ -90,15 +62,13 @@ export function TournamentForm({ organizations }: { organizations: Org[] }) {
         </label>
         <input
           id="location"
+          name="location"
           type="text"
-          {...register("location")}
           placeholder="e.g. Chicago, IL"
           className="w-full rounded-md border border-zinc-300 px-3 py-2 text-sm shadow-sm focus:border-zinc-500 focus:outline-none focus:ring-1 focus:ring-zinc-500"
         />
-        {(errors.location || state?.fieldErrors?.location) && (
-          <p className="text-sm text-red-600">
-            {errors.location?.message ?? state?.fieldErrors?.location?.[0]}
-          </p>
+        {state?.fieldErrors?.location && (
+          <p className="text-sm text-red-600">{state.fieldErrors.location[0]}</p>
         )}
       </div>
 
@@ -109,14 +79,12 @@ export function TournamentForm({ organizations }: { organizations: Org[] }) {
           </label>
           <input
             id="startDate"
+            name="startDate"
             type="date"
-            {...register("startDate")}
             className="w-full rounded-md border border-zinc-300 px-3 py-2 text-sm shadow-sm focus:border-zinc-500 focus:outline-none focus:ring-1 focus:ring-zinc-500"
           />
-          {(errors.startDate || state?.fieldErrors?.startDate) && (
-            <p className="text-sm text-red-600">
-              {errors.startDate?.message ?? state?.fieldErrors?.startDate?.[0]}
-            </p>
+          {state?.fieldErrors?.startDate && (
+            <p className="text-sm text-red-600">{state.fieldErrors.startDate[0]}</p>
           )}
         </div>
 
@@ -126,8 +94,8 @@ export function TournamentForm({ organizations }: { organizations: Org[] }) {
           </label>
           <input
             id="endDate"
+            name="endDate"
             type="date"
-            {...register("endDate")}
             className="w-full rounded-md border border-zinc-300 px-3 py-2 text-sm shadow-sm focus:border-zinc-500 focus:outline-none focus:ring-1 focus:ring-zinc-500"
           />
         </div>

@@ -1,9 +1,6 @@
 "use client";
 
 import { useActionState } from "react";
-import { useForm, type Resolver } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { createEventSchema, type CreateEventInput } from "@/lib/schemas/tournament";
 import {
   createEventAction,
   type TournamentActionState,
@@ -24,28 +21,8 @@ export function EventForm({
     null,
   );
 
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-  } = useForm<CreateEventInput>({
-    // Cast required: Zod v4 pipe transforms cause a type-level mismatch with
-    // @hookform/resolvers; runtime validation is correct.
-    resolver: zodResolver(createEventSchema) as Resolver<CreateEventInput>,
-    defaultValues: { format: "BEST_OF_5", gamePointTarget: 11 },
-  });
-
-  const onSubmit = handleSubmit((data) => {
-    const fd = new FormData();
-    fd.set("ratingCategoryId", data.ratingCategoryId);
-    fd.set("name", data.name);
-    fd.set("format", data.format);
-    fd.set("gamePointTarget", String(data.gamePointTarget));
-    dispatch(fd);
-  });
-
   return (
-    <form onSubmit={onSubmit} className="space-y-6">
+    <form action={dispatch} className="space-y-6">
       {state?.error && (
         <p className="rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
           {state.error}
@@ -58,7 +35,7 @@ export function EventForm({
         </label>
         <select
           id="ratingCategoryId"
-          {...register("ratingCategoryId")}
+          name="ratingCategoryId"
           className="w-full rounded-md border border-zinc-300 px-3 py-2 text-sm shadow-sm focus:border-zinc-500 focus:outline-none focus:ring-1 focus:ring-zinc-500"
         >
           <option value="">Select a rating category…</option>
@@ -68,10 +45,8 @@ export function EventForm({
             </option>
           ))}
         </select>
-        {(errors.ratingCategoryId || state?.fieldErrors?.ratingCategoryId) && (
-          <p className="text-sm text-red-600">
-            {errors.ratingCategoryId?.message ?? state?.fieldErrors?.ratingCategoryId?.[0]}
-          </p>
+        {state?.fieldErrors?.ratingCategoryId && (
+          <p className="text-sm text-red-600">{state.fieldErrors.ratingCategoryId[0]}</p>
         )}
       </div>
 
@@ -81,15 +56,13 @@ export function EventForm({
         </label>
         <input
           id="name"
+          name="name"
           type="text"
-          {...register("name")}
           placeholder="e.g. U1800 Singles"
           className="w-full rounded-md border border-zinc-300 px-3 py-2 text-sm shadow-sm focus:border-zinc-500 focus:outline-none focus:ring-1 focus:ring-zinc-500"
         />
-        {(errors.name || state?.fieldErrors?.name) && (
-          <p className="text-sm text-red-600">
-            {errors.name?.message ?? state?.fieldErrors?.name?.[0]}
-          </p>
+        {state?.fieldErrors?.name && (
+          <p className="text-sm text-red-600">{state.fieldErrors.name[0]}</p>
         )}
       </div>
 
@@ -100,7 +73,8 @@ export function EventForm({
           </label>
           <select
             id="format"
-            {...register("format")}
+            name="format"
+            defaultValue="BEST_OF_5"
             className="w-full rounded-md border border-zinc-300 px-3 py-2 text-sm shadow-sm focus:border-zinc-500 focus:outline-none focus:ring-1 focus:ring-zinc-500"
           >
             <option value="BEST_OF_3">Best of 3</option>
@@ -115,16 +89,15 @@ export function EventForm({
           </label>
           <select
             id="gamePointTarget"
-            {...register("gamePointTarget")}
+            name="gamePointTarget"
+            defaultValue="11"
             className="w-full rounded-md border border-zinc-300 px-3 py-2 text-sm shadow-sm focus:border-zinc-500 focus:outline-none focus:ring-1 focus:ring-zinc-500"
           >
-            <option value={11}>First to 11</option>
-            <option value={21}>First to 21</option>
+            <option value="11">First to 11</option>
+            <option value="21">First to 21</option>
           </select>
-          {(errors.gamePointTarget || state?.fieldErrors?.gamePointTarget) && (
-            <p className="text-sm text-red-600">
-              {errors.gamePointTarget?.message ?? state?.fieldErrors?.gamePointTarget?.[0]}
-            </p>
+          {state?.fieldErrors?.gamePointTarget && (
+            <p className="text-sm text-red-600">{state.fieldErrors.gamePointTarget[0]}</p>
           )}
         </div>
       </div>
