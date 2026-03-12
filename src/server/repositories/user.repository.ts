@@ -5,10 +5,19 @@ export async function upsertUserFromClerk(
   email: string,
   name: string,
 ) {
-  return prisma.user.upsert({
-    where: { clerkId },
-    update: { email, name },
-    create: { clerkId, email, name },
+  const existing = await prisma.user.findFirst({
+    where: { OR: [{ clerkId }, { email }] },
+  });
+
+  if (existing) {
+    return prisma.user.update({
+      where: { id: existing.id },
+      data: { clerkId, email, name },
+    });
+  }
+
+  return prisma.user.create({
+    data: { clerkId, email, name },
   });
 }
 
