@@ -63,12 +63,20 @@ function MatchCard({ match }: { match: BracketMatch }) {
           </Link>
         )}
         {match.status === "AWAITING_CONFIRMATION" && (
-          <Link
-            href={`/matches/${match.id}/confirm`}
-            className="text-[10px] font-medium text-zinc-500 underline-offset-2 hover:text-zinc-900 hover:underline"
-          >
-            Confirm
-          </Link>
+          <div className="flex gap-2">
+            <Link
+              href={`/matches/${match.id}/pending`}
+              className="text-[10px] font-medium text-zinc-500 underline-offset-2 hover:text-zinc-900 hover:underline"
+            >
+              View code
+            </Link>
+            <Link
+              href={`/matches/${match.id}/confirm`}
+              className="text-[10px] font-medium text-zinc-500 underline-offset-2 hover:text-zinc-900 hover:underline"
+            >
+              Confirm
+            </Link>
+          </div>
         )}
       </div>
     </div>
