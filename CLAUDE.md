@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Status
 
-**All 8 MVP phases are complete.** The application is fully built and passes a clean production build. Demo data is seeded. Deployment to Vercel is configured but requires `vercel login` + `vercel deploy --prod` with environment variables set in the Vercel dashboard.
+**All 8 MVP phases are complete and the app is live on Vercel.** Post-deployment bug fixes and additional features have been applied (see session log 2026-03-12).
 
 ## Tech Stack
 
@@ -13,7 +13,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - **Fonts**: `geist` npm package (local files, no Google Fonts network call)
 - **Database**: PostgreSQL via Prisma v5 ORM (hosted on Neon)
 - **Auth**: Clerk (`@clerk/nextjs` v7)
-- **Validation**: Zod v4 + React Hook Form v7
+- **Validation**: Zod v4 (react-hook-form removed — all forms use plain `useActionState` + native FormData)
 - **Testing**: Vitest v4 (unit + integration against real DB)
 - **Hosting**: Vercel (configured via `vercel.json`)
 
@@ -104,8 +104,11 @@ Submitted scores live in `match_result_submission_games`. Official scores are on
 
 ## Known Issues / Gotchas
 
-- **Zod v4 + zodResolver**: `z.coerce.number().pipe(z.union([z.literal(11), z.literal(21)]))` requires `zodResolver(schema) as Resolver<T>` cast in `EventForm.tsx` due to Zod v4 pipe input type inference producing `unknown` in the resolver's generic constraint. Runtime behavior is correct.
 - **Middleware deprecation**: Next.js 16 shows `"middleware" file convention is deprecated` warning — this is cosmetic; the middleware works correctly.
+- **react-hook-form removed**: react-hook-form v7.71 + React 19.2 has a `useMemo` incompatibility (React error #310) in production builds. All forms now use plain `useActionState` + native FormData with `name` attributes. Do NOT reintroduce react-hook-form.
+- **Tournament deletion FK cycle**: `Match.nextMatchId` uses `onDelete: NoAction`. Deleting a tournament requires nulling `nextMatchId` on all its matches first, then detaching `RatingTransaction.matchId`, then deleting the tournament. See `deleteTournamentById` in `tournament.repository.ts`.
+- **User email uniqueness**: Clerk treats email+password and Google OAuth sign-ins as separate accounts with different `clerkId`s. `upsertUserFromClerk` matches on `clerkId OR email` to merge them.
+- **Tournament ownership**: `Tournament.createdByClerkId` (nullable String) stores the Clerk user ID of the creator. Existing/seeded tournaments have `null` and show no delete button.
 
 ## Implementation Phases — All Complete
 

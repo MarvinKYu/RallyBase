@@ -1,3 +1,70 @@
+## Session Log — 2026-03-12
+
+### Objective
+Post-deployment bug fixing, UX improvements, and the delete tournament feature.
+
+### Work Completed
+
+**Deployment & Post-Launch Bug Fixes**
+- App deployed to Vercel. `vercel login` + `vercel deploy --prod` completed by user; env vars (DATABASE_URL, Clerk keys) configured in Vercel dashboard.
+- **Bug fix — P2002 email unique constraint** (`user.repository.ts`): `upsertUserFromClerk` was matching only on `clerkId`. When a user signed in via Google OAuth after previously creating an email/password account, Clerk assigned a new `clerkId` but the same email already existed in the DB. Fixed by querying `OR [{ clerkId }, { email }]` and updating in-place, merging the accounts.
+- **Bug fix — React error #310 (client-side crash on all form pages)**: `react-hook-form` v7.71 + React 19.2.3 has a `useMemo` incompatibility that causes a client-side crash in production builds. Removed `react-hook-form` and `@hookform/resolvers` from all 5 form components (`TournamentForm`, `EventForm`, `SubmitResultForm`, `ConfirmResultForm`, `ProfileForm`). All forms now use plain `useActionState` + native FormData with `name` attributes on inputs. Server actions already perform Zod validation and return `fieldErrors`, so the UX is identical.
+
+**UX Fixes**
+- **View code link on bracket**: `AWAITING_CONFIRMATION` match cards now show both a **View code** link (→ `/matches/[matchId]/pending`) and a **Confirm** link. Previously, navigating away from the pending page made the confirmation code unreachable.
+
+**Delete Tournament Feature**
+- Schema migration (`20260312230604_add_tournament_creator`): added `createdByClerkId String?` to `Tournament`.
+- `createTournamentAction` now saves `userId` (Clerk ID) as `createdByClerkId` on create.
+- `deleteTournamentById` repository function: nulls `nextMatchId` on all matches first (breaks self-referential FK cycle), detaches `RatingTransaction.matchId`, then deletes the tournament (cascades to events → entries, matches, match games, submissions).
+- `deleteTournament` service: verifies ownership (`tournament.createdByClerkId === clerkId`) before deleting.
+- `deleteTournamentAction`: server action, redirects to `/tournaments` on success.
+- `DeleteTournamentButton` client component: `useTransition` + `window.confirm` confirmation dialog; red outlined button.
+- Tournament detail page: delete button shown only when `userId === tournament.createdByClerkId`. Existing/seeded tournaments (null `createdByClerkId`) show no button.
+
+**Frontend Design Skill**
+- Installed `frontend-design` skill from `github.com/anthropics/claude-code/tree/main/plugins/frontend-design` at `.claude/skills/frontend-design/SKILL.md`. Available as `/frontend-design` in a new session.
+
+### Files Created / Modified
+
+- `src/server/repositories/user.repository.ts` — email-or-clerkId upsert
+- `src/components/tournaments/TournamentForm.tsx` — removed react-hook-form
+- `src/components/tournaments/EventForm.tsx` — removed react-hook-form
+- `src/components/matches/SubmitResultForm.tsx` — removed react-hook-form
+- `src/components/matches/ConfirmResultForm.tsx` — removed react-hook-form
+- `src/components/onboarding/ProfileForm.tsx` — removed react-hook-form
+- `src/app/tournaments/[id]/events/[eventId]/bracket/page.tsx` — View code + Confirm links
+- `prisma/schema.prisma` — added `createdByClerkId` to Tournament
+- `prisma/migrations/20260312230604_add_tournament_creator/migration.sql`
+- `src/server/repositories/tournament.repository.ts` — added `deleteTournamentById`
+- `src/server/services/tournament.service.ts` — added `deleteTournament`, pass `createdByClerkId` on create
+- `src/server/actions/tournament.actions.ts` — added `deleteTournamentAction`, pass `userId` on create
+- `src/components/tournaments/DeleteTournamentButton.tsx` — new
+- `src/app/tournaments/[id]/page.tsx` — delete button for creator
+- `.claude/skills/frontend-design/SKILL.md` — new
+- `.gitignore` — added `scripts/` ignore
+- `scripts/delete-tournament.ts` — one-off utility (gitignored)
+
+### Issues Encountered
+
+- **react-hook-form + React 19 production crash**: Worked fine in dev/build, only failed in production runtime. Root cause: react-hook-form v7.71 calls `useMemo` in a way incompatible with React 19.2 production bundles (React error #310). Resolution: removed react-hook-form entirely from all forms.
+- **`/frontend-design` skill not recognized in current session**: Skill file placed correctly at `.claude/skills/frontend-design/SKILL.md`. `/reload-plugins` reloaded 0 skills. Requires starting a new Claude Code session to pick up.
+
+### Current State
+
+- **Deployed**: Live on Vercel. Full end-to-end flow tested (sign up, create tournament, add events/players, generate bracket, submit scores, confirm result, rating update verified).
+- **All forms**: react-hook-form removed; plain useActionState + FormData throughout.
+- **Delete tournament**: Working for any tournament created after 2026-03-12.
+- **Build**: Clean. All 16 routes compile.
+
+### Next Steps
+
+- Start new Claude Code session to use `/frontend-design` skill for UI redesign
+- UI redesign across all pages
+- Consider future features: doubles events, round-robin format, bracket seeding UI, rating history charts
+
+---
+
 ## Session Log — 2026-03-11
 
 ### Objective
