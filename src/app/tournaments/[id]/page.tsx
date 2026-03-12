@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { auth } from "@clerk/nextjs/server";
 import { getTournamentDetail } from "@/server/services/tournament.service";
+import { DeleteTournamentButton } from "@/components/tournaments/DeleteTournamentButton";
 
 type Props = { params: Promise<{ id: string }> };
 
@@ -27,8 +28,15 @@ export default async function TournamentDetailPage({ params }: Props) {
     <main className="mx-auto max-w-2xl px-4 py-12">
       <div className="space-y-8">
         <div>
-          <p className="text-sm text-zinc-400">{tournament.organization.name}</p>
-          <h1 className="text-3xl font-semibold text-zinc-900">{tournament.name}</h1>
+          <div className="flex items-start justify-between gap-4">
+            <div>
+              <p className="text-sm text-zinc-400">{tournament.organization.name}</p>
+              <h1 className="text-3xl font-semibold text-zinc-900">{tournament.name}</h1>
+            </div>
+            {userId && tournament.createdByClerkId === userId && (
+              <DeleteTournamentButton tournamentId={tournament.id} />
+            )}
+          </div>
           {tournament.location && (
             <p className="mt-1 text-zinc-500">{tournament.location}</p>
           )}

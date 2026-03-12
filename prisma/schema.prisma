@@ -137,14 +137,15 @@ model RatingTransaction {
 // ─── Tournaments ──────────────────────────────────────────────────────────────
 
 model Tournament {
-  id             String           @id @default(cuid())
-  organizationId String
-  name           String
-  location       String?
-  startDate      DateTime
-  endDate        DateTime?
-  status         TournamentStatus @default(DRAFT)
-  createdAt      DateTime         @default(now())
+  id               String           @id @default(cuid())
+  organizationId   String
+  createdByClerkId String?
+  name             String
+  location         String?
+  startDate        DateTime
+  endDate          DateTime?
+  status           TournamentStatus @default(DRAFT)
+  createdAt        DateTime         @default(now())
 
   organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   events       Event[]

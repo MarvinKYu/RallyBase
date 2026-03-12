@@ -2,7 +2,7 @@
 
 import { auth } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
-import { createTournament, createEvent, addEntrant } from "@/server/services/tournament.service";
+import { createTournament, deleteTournament, createEvent, addEntrant } from "@/server/services/tournament.service";
 
 export type TournamentActionState = {
   error?: string;
@@ -24,7 +24,7 @@ export async function createTournamentAction(
     endDate: (formData.get("endDate") as string) || undefined,
   };
 
-  const result = await createTournament(data);
+  const result = await createTournament(data, userId);
   if ("fieldErrors" in result) return { fieldErrors: result.fieldErrors };
   if ("error" in result) return { error: result.error };
 
@@ -52,6 +52,17 @@ export async function createEventAction(
   if ("error" in result) return { error: result.error };
 
   redirect(`/tournaments/${tournamentId}/events/${result.event.id}`);
+}
+
+// tournamentId is pre-bound via .bind(null, tournamentId)
+export async function deleteTournamentAction(tournamentId: string): Promise<void> {
+  const { userId } = await auth();
+  if (!userId) redirect("/sign-in");
+
+  const result = await deleteTournament(tournamentId, userId);
+  if ("error" in result) throw new Error(result.error);
+
+  redirect("/tournaments");
 }
 
 // eventId and tournamentId are pre-bound via .bind(null, eventId, tournamentId)

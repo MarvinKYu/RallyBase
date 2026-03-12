@@ -6,6 +6,7 @@ import {
   findAllTournaments,
   findTournamentById,
   createTournament as dbCreateTournament,
+  deleteTournamentById,
   findEventById,
   createEvent as dbCreateEvent,
   findEventEntry,
@@ -41,7 +42,10 @@ export type CreateTournamentResult =
   | { error: string }
   | { fieldErrors: Record<string, string[]> };
 
-export async function createTournament(data: unknown): Promise<CreateTournamentResult> {
+export async function createTournament(
+  data: unknown,
+  createdByClerkId?: string,
+): Promise<CreateTournamentResult> {
   const parsed = createTournamentSchema.safeParse(data);
   if (!parsed.success) {
     return { fieldErrors: parsed.error.flatten().fieldErrors as Record<string, string[]> };
@@ -51,6 +55,7 @@ export async function createTournament(data: unknown): Promise<CreateTournamentR
 
   const tournament = await dbCreateTournament({
     organizationId,
+    createdByClerkId,
     name,
     location: location || undefined,
     startDate: new Date(startDate),
@@ -59,6 +64,14 @@ export async function createTournament(data: unknown): Promise<CreateTournamentR
 
   const full = await findTournamentById(tournament.id);
   return { tournament: full! };
+}
+
+export async function deleteTournament(tournamentId: string, clerkId: string) {
+  const tournament = await findTournamentById(tournamentId);
+  if (!tournament) return { error: "Tournament not found." };
+  if (tournament.createdByClerkId !== clerkId) return { error: "Not authorized." };
+  await deleteTournamentById(tournamentId);
+  return { success: true };
 }
 
 export type CreateEventResult =

@@ -48,12 +48,34 @@ export async function findTournamentById(id: string) {
 
 export async function createTournament(data: {
   organizationId: string;
+  createdByClerkId?: string;
   name: string;
   location?: string;
   startDate: Date;
   endDate?: Date;
 }) {
   return prisma.tournament.create({ data });
+}
+
+export async function deleteTournamentById(id: string) {
+  const matchIds = await prisma.match.findMany({
+    where: { event: { tournamentId: id } },
+    select: { id: true },
+  }).then((rows) => rows.map((r) => r.id));
+
+  await prisma.$transaction(async (tx) => {
+    if (matchIds.length > 0) {
+      await tx.match.updateMany({
+        where: { id: { in: matchIds } },
+        data: { nextMatchId: null },
+      });
+      await tx.ratingTransaction.updateMany({
+        where: { matchId: { in: matchIds } },
+        data: { matchId: null },
+      });
+    }
+    await tx.tournament.delete({ where: { id } });
+  });
 }
 
 // ── Events ────────────────────────────────────────────────────────────────────
