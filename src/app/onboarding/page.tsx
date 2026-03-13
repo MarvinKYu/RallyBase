@@ -15,10 +15,10 @@ export default async function OnboardingPage() {
   return (
     <main className="mx-auto max-w-lg px-4 py-16">
       <div className="mb-8 space-y-1">
-        <h1 className="text-2xl font-semibold text-zinc-900">
+        <h1 className="text-2xl font-semibold text-text-1">
           Create your player profile
         </h1>
-        <p className="text-sm text-zinc-500">
+        <p className="text-sm text-text-2">
           Set up your profile to start tracking ratings and entering
           tournaments.
         </p>

@@ -34,19 +34,19 @@ export default async function SubmitResultPage({ params }: Props) {
   return (
     <main className="mx-auto max-w-lg px-4 py-16">
       <div className="mb-8 space-y-1">
-        <p className="text-sm text-zinc-400">
+        <p className="text-sm text-text-3">
           <Link
             href={`/tournaments/${tournamentId}/events/${eventId}/bracket`}
-            className="hover:text-zinc-700"
+            className="hover:text-text-2"
           >
             {match.event.tournament.name}
           </Link>
         </p>
-        <h1 className="text-2xl font-semibold text-zinc-900">Submit match result</h1>
-        <p className="text-sm text-zinc-500">
+        <h1 className="text-2xl font-semibold text-text-1">Submit match result</h1>
+        <p className="text-sm text-text-2">
           {match.player1?.displayName ?? "TBD"} vs {match.player2?.displayName ?? "TBD"}
         </p>
-        <p className="text-xs text-zinc-400">
+        <p className="text-xs text-text-3">
           {match.event.format.replace("_", " ")} · First to {match.event.gamePointTarget}
         </p>
       </div>
@@ -64,7 +64,7 @@ export default async function SubmitResultPage({ params }: Props) {
       <div className="mt-6">
         <Link
           href={`/tournaments/${tournamentId}/events/${eventId}/bracket`}
-          className="text-sm text-zinc-500 transition-colors hover:text-zinc-900"
+          className="text-sm text-text-2 transition-colors hover:text-text-1"
         >
           ← Back to bracket
         </Link>

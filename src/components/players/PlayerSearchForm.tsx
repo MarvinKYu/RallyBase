@@ -24,11 +24,11 @@ export function PlayerSearchForm() {
         defaultValue={q}
         onChange={(e) => handleChange(e.target.value)}
         placeholder="Search by display name…"
-        className="w-full rounded-md border border-zinc-300 px-3 py-2 text-sm shadow-sm focus:border-zinc-500 focus:outline-none focus:ring-1 focus:ring-zinc-500"
+        className="w-full rounded-md border border-border bg-elevated px-3 py-2 text-sm text-text-1 placeholder:text-text-3 shadow-sm focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
         autoFocus
       />
       {isPending && (
-        <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-zinc-400">
+        <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-text-3">
           Searching…
         </span>
       )}

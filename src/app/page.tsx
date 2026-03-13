@@ -46,24 +46,24 @@ export default async function Home() {
     <main>
       {/* Hero */}
       <section className="mx-auto max-w-2xl px-4 py-20 text-center sm:py-28">
-        <p className="mb-3 text-xs font-semibold uppercase tracking-widest text-zinc-400">
+        <p className="mb-3 text-xs font-semibold uppercase tracking-widest text-text-3">
           Table tennis · Tournament management
         </p>
-        <h1 className="mb-5 text-4xl font-semibold tracking-tight text-zinc-900 sm:text-5xl">
+        <h1 className="mb-5 text-4xl font-semibold tracking-tight text-text-1 sm:text-5xl">
           Tournaments & ratings,<br className="hidden sm:block" /> handled.
         </h1>
-        <p className="mx-auto mb-10 max-w-md text-base text-zinc-500">
+        <p className="mx-auto mb-10 max-w-md text-base text-text-2">
           RallyBase runs your single-elimination brackets and keeps Elo ratings up to date —
           automatically, after every confirmed match result.
         </p>
         <div className="flex flex-wrap justify-center gap-3">
           <SignUpButton>
-            <button className="rounded-md bg-zinc-900 px-6 py-2.5 text-sm font-medium text-white transition-colors hover:bg-zinc-700">
+            <button className="rounded-md bg-accent px-6 py-2.5 text-sm font-medium text-background transition-colors hover:bg-accent-dim">
               Get started
             </button>
           </SignUpButton>
           <SignInButton>
-            <button className="rounded-md border border-zinc-300 px-6 py-2.5 text-sm font-medium text-zinc-700 transition-colors hover:bg-zinc-50">
+            <button className="rounded-md border border-border px-6 py-2.5 text-sm font-medium text-text-2 transition-colors hover:bg-surface-hover hover:text-text-1">
               Sign in
             </button>
           </SignInButton>
@@ -73,13 +73,13 @@ export default async function Home() {
         <div className="mt-8 flex justify-center gap-6">
           <Link
             href="/tournaments"
-            className="text-sm text-zinc-500 underline-offset-4 hover:text-zinc-900 hover:underline"
+            className="text-sm text-text-2 underline-offset-4 hover:text-text-1 hover:underline"
           >
             Browse tournaments →
           </Link>
           <Link
             href="/players"
-            className="text-sm text-zinc-500 underline-offset-4 hover:text-zinc-900 hover:underline"
+            className="text-sm text-text-2 underline-offset-4 hover:text-text-1 hover:underline"
           >
             Find players →
           </Link>
@@ -87,20 +87,20 @@ export default async function Home() {
       </section>
 
       {/* How it works */}
-      <section className="border-t border-zinc-100 bg-zinc-50 px-4 py-16 sm:py-20">
+      <section className="border-t border-border-subtle bg-surface px-4 py-16 sm:py-20">
         <div className="mx-auto max-w-2xl">
-          <h2 className="mb-10 text-center text-sm font-semibold uppercase tracking-widest text-zinc-400">
+          <h2 className="mb-10 text-center text-sm font-semibold uppercase tracking-widest text-text-3">
             How it works
           </h2>
           <ol className="space-y-8">
             {WORKFLOW_STEPS.map(({ step, title, description }) => (
               <li key={step} className="flex gap-5">
-                <span className="mt-0.5 font-mono text-sm text-zinc-300 select-none shrink-0">
+                <span className="mt-0.5 font-mono text-sm text-accent-bright select-none shrink-0">
                   {step}
                 </span>
                 <div>
-                  <p className="text-sm font-medium text-zinc-900">{title}</p>
-                  <p className="mt-1 text-sm text-zinc-500">{description}</p>
+                  <p className="text-sm font-medium text-text-1">{title}</p>
+                  <p className="mt-1 text-sm text-text-2">{description}</p>
                 </div>
               </li>
             ))}
@@ -109,8 +109,8 @@ export default async function Home() {
       </section>
 
       {/* Footer */}
-      <footer className="border-t border-zinc-100 px-4 py-6 text-center">
-        <p className="text-xs text-zinc-400">
+      <footer className="border-t border-border-subtle px-4 py-6 text-center">
+        <p className="text-xs text-text-3">
           RallyBase · Built for competitive table tennis clubs and tournaments
         </p>
       </footer>

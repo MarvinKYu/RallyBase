@@ -31,16 +31,16 @@ export default async function ConfirmResultPage({ params }: Props) {
   return (
     <main className="mx-auto max-w-lg px-4 py-16">
       <div className="mb-8 space-y-1">
-        <p className="text-sm text-zinc-400">
+        <p className="text-sm text-text-3">
           <Link
             href={`/tournaments/${tournamentId}/events/${eventId}/bracket`}
-            className="hover:text-zinc-700"
+            className="hover:text-text-2"
           >
             {match.event.tournament.name}
           </Link>
         </p>
-        <h1 className="text-2xl font-semibold text-zinc-900">Confirm match result</h1>
-        <p className="text-sm text-zinc-500">
+        <h1 className="text-2xl font-semibold text-text-1">Confirm match result</h1>
+        <p className="text-sm text-text-2">
           {match.player1?.displayName ?? "Player 1"} vs{" "}
           {match.player2?.displayName ?? "Player 2"}
         </p>
@@ -48,11 +48,11 @@ export default async function ConfirmResultPage({ params }: Props) {
 
       {/* Scores to review */}
       <section className="mb-8">
-        <h2 className="mb-3 text-sm font-medium text-zinc-700">
+        <h2 className="mb-3 text-sm font-medium text-text-2">
           Scores submitted by {submission.submittedBy.displayName}
         </h2>
-        <div className="overflow-hidden rounded-lg border border-zinc-200">
-          <div className="grid grid-cols-[2rem_1fr_1fr] gap-4 border-b border-zinc-100 bg-zinc-50 px-4 py-2 text-xs font-medium uppercase tracking-wide text-zinc-500">
+        <div className="overflow-hidden rounded-lg border border-border">
+          <div className="grid grid-cols-[2rem_1fr_1fr] gap-4 border-b border-border-subtle bg-elevated px-4 py-2 text-xs font-medium uppercase tracking-wide text-text-3">
             <span>#</span>
             <span className="truncate">{match.player1?.displayName ?? "Player 1"}</span>
             <span className="truncate">{match.player2?.displayName ?? "Player 2"}</span>
@@ -60,11 +60,11 @@ export default async function ConfirmResultPage({ params }: Props) {
           {submission.games.map((g) => (
             <div
               key={g.gameNumber}
-              className="grid grid-cols-[2rem_1fr_1fr] gap-4 border-b border-zinc-100 px-4 py-3 last:border-b-0"
+              className="grid grid-cols-[2rem_1fr_1fr] gap-4 border-b border-border-subtle bg-surface px-4 py-3 last:border-b-0"
             >
-              <span className="text-sm text-zinc-400">{g.gameNumber}</span>
-              <span className="text-sm font-medium text-zinc-900">{g.player1Points}</span>
-              <span className="text-sm font-medium text-zinc-900">{g.player2Points}</span>
+              <span className="text-sm text-text-3">{g.gameNumber}</span>
+              <span className="text-sm font-medium text-text-1">{g.player1Points}</span>
+              <span className="text-sm font-medium text-text-1">{g.player2Points}</span>
             </div>
           ))}
         </div>
@@ -72,7 +72,7 @@ export default async function ConfirmResultPage({ params }: Props) {
 
       {/* Confirmation code entry */}
       <div className="mb-6">
-        <h2 className="mb-3 text-sm font-medium text-zinc-700">
+        <h2 className="mb-3 text-sm font-medium text-text-2">
           Enter the confirmation code to confirm these scores
         </h2>
         <ConfirmResultForm
@@ -84,7 +84,7 @@ export default async function ConfirmResultPage({ params }: Props) {
 
       <Link
         href={`/tournaments/${tournamentId}/events/${eventId}/bracket`}
-        className="text-sm text-zinc-500 transition-colors hover:text-zinc-900"
+        className="text-sm text-text-2 transition-colors hover:text-text-1"
       >
         ← Back to bracket
       </Link>

@@ -19,7 +19,7 @@ export function MobileNav() {
           <Link
             key={href}
             href={href}
-            className="text-sm text-zinc-600 transition-colors hover:text-zinc-900"
+            className="text-sm text-text-2 transition-colors hover:text-text-1"
           >
             {label}
           </Link>
@@ -28,7 +28,7 @@ export function MobileNav() {
 
       {/* Mobile: hamburger button */}
       <button
-        className="flex h-8 w-8 items-center justify-center rounded-md text-zinc-600 transition-colors hover:bg-zinc-100 hover:text-zinc-900 sm:hidden"
+        className="flex h-8 w-8 items-center justify-center rounded-md text-text-2 transition-colors hover:bg-surface-hover hover:text-text-1 sm:hidden"
         aria-label={open ? "Close menu" : "Open menu"}
         onClick={() => setOpen((o) => !o)}
       >
@@ -47,13 +47,13 @@ export function MobileNav() {
 
       {/* Mobile dropdown */}
       {open && (
-        <div className="absolute left-0 right-0 top-full z-50 border-b border-zinc-200 bg-white px-6 py-4 sm:hidden">
+        <div className="absolute left-0 right-0 top-full z-50 border-b border-border bg-surface px-6 py-4 sm:hidden">
           <nav className="flex flex-col gap-4">
             {NAV_LINKS.map(({ href, label }) => (
               <Link
                 key={href}
                 href={href}
-                className="text-sm text-zinc-700 transition-colors hover:text-zinc-900"
+                className="text-sm text-text-2 transition-colors hover:text-text-1"
                 onClick={() => setOpen(false)}
               >
                 {label}

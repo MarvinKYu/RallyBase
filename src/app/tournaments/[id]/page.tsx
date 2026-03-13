@@ -30,17 +30,17 @@ export default async function TournamentDetailPage({ params }: Props) {
         <div>
           <div className="flex items-start justify-between gap-4">
             <div>
-              <p className="text-sm text-zinc-400">{tournament.organization.name}</p>
-              <h1 className="text-3xl font-semibold text-zinc-900">{tournament.name}</h1>
+              <p className="text-sm text-text-3">{tournament.organization.name}</p>
+              <h1 className="text-3xl font-semibold text-text-1">{tournament.name}</h1>
             </div>
             {userId && tournament.createdByClerkId === userId && (
               <DeleteTournamentButton tournamentId={tournament.id} />
             )}
           </div>
           {tournament.location && (
-            <p className="mt-1 text-zinc-500">{tournament.location}</p>
+            <p className="mt-1 text-text-2">{tournament.location}</p>
           )}
-          <p className="mt-1 text-sm text-zinc-400">
+          <p className="mt-1 text-sm text-text-3">
             {new Date(tournament.startDate).toLocaleDateString()}
             {tournament.endDate &&
               ` – ${new Date(tournament.endDate).toLocaleDateString()}`}
@@ -49,11 +49,11 @@ export default async function TournamentDetailPage({ params }: Props) {
 
         <section>
           <div className="mb-4 flex items-center justify-between">
-            <h2 className="text-lg font-medium text-zinc-900">Events</h2>
+            <h2 className="text-lg font-medium text-text-1">Events</h2>
             {userId && (
               <Link
                 href={`/tournaments/${id}/events/new`}
-                className="rounded-md bg-zinc-900 px-3 py-1.5 text-xs font-medium text-white transition-colors hover:bg-zinc-700"
+                className="rounded-md bg-accent px-3 py-1.5 text-xs font-medium text-background transition-colors hover:bg-accent-dim"
               >
                 Add event
               </Link>
@@ -61,22 +61,22 @@ export default async function TournamentDetailPage({ params }: Props) {
           </div>
 
           {tournament.events.length === 0 ? (
-            <p className="text-sm text-zinc-500">No events yet.</p>
+            <p className="text-sm text-text-2">No events yet.</p>
           ) : (
-            <ul className="overflow-hidden rounded-lg border border-zinc-200">
+            <ul className="overflow-hidden rounded-lg border border-border">
               {tournament.events.map((event) => (
                 <li key={event.id}>
                   <Link
                     href={`/tournaments/${id}/events/${event.id}`}
-                    className="flex items-center justify-between border-b border-zinc-100 bg-white px-4 py-3 transition-colors last:border-b-0 hover:bg-zinc-50"
+                    className="flex items-center justify-between border-b border-border-subtle bg-surface px-4 py-3 transition-colors last:border-b-0 hover:bg-surface-hover"
                   >
                     <div>
-                      <p className="text-sm font-medium text-zinc-900">{event.name}</p>
-                      <p className="text-xs text-zinc-400">
+                      <p className="text-sm font-medium text-text-1">{event.name}</p>
+                      <p className="text-xs text-text-3">
                         {event.ratingCategory.name} · {formatLabel[event.format] ?? event.format}
                       </p>
                     </div>
-                    <p className="text-xs text-zinc-500">
+                    <p className="text-xs text-text-2">
                       {event._count.eventEntries} entrant
                       {event._count.eventEntries !== 1 ? "s" : ""}
                     </p>
@@ -89,7 +89,7 @@ export default async function TournamentDetailPage({ params }: Props) {
 
         <Link
           href="/tournaments"
-          className="text-sm text-zinc-500 transition-colors hover:text-zinc-900"
+          className="text-sm text-text-2 transition-colors hover:text-text-1"
         >
           ← Back to tournaments
         </Link>

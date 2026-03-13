@@ -20,41 +20,41 @@ export default async function ProfilePage({ params }: Props) {
       <div className="space-y-8">
         {/* Header */}
         <div>
-          <h1 className="text-3xl font-semibold text-zinc-900">
+          <h1 className="text-3xl font-semibold text-text-1">
             {profile.displayName}
           </h1>
           {profile.bio && (
-            <p className="mt-2 text-zinc-600">{profile.bio}</p>
+            <p className="mt-2 text-text-2">{profile.bio}</p>
           )}
         </div>
 
         {/* Ratings */}
         <section>
-          <h2 className="mb-4 text-lg font-medium text-zinc-900">Ratings</h2>
+          <h2 className="mb-4 text-lg font-medium text-text-1">Ratings</h2>
           {profile.playerRatings.length === 0 ? (
-            <p className="text-sm text-zinc-500">
+            <p className="text-sm text-text-2">
               No ratings yet. Enter a tournament to get started.
             </p>
           ) : (
-            <div className="overflow-hidden rounded-lg border border-zinc-200">
+            <div className="overflow-hidden rounded-lg border border-border">
               {profile.playerRatings.map((pr) => (
                 <div
                   key={pr.id}
-                  className="flex items-center justify-between border-b border-zinc-100 bg-white px-4 py-3 last:border-b-0"
+                  className="flex items-center justify-between border-b border-border-subtle bg-surface px-4 py-3 last:border-b-0"
                 >
                   <div>
-                    <p className="text-sm font-medium text-zinc-900">
+                    <p className="text-sm font-medium text-text-1">
                       {pr.ratingCategory.name}
                     </p>
-                    <p className="text-xs text-zinc-400">
+                    <p className="text-xs text-text-3">
                       {pr.ratingCategory.organization.name}
                     </p>
                   </div>
                   <div className="text-right">
-                    <p className="text-lg font-semibold text-zinc-900">
+                    <p className="text-lg font-semibold text-accent">
                       {Math.round(pr.rating)}
                     </p>
-                    <p className="text-xs text-zinc-400">
+                    <p className="text-xs text-text-3">
                       {pr.gamesPlayed} game{pr.gamesPlayed !== 1 ? "s" : ""}
                     </p>
                   </div>
@@ -66,7 +66,7 @@ export default async function ProfilePage({ params }: Props) {
 
         <Link
           href="/players"
-          className="text-sm text-zinc-500 transition-colors hover:text-zinc-900"
+          className="text-sm text-text-2 transition-colors hover:text-text-1"
         >
           ← Back to player search
         </Link>

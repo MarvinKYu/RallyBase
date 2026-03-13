@@ -49,13 +49,13 @@ export default async function EventDetailPage({ params, searchParams }: Props) {
       <div className="space-y-8">
         {/* Header */}
         <div>
-          <p className="text-sm text-zinc-400">
-            <Link href={`/tournaments/${id}`} className="transition-colors hover:text-zinc-700">
+          <p className="text-sm text-text-3">
+            <Link href={`/tournaments/${id}`} className="transition-colors hover:text-text-2">
               {event.tournament.name}
             </Link>
           </p>
-          <h1 className="text-3xl font-semibold text-zinc-900">{event.name}</h1>
-          <p className="mt-1 text-sm text-zinc-500">
+          <h1 className="text-3xl font-semibold text-text-1">{event.name}</h1>
+          <p className="mt-1 text-sm text-text-2">
             {event.ratingCategory.name} ·{" "}
             {formatLabel[event.format] ?? event.format} · First to {event.gamePointTarget}
           </p>
@@ -63,7 +63,7 @@ export default async function EventDetailPage({ params, searchParams }: Props) {
             {hasBracket && (
               <Link
                 href={`/tournaments/${id}/events/${eventId}/bracket`}
-                className="rounded-md bg-zinc-900 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-zinc-700"
+                className="rounded-md bg-accent px-4 py-2 text-sm font-medium text-background transition-colors hover:bg-accent-dim"
               >
                 View bracket
               </Link>
@@ -72,7 +72,7 @@ export default async function EventDetailPage({ params, searchParams }: Props) {
               <form action={generateBracketAction.bind(null, eventId, id)}>
                 <button
                   type="submit"
-                  className="rounded-md bg-zinc-900 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-zinc-700"
+                  className="rounded-md bg-accent px-4 py-2 text-sm font-medium text-background transition-colors hover:bg-accent-dim"
                 >
                   Generate bracket
                 </button>
@@ -83,13 +83,13 @@ export default async function EventDetailPage({ params, searchParams }: Props) {
 
         {/* Entrants */}
         <section>
-          <h2 className="mb-4 text-lg font-medium text-zinc-900">
+          <h2 className="mb-4 text-lg font-medium text-text-1">
             Entrants ({event.eventEntries.length})
           </h2>
           {event.eventEntries.length === 0 ? (
-            <p className="text-sm text-zinc-500">No entrants yet.</p>
+            <p className="text-sm text-text-2">No entrants yet.</p>
           ) : (
-            <ul className="overflow-hidden rounded-lg border border-zinc-200">
+            <ul className="overflow-hidden rounded-lg border border-border">
               {event.eventEntries.map((entry) => {
                 const rating = entry.playerProfile.playerRatings.find(
                   (r) => r.ratingCategoryId === event.ratingCategoryId,
@@ -97,15 +97,15 @@ export default async function EventDetailPage({ params, searchParams }: Props) {
                 return (
                   <li
                     key={entry.id}
-                    className="flex items-center justify-between border-b border-zinc-100 bg-white px-4 py-3 last:border-b-0"
+                    className="flex items-center justify-between border-b border-border-subtle bg-surface px-4 py-3 last:border-b-0"
                   >
                     <Link
                       href={`/profile/${entry.playerProfileId}`}
-                      className="text-sm font-medium text-zinc-900 transition-colors hover:underline"
+                      className="text-sm font-medium text-text-1 transition-colors hover:underline"
                     >
                       {entry.playerProfile.displayName}
                     </Link>
-                    <span className="text-sm text-zinc-500">
+                    <span className="text-sm text-text-2">
                       {rating ? Math.round(rating.rating) : "Unrated"}
                     </span>
                   </li>
@@ -118,36 +118,36 @@ export default async function EventDetailPage({ params, searchParams }: Props) {
         {/* Add entrant — signed-in users only */}
         {userId && (
           <section>
-            <h2 className="mb-4 text-lg font-medium text-zinc-900">Add entrant</h2>
+            <h2 className="mb-4 text-lg font-medium text-text-1">Add entrant</h2>
             <div className="space-y-4">
               <Suspense>
                 <EntrantSearchForm />
               </Suspense>
 
               {q && searchResults.length === 0 && (
-                <p className="text-sm text-zinc-500">
+                <p className="text-sm text-text-2">
                   No players found for &ldquo;{q}&rdquo;.
                 </p>
               )}
 
               {searchResults.length > 0 && (
-                <ul className="overflow-hidden rounded-lg border border-zinc-200">
+                <ul className="overflow-hidden rounded-lg border border-border">
                   {searchResults.map((player) => {
                     const alreadyIn = enteredIds.has(player.id);
                     return (
                       <li
                         key={player.id}
-                        className="flex items-center justify-between border-b border-zinc-100 bg-white px-4 py-3 last:border-b-0"
+                        className="flex items-center justify-between border-b border-border-subtle bg-surface px-4 py-3 last:border-b-0"
                       >
-                        <span className="text-sm text-zinc-900">{player.displayName}</span>
+                        <span className="text-sm text-text-1">{player.displayName}</span>
                         {alreadyIn ? (
-                          <span className="text-xs text-zinc-400">Already entered</span>
+                          <span className="text-xs text-text-3">Already entered</span>
                         ) : (
                           <form action={addEntrantAction.bind(null, eventId, id)}>
                             <input type="hidden" name="playerProfileId" value={player.id} />
                             <button
                               type="submit"
-                              className="rounded-md bg-zinc-900 px-3 py-1 text-xs font-medium text-white transition-colors hover:bg-zinc-700"
+                              className="rounded-md bg-accent px-3 py-1 text-xs font-medium text-background transition-colors hover:bg-accent-dim"
                             >
                               Add
                             </button>
@@ -164,7 +164,7 @@ export default async function EventDetailPage({ params, searchParams }: Props) {
 
         <Link
           href={`/tournaments/${id}`}
-          className="text-sm text-zinc-500 transition-colors hover:text-zinc-900"
+          className="text-sm text-text-2 transition-colors hover:text-text-1"
         >
           ← Back to tournament
         </Link>

@@ -20,13 +20,13 @@ export default function RootLayout({
     <html lang="en">
       <body className={`${GeistSans.variable} ${GeistMono.variable} antialiased`}>
         <ClerkProvider>
-          <header className="relative border-b border-zinc-200 bg-white">
+          <header className="relative border-b border-border bg-surface">
             <div className="flex items-center justify-between gap-4 px-4 py-3 sm:px-6 sm:py-4">
               {/* Brand + nav */}
               <div className="flex items-center gap-6">
                 <Link
                   href="/"
-                  className="text-sm font-semibold text-zinc-900"
+                  className="text-sm font-semibold text-accent"
                 >
                   RallyBase
                 </Link>
@@ -38,12 +38,12 @@ export default function RootLayout({
               <div className="flex items-center gap-2 sm:gap-4">
                 <Show when="signed-out">
                   <SignInButton>
-                    <button className="rounded-md px-3 py-1.5 text-sm font-medium text-zinc-700 transition-colors hover:bg-zinc-100">
+                    <button className="rounded-md px-3 py-1.5 text-sm font-medium text-text-2 transition-colors hover:bg-surface-hover hover:text-text-1">
                       Sign in
                     </button>
                   </SignInButton>
                   <SignUpButton>
-                    <button className="rounded-md bg-zinc-900 px-3 py-1.5 text-sm font-medium text-white transition-colors hover:bg-zinc-700">
+                    <button className="rounded-md bg-accent px-3 py-1.5 text-sm font-medium text-background transition-colors hover:bg-accent-dim">
                       Sign up
                     </button>
                   </SignUpButton>

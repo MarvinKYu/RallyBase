@@ -20,7 +20,7 @@ export function DeleteTournamentButton({ tournamentId }: { tournamentId: string 
     <button
       onClick={handleClick}
       disabled={isPending}
-      className="rounded-md border border-red-200 px-3 py-1.5 text-xs font-medium text-red-600 transition-colors hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-50"
+      className="rounded-md border border-red-900 px-3 py-1.5 text-xs font-medium text-red-400 transition-colors hover:bg-red-950/50 disabled:cursor-not-allowed disabled:opacity-50"
     >
       {isPending ? "Deleting…" : "Delete tournament"}
     </button>

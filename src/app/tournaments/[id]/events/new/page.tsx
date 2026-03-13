@@ -21,15 +21,15 @@ export default async function NewEventPage({ params }: Props) {
   return (
     <main className="mx-auto max-w-lg px-4 py-16">
       <div className="mb-8 space-y-1">
-        <p className="text-sm text-zinc-400">{tournament.name}</p>
-        <h1 className="text-2xl font-semibold text-zinc-900">Create event</h1>
-        <p className="text-sm text-zinc-500">Add an event to this tournament.</p>
+        <p className="text-sm text-text-3">{tournament.name}</p>
+        <h1 className="text-2xl font-semibold text-text-1">Create event</h1>
+        <p className="text-sm text-text-2">Add an event to this tournament.</p>
       </div>
       <EventForm tournamentId={id} ratingCategories={ratingCategories} />
       <div className="mt-6">
         <Link
           href={`/tournaments/${id}`}
-          className="text-sm text-zinc-500 transition-colors hover:text-zinc-900"
+          className="text-sm text-text-2 transition-colors hover:text-text-1"
         >
           ← Back to tournament
         </Link>

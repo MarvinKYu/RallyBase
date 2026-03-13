@@ -26,7 +26,7 @@ function MatchCard({ match }: { match: BracketMatch }) {
   const rowClass = (isWinner: boolean) =>
     [
       "flex items-center justify-between px-3 py-1.5 text-sm",
-      isWinner ? "font-semibold text-zinc-900" : "text-zinc-500",
+      isWinner ? "font-semibold text-text-1" : "text-text-2",
     ].join(" ");
 
   const p1 = match.player1?.displayName ?? "TBD";
@@ -38,26 +38,26 @@ function MatchCard({ match }: { match: BracketMatch }) {
 
   return (
     <div
-      className="w-44 overflow-hidden rounded-md border border-zinc-200 bg-white shadow-sm"
+      className="w-44 overflow-hidden rounded-md border border-border bg-surface shadow-sm"
       style={{ height: cardHeight }}
     >
       <div className={rowClass(p1Wins)}>
         <span className="truncate">{p1}</span>
-        {p1Wins && <span className="ml-1 text-xs text-green-600">W</span>}
+        {p1Wins && <span className="ml-1 text-xs text-accent">W</span>}
       </div>
-      <div className="border-t border-zinc-100" />
+      <div className="border-t border-border-subtle" />
       <div className={rowClass(p2Wins)}>
-        <span className={`truncate ${isBye ? "italic text-zinc-300" : ""}`}>{p2}</span>
-        {p2Wins && <span className="ml-1 text-xs text-green-600">W</span>}
+        <span className={`truncate ${isBye ? "italic text-text-3" : ""}`}>{p2}</span>
+        {p2Wins && <span className="ml-1 text-xs text-accent">W</span>}
       </div>
-      <div className="flex items-center justify-between border-t border-zinc-100 bg-zinc-50 px-3 py-1">
-        <span className="text-[10px] uppercase tracking-wide text-zinc-400">
+      <div className="flex items-center justify-between border-t border-border-subtle bg-elevated px-3 py-1">
+        <span className="text-[10px] uppercase tracking-wide text-text-3">
           {isBye ? "bye" : match.status.toLowerCase().replace(/_/g, " ")}
         </span>
         {match.status === "PENDING" && match.player1Id && match.player2Id && (
           <Link
             href={`/matches/${match.id}/submit`}
-            className="text-[10px] font-medium text-zinc-500 underline-offset-2 hover:text-zinc-900 hover:underline"
+            className="text-[10px] font-medium text-text-3 underline-offset-2 hover:text-accent hover:underline"
           >
             Submit
           </Link>
@@ -66,13 +66,13 @@ function MatchCard({ match }: { match: BracketMatch }) {
           <div className="flex gap-2">
             <Link
               href={`/matches/${match.id}/pending`}
-              className="text-[10px] font-medium text-zinc-500 underline-offset-2 hover:text-zinc-900 hover:underline"
+              className="text-[10px] font-medium text-text-3 underline-offset-2 hover:text-accent hover:underline"
             >
               View code
             </Link>
             <Link
               href={`/matches/${match.id}/confirm`}
-              className="text-[10px] font-medium text-zinc-500 underline-offset-2 hover:text-zinc-900 hover:underline"
+              className="text-[10px] font-medium text-text-3 underline-offset-2 hover:text-accent hover:underline"
             >
               Confirm
             </Link>
@@ -95,10 +95,10 @@ export default async function BracketPage({ params }: Props) {
   if (matches.length === 0) {
     return (
       <main className="mx-auto max-w-2xl px-4 py-12">
-        <p className="text-sm text-zinc-500">No bracket generated yet.</p>
+        <p className="text-sm text-text-2">No bracket generated yet.</p>
         <Link
           href={`/tournaments/${id}/events/${eventId}`}
-          className="mt-4 inline-block text-sm text-zinc-500 hover:text-zinc-900"
+          className="mt-4 inline-block text-sm text-text-2 hover:text-text-1"
         >
           ← Back to event
         </Link>
@@ -126,16 +126,16 @@ export default async function BracketPage({ params }: Props) {
   return (
     <main className="px-6 py-12">
       <div className="mb-8 space-y-1">
-        <p className="text-sm text-zinc-400">
-          <Link href={`/tournaments/${id}`} className="hover:text-zinc-700">
+        <p className="text-sm text-text-3">
+          <Link href={`/tournaments/${id}`} className="hover:text-text-2">
             {event.tournament.name}
           </Link>
           {" / "}
-          <Link href={`/tournaments/${id}/events/${eventId}`} className="hover:text-zinc-700">
+          <Link href={`/tournaments/${id}/events/${eventId}`} className="hover:text-text-2">
             {event.name}
           </Link>
         </p>
-        <h1 className="text-2xl font-semibold text-zinc-900">Bracket</h1>
+        <h1 className="text-2xl font-semibold text-text-1">Bracket</h1>
       </div>
 
       {/* Bracket columns */}
@@ -149,7 +149,7 @@ export default async function BracketPage({ params }: Props) {
 
           return (
             <div key={round} className="flex shrink-0 flex-col">
-              <p className="mb-3 text-xs font-medium uppercase tracking-wide text-zinc-400">
+              <p className="mb-3 text-xs font-medium uppercase tracking-wide text-text-3">
                 {roundLabel(round)}
               </p>
               <div
@@ -171,7 +171,7 @@ export default async function BracketPage({ params }: Props) {
 
       <Link
         href={`/tournaments/${id}/events/${eventId}`}
-        className="text-sm text-zinc-500 transition-colors hover:text-zinc-900"
+        className="text-sm text-text-2 transition-colors hover:text-text-1"
       >
         ← Back to event
       </Link>
