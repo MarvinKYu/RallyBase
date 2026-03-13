@@ -1,6 +1,9 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
+import { auth } from "@clerk/nextjs/server";
+import { MatchStatus } from "@prisma/client";
 import { getPlayerProfile } from "@/server/services/player.service";
+import { prisma } from "@/lib/prisma";
 
 type Props = { params: Promise<{ id: string }> };
 
@@ -12,21 +15,105 @@ export async function generateMetadata({ params }: Props) {
 
 export default async function ProfilePage({ params }: Props) {
   const { id } = await params;
+  const { userId } = await auth();
   const profile = await getPlayerProfile(id);
   if (!profile) notFound();
+
+  // Determine if the viewer is the profile owner, so we can show their dashboard
+  const isOwnProfile = !!userId && profile.user.clerkId === userId;
+
+  // Fetch upcoming matches for profile owner's view
+  const upcomingMatches = isOwnProfile
+    ? await prisma.match.findMany({
+        where: {
+          OR: [{ player1Id: profile.id }, { player2Id: profile.id }],
+          status: {
+            in: [
+              MatchStatus.PENDING,
+              MatchStatus.IN_PROGRESS,
+              MatchStatus.AWAITING_CONFIRMATION,
+            ],
+          },
+        },
+        include: {
+          player1: { select: { id: true, displayName: true } },
+          player2: { select: { id: true, displayName: true } },
+          event: {
+            select: {
+              id: true,
+              name: true,
+              tournament: { select: { id: true, name: true } },
+            },
+          },
+        },
+        orderBy: { createdAt: "asc" },
+        take: 10,
+      })
+    : [];
+
+  const statusLabel: Record<string, string> = {
+    PENDING: "Pending",
+    IN_PROGRESS: "In progress",
+    AWAITING_CONFIRMATION: "Awaiting confirmation",
+  };
 
   return (
     <main className="mx-auto max-w-2xl px-4 py-12">
       <div className="space-y-8">
         {/* Header */}
         <div>
-          <h1 className="text-3xl font-semibold text-text-1">
-            {profile.displayName}
-          </h1>
+          <div className="flex items-baseline gap-2">
+            <h1 className="text-3xl font-semibold text-text-1">
+              {profile.displayName}
+            </h1>
+            <span className="text-sm text-text-3">#{profile.playerNumber}</span>
+          </div>
           {profile.bio && (
             <p className="mt-2 text-text-2">{profile.bio}</p>
           )}
         </div>
+
+        {/* Upcoming matches (own profile only) */}
+        {upcomingMatches.length > 0 && (
+          <section>
+            <h2 className="mb-4 text-lg font-medium text-text-1">Upcoming matches</h2>
+            <ul className="overflow-hidden rounded-lg border border-border">
+              {upcomingMatches.map((m) => {
+                const opponent = m.player1Id === profile.id ? m.player2 : m.player1;
+                return (
+                  <li
+                    key={m.id}
+                    className="flex items-center justify-between border-b border-border-subtle bg-surface px-4 py-3 last:border-b-0"
+                  >
+                    <div>
+                      <p className="text-sm font-medium text-text-1">
+                        vs {opponent?.displayName ?? "TBD"}
+                      </p>
+                      <p className="text-xs text-text-3">
+                        {m.event.tournament.name} · {m.event.name}
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <span className="text-xs text-text-3">
+                        {statusLabel[m.status] ?? m.status}
+                      </span>
+                      <Link
+                        href={
+                          m.status === "AWAITING_CONFIRMATION"
+                            ? `/matches/${m.id}/confirm`
+                            : `/matches/${m.id}/submit`
+                        }
+                        className="rounded-md bg-accent px-3 py-1 text-xs font-medium text-background transition-colors hover:bg-accent-dim"
+                      >
+                        {m.status === "AWAITING_CONFIRMATION" ? "Confirm" : "Submit"}
+                      </Link>
+                    </div>
+                  </li>
+                );
+              })}
+            </ul>
+          </section>
+        )}
 
         {/* Ratings */}
         <section>

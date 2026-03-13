@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { useActionState } from "react";
 import {
   createEventAction,
@@ -11,15 +12,18 @@ type RatingCategory = { id: string; name: string };
 export function EventForm({
   tournamentId,
   ratingCategories,
+  isTournamentCreator = false,
 }: {
   tournamentId: string;
   ratingCategories: RatingCategory[];
+  isTournamentCreator?: boolean;
 }) {
   const boundAction = createEventAction.bind(null, tournamentId);
   const [state, dispatch, isPending] = useActionState<TournamentActionState, FormData>(
     boundAction,
     null,
   );
+  const [showEligibility, setShowEligibility] = useState(false);
 
   return (
     <form action={dispatch} className="space-y-6">
@@ -66,6 +70,21 @@ export function EventForm({
         )}
       </div>
 
+      <div className="space-y-1">
+        <label htmlFor="eventFormat" className="block text-sm font-medium text-text-2">
+          Event format
+        </label>
+        <select
+          id="eventFormat"
+          name="eventFormat"
+          defaultValue="SINGLE_ELIMINATION"
+          className="w-full rounded-md border border-border bg-elevated px-3 py-2 text-sm text-text-1 shadow-sm focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
+        >
+          <option value="SINGLE_ELIMINATION">Single Elimination</option>
+          <option value="ROUND_ROBIN">Round Robin</option>
+        </select>
+      </div>
+
       <div className="grid grid-cols-2 gap-4">
         <div className="space-y-1">
           <label htmlFor="format" className="block text-sm font-medium text-text-2">
@@ -101,6 +120,94 @@ export function EventForm({
           )}
         </div>
       </div>
+
+      {/* Eligibility settings — TD only */}
+      {isTournamentCreator && (
+        <div className="space-y-4 rounded-md border border-border-subtle bg-elevated p-4">
+          <div className="flex items-center justify-between">
+            <p className="text-sm font-medium text-text-2">Eligibility restrictions</p>
+            <button
+              type="button"
+              onClick={() => setShowEligibility(!showEligibility)}
+              className="text-xs text-accent hover:text-accent-dim"
+            >
+              {showEligibility ? "Hide" : "Add restrictions"}
+            </button>
+          </div>
+
+          {showEligibility && (
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1">
+                <label htmlFor="maxParticipants" className="block text-xs font-medium text-text-3">
+                  Max participants
+                </label>
+                <input
+                  id="maxParticipants"
+                  name="maxParticipants"
+                  type="number"
+                  min="2"
+                  placeholder="e.g. 8"
+                  className="w-full rounded-md border border-border bg-surface px-3 py-2 text-sm text-text-1 placeholder:text-text-3 shadow-sm focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
+                />
+              </div>
+
+              <div className="space-y-1">
+                <label htmlFor="minRating" className="block text-xs font-medium text-text-3">
+                  Min rating
+                </label>
+                <input
+                  id="minRating"
+                  name="minRating"
+                  type="number"
+                  placeholder="e.g. 1200"
+                  className="w-full rounded-md border border-border bg-surface px-3 py-2 text-sm text-text-1 placeholder:text-text-3 shadow-sm focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
+                />
+              </div>
+
+              <div className="space-y-1">
+                <label htmlFor="maxRating" className="block text-xs font-medium text-text-3">
+                  Max rating
+                </label>
+                <input
+                  id="maxRating"
+                  name="maxRating"
+                  type="number"
+                  placeholder="e.g. 1800"
+                  className="w-full rounded-md border border-border bg-surface px-3 py-2 text-sm text-text-1 placeholder:text-text-3 shadow-sm focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
+                />
+              </div>
+
+              <div className="space-y-1">
+                <label htmlFor="minAge" className="block text-xs font-medium text-text-3">
+                  Min age
+                </label>
+                <input
+                  id="minAge"
+                  name="minAge"
+                  type="number"
+                  min="1"
+                  placeholder="e.g. 18"
+                  className="w-full rounded-md border border-border bg-surface px-3 py-2 text-sm text-text-1 placeholder:text-text-3 shadow-sm focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
+                />
+              </div>
+
+              <div className="space-y-1">
+                <label htmlFor="maxAge" className="block text-xs font-medium text-text-3">
+                  Max age
+                </label>
+                <input
+                  id="maxAge"
+                  name="maxAge"
+                  type="number"
+                  min="1"
+                  placeholder="e.g. 18"
+                  className="w-full rounded-md border border-border bg-surface px-3 py-2 text-sm text-text-1 placeholder:text-text-3 shadow-sm focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
+                />
+              </div>
+            </div>
+          )}
+        </div>
+      )}
 
       <button
         type="submit"

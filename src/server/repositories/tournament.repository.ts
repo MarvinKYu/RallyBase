@@ -1,4 +1,4 @@
-import { MatchFormat } from "@prisma/client";
+import { EventFormat, MatchFormat } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 
 // ── Organizations / Rating Categories ─────────────────────────────────────────
@@ -43,6 +43,23 @@ export async function findTournamentById(id: string) {
         orderBy: { createdAt: "asc" },
       },
     },
+  });
+}
+
+export async function findTournamentsByPlayerProfile(playerProfileId: string) {
+  return prisma.tournament.findMany({
+    where: {
+      events: {
+        some: {
+          eventEntries: { some: { playerProfileId } },
+        },
+      },
+    },
+    include: {
+      organization: true,
+      events: { select: { id: true } },
+    },
+    orderBy: { startDate: "desc" },
   });
 }
 
@@ -105,7 +122,13 @@ export async function createEvent(data: {
   ratingCategoryId: string;
   name: string;
   format: MatchFormat;
+  eventFormat: EventFormat;
   gamePointTarget: number;
+  maxParticipants?: number;
+  minRating?: number;
+  maxRating?: number;
+  minAge?: number;
+  maxAge?: number;
 }) {
   return prisma.event.create({ data });
 }
@@ -116,6 +139,10 @@ export async function findEventEntry(eventId: string, playerProfileId: string) {
   return prisma.eventEntry.findUnique({
     where: { eventId_playerProfileId: { eventId, playerProfileId } },
   });
+}
+
+export async function countEventEntries(eventId: string) {
+  return prisma.eventEntry.count({ where: { eventId } });
 }
 
 export async function createEventEntry(

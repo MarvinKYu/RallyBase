@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Status
 
-**All 8 MVP phases are complete and the app is live on Vercel.** Post-deployment bug fixes and additional features have been applied (see session log 2026-03-12).
+**All 8 MVP phases are complete and the app is live on Vercel.** Stage 2 features (player search improvements, self-signup, round-robin format, TD/player view separation, bracket UI fix) are also complete as of 2026-03-13.
 
 ## Tech Stack
 
@@ -70,8 +70,10 @@ export async function addEntrantAction(eventId, tournamentId, formData): Promise
 - **Two rating structures**: a mutable current snapshot (`player_ratings`) and an immutable transaction ledger (`rating_transactions`)
 - **Match results are pending** until the opponent confirms via a confirmation code (auto-generated cuid on `MatchResultSubmission`)
 - **Store per-game point scores** (not just game win counts) in `match_games`; `match_result_submission_games` stores the tentative scores before confirmation
-- **MVP bracket format**: single-elimination only
+- **Two bracket formats**: `SINGLE_ELIMINATION` (seeded, advancement chain) and `ROUND_ROBIN` (circle-method, no advancement chain, 3–6 players)
 - **Ratings update automatically** when `confirmMatchResult` is called — `applyRatingResult` runs in the same flow
+- **TDs can bypass confirmation**: `tdSubmitMatch` records result directly and runs Elo immediately (no code required); `tdVoidMatch` reverses rating transactions and resets match to `PENDING`
+- **Event eligibility**: `checkEligibility()` validates maxParticipants, minRating/maxRating, minAge/maxAge before self-signup
 
 ## Database Schema Groups
 
@@ -97,6 +99,11 @@ Submitted scores live in `match_result_submission_games`. Official scores are on
 - `winnerSlotInNextMatch(position)` → odd = `player1Id`, even = `player2Id`
 - Matches created final→R1 in `$transaction` so `nextMatchId` refs are always available
 
+**Round Robin** (`src/server/algorithms/round-robin.ts`)
+- `buildRoundRobinSchedule(playerIds)` — circle-method algorithm, supports 3–6 players
+- Returns array of rounds, each round an array of `{player1Id, player2Id}` pairs (odd player counts get a bye)
+- No advancement chain — matches have no `nextMatchId`; winners determined by W/L count in standings
+
 **Match validation** (`src/server/algorithms/match-validation.ts`)
 - `validateGameScore(p1, p2, pointTarget)` → `"p1" | "p2" | "unplayed" | "invalid"`
 - A game is valid when the winner reaches `pointTarget` with ≥ 2-point lead
@@ -112,6 +119,7 @@ Submitted scores live in `match_result_submission_games`. Official scores are on
 
 ## Implementation Phases — All Complete
 
+**MVP (Phases 1–8)**
 - ✅ Phase 1 — Foundation (Next.js, Clerk, Prisma, schema)
 - ✅ Phase 2 — Player System (profiles, search, rating display)
 - ✅ Phase 3 — Ratings (Elo engine, rating service, transactions)
@@ -120,3 +128,10 @@ Submitted scores live in `match_result_submission_games`. Official scores are on
 - ✅ Phase 6 — Match Results (submission, confirmation code workflow)
 - ✅ Phase 7 — Rating Integration (ratings applied on match confirmation)
 - ✅ Phase 8 — Polish (responsive UI, demo seed data, Vercel deployment config)
+
+**Stage 2 (2026-03-13)**
+- ✅ F1 — Player search improvements (player number, gender, birthDate, filters)
+- ✅ F2 — Player self-signup (eligibility fields, SignUpButton, age/rating checks)
+- ✅ F3 — Round-robin format (circle-method algorithm, standings page, EventFormat enum)
+- ✅ F4 — TD/player view separation (tdSubmitMatch, tdVoidMatch, conditional UI)
+- ✅ F5 — Bracket UI alignment fix (CARD_H = 104px)

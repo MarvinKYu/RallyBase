@@ -1,12 +1,15 @@
-import { validateMatchSubmission, MAX_GAMES } from "@/server/algorithms/match-validation";
+import { validateMatchSubmission } from "@/server/algorithms/match-validation";
 import { winnerSlotInNextMatch } from "@/server/algorithms/bracket";
 import {
   findMatchById,
   findSubmissionByCode,
   createSubmission,
   confirmSubmission,
+  directCompleteMatch,
+  voidMatch,
 } from "@/server/repositories/match.repository";
 import { applyRatingResult } from "@/server/services/rating.service";
+import { prisma } from "@/lib/prisma";
 
 // ── Queries ───────────────────────────────────────────────────────────────────
 
@@ -151,6 +154,119 @@ export async function confirmMatchResult(
     ratingCategoryId: match.event.ratingCategoryId,
     matchId,
   });
+
+  return {
+    success: true,
+    tournamentId: match.event.tournament.id,
+    eventId: match.eventId,
+  };
+}
+
+// ── TD actions ────────────────────────────────────────────────────────────────
+
+export interface TdSubmitParams {
+  matchId: string;
+  games: Array<{ player1Points: number; player2Points: number }>;
+}
+
+export type TdSubmitResult =
+  | { success: true; tournamentId: string; eventId: string }
+  | { error: string };
+
+/**
+ * TD submits match result directly — no confirmation code needed.
+ */
+export async function tdSubmitMatch(params: TdSubmitParams): Promise<TdSubmitResult> {
+  const { matchId, games } = params;
+
+  const match = await findMatchById(matchId);
+  if (!match) return { error: "Match not found" };
+
+  if (match.status === "COMPLETED") {
+    return { error: "This match is already completed" };
+  }
+  if (!match.player1Id || !match.player2Id) {
+    return { error: "Both players must be set before submitting a result" };
+  }
+
+  const validation = validateMatchSubmission(
+    games,
+    match.event.format,
+    match.event.gamePointTarget,
+  );
+  if (!validation.valid) return { error: validation.error };
+
+  const winnerId =
+    validation.winner === "player1" ? match.player1Id : match.player2Id;
+
+  const nextMatchSlot = match.nextMatchId ? winnerSlotInNextMatch(match.position) : null;
+
+  const playedGames = games
+    .slice(0, validation.gamesPlayed)
+    .map((g, i) => ({ gameNumber: i + 1, ...g }));
+
+  await directCompleteMatch({
+    matchId,
+    winnerId,
+    nextMatchId: match.nextMatchId,
+    nextMatchSlot,
+    games: playedGames,
+  });
+
+  const loserId = winnerId === match.player1Id ? match.player2Id : match.player1Id;
+  await applyRatingResult({
+    winnerProfileId: winnerId,
+    loserProfileId: loserId,
+    ratingCategoryId: match.event.ratingCategoryId,
+    matchId,
+  });
+
+  return {
+    success: true,
+    tournamentId: match.event.tournament.id,
+    eventId: match.eventId,
+  };
+}
+
+export type TdVoidResult =
+  | { success: true; tournamentId: string; eventId: string }
+  | { error: string };
+
+/**
+ * TD voids a match result — reverses ratings, clears scores, resets to PENDING.
+ */
+export async function tdVoidMatch(matchId: string): Promise<TdVoidResult> {
+  const match = await findMatchById(matchId);
+  if (!match) return { error: "Match not found" };
+
+  if (match.status !== "COMPLETED" && match.status !== "AWAITING_CONFIRMATION") {
+    return { error: "This match has no result to void." };
+  }
+
+  // Restore player ratings by reversing the rating transactions for this match
+  const transactions = await prisma.ratingTransaction.findMany({
+    where: { matchId },
+  });
+
+  await prisma.$transaction(async (tx) => {
+    for (const txn of transactions) {
+      // Restore rating to ratingBefore and decrement gamesPlayed
+      await tx.playerRating.update({
+        where: {
+          playerProfileId_ratingCategoryId: {
+            playerProfileId: txn.playerProfileId,
+            ratingCategoryId: txn.ratingCategoryId,
+          },
+        },
+        data: {
+          rating: txn.ratingBefore,
+          gamesPlayed: { decrement: 1 },
+        },
+      });
+    }
+  });
+
+  await voidMatch(matchId);
 
   return {
     success: true,

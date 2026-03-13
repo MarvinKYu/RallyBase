@@ -9,6 +9,10 @@ export const createProfileSchema = z.object({
     .string()
     .max(500, "Bio must be 500 characters or fewer")
     .optional(),
+  gender: z
+    .enum(["MALE", "FEMALE", "OTHER", "PREFER_NOT_TO_SAY"])
+    .optional(),
+  birthDate: z.string().optional(),
 });
 
 export type CreateProfileInput = z.infer<typeof createProfileSchema>;

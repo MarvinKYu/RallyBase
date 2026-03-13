@@ -1,8 +1,10 @@
 "use server";
 
 import { redirect } from "next/navigation";
+import { auth } from "@clerk/nextjs/server";
 import { getMyProfile } from "@/server/services/player.service";
-import { submitMatchResult, confirmMatchResult } from "@/server/services/match.service";
+import { submitMatchResult, confirmMatchResult, tdSubmitMatch, tdVoidMatch } from "@/server/services/match.service";
+import { getMatchWithSubmission } from "@/server/services/match.service";
 import { MAX_GAMES } from "@/server/algorithms/match-validation";
 
 export type MatchActionState = {
@@ -64,4 +66,70 @@ export async function confirmResultAction(
   if ("error" in result) return { error: result.error };
 
   redirect(`/tournaments/${result.tournamentId}/events/${result.eventId}/bracket`);
+}
+
+// ── TD Actions ────────────────────────────────────────────────────────────────
+
+// matchId, tournamentId, eventId, format are pre-bound via .bind()
+export async function tdSubmitResultAction(
+  matchId: string,
+  tournamentId: string,
+  eventId: string,
+  format: string,
+  _prevState: MatchActionState,
+  formData: FormData,
+): Promise<MatchActionState> {
+  const { userId } = await auth();
+  if (!userId) return { error: "Not authenticated" };
+
+  // Verify TD authorization
+  const match = await getMatchWithSubmission(matchId);
+  if (!match) return { error: "Match not found" };
+  if (match.event.tournament.createdByClerkId !== userId) {
+    return { error: "Not authorized" };
+  }
+
+  const maxGames = MAX_GAMES[format] ?? 5;
+  const games = Array.from({ length: maxGames }, (_, i) => ({
+    player1Points:
+      parseInt((formData.get(`games.${i}.player1Points`) as string) ?? "0", 10) || 0,
+    player2Points:
+      parseInt((formData.get(`games.${i}.player2Points`) as string) ?? "0", 10) || 0,
+  }));
+
+  const result = await tdSubmitMatch({ matchId, games });
+  if ("error" in result) return { error: result.error };
+
+  const redirectTarget =
+    match.event.eventFormat === "ROUND_ROBIN"
+      ? `/tournaments/${tournamentId}/events/${eventId}/standings`
+      : `/tournaments/${tournamentId}/events/${eventId}/bracket`;
+
+  redirect(redirectTarget);
+}
+
+// matchId, tournamentId, eventId are pre-bound via .bind()
+export async function tdVoidMatchAction(
+  matchId: string,
+  tournamentId: string,
+  eventId: string,
+): Promise<void> {
+  const { userId } = await auth();
+  if (!userId) redirect("/sign-in");
+
+  const match = await getMatchWithSubmission(matchId);
+  if (!match) throw new Error("Match not found");
+  if (match.event.tournament.createdByClerkId !== userId) {
+    throw new Error("Not authorized");
+  }
+
+  const result = await tdVoidMatch(matchId);
+  if ("error" in result) throw new Error(result.error);
+
+  const redirectTarget =
+    match.event.eventFormat === "ROUND_ROBIN"
+      ? `/tournaments/${tournamentId}/events/${eventId}/standings`
+      : `/tournaments/${tournamentId}/events/${eventId}/bracket`;
+
+  redirect(redirectTarget);
 }

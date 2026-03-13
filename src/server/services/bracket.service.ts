@@ -5,6 +5,7 @@ import {
   nextMatchCoords,
   winnerSlotInNextMatch,
 } from "@/server/algorithms/bracket";
+import { buildRoundRobinSchedule } from "@/server/algorithms/round-robin";
 import {
   findMatchesByEventId,
   countMatchesByEventId,
@@ -22,17 +23,90 @@ export async function bracketExists(eventId: string) {
   return count > 0;
 }
 
+// ── Standings ─────────────────────────────────────────────────────────────────
+
+export interface RoundRobinStanding {
+  playerProfileId: string;
+  displayName: string;
+  wins: number;
+  losses: number;
+  gamesWon: number;
+  gamesLost: number;
+  pointsFor: number;
+  pointsAgainst: number;
+}
+
+export async function getRoundRobinStandings(eventId: string): Promise<RoundRobinStanding[]> {
+  const matches = await prisma.match.findMany({
+    where: { eventId, status: MatchStatus.COMPLETED },
+    include: {
+      player1: { select: { id: true, displayName: true } },
+      player2: { select: { id: true, displayName: true } },
+      matchGames: true,
+    },
+  });
+
+  // Collect all players from event entries
+  const event = await getEventDetail(eventId);
+  if (!event) return [];
+
+  const standingsMap = new Map<string, RoundRobinStanding>();
+
+  for (const entry of event.eventEntries) {
+    standingsMap.set(entry.playerProfileId, {
+      playerProfileId: entry.playerProfileId,
+      displayName: entry.playerProfile.displayName,
+      wins: 0,
+      losses: 0,
+      gamesWon: 0,
+      gamesLost: 0,
+      pointsFor: 0,
+      pointsAgainst: 0,
+    });
+  }
+
+  for (const match of matches) {
+    if (!match.player1Id || !match.player2Id || !match.winnerId) continue;
+
+    const p1 = standingsMap.get(match.player1Id);
+    const p2 = standingsMap.get(match.player2Id);
+
+    if (p1) {
+      const won = match.winnerId === match.player1Id;
+      p1.wins += won ? 1 : 0;
+      p1.losses += won ? 0 : 1;
+      for (const g of match.matchGames) {
+        p1.gamesWon += g.player1Points > g.player2Points ? 1 : 0;
+        p1.gamesLost += g.player1Points < g.player2Points ? 1 : 0;
+        p1.pointsFor += g.player1Points;
+        p1.pointsAgainst += g.player2Points;
+      }
+    }
+
+    if (p2) {
+      const won = match.winnerId === match.player2Id;
+      p2.wins += won ? 1 : 0;
+      p2.losses += won ? 0 : 1;
+      for (const g of match.matchGames) {
+        p2.gamesWon += g.player2Points > g.player1Points ? 1 : 0;
+        p2.gamesLost += g.player2Points < g.player1Points ? 1 : 0;
+        p2.pointsFor += g.player2Points;
+        p2.pointsAgainst += g.player1Points;
+      }
+    }
+  }
+
+  return Array.from(standingsMap.values()).sort((a, b) => {
+    if (b.wins !== a.wins) return b.wins - a.wins;
+    return b.gamesWon - b.gamesLost - (a.gamesWon - a.gamesLost);
+  });
+}
+
 // ── Bracket generation ────────────────────────────────────────────────────────
 
 /**
- * Generates a single-elimination bracket for an event and persists it.
- *
- * Steps:
- *  1. Load event entries, sort by seed (nulls last).
- *  2. Build the bracket blueprint (pure function).
- *  3. In a single transaction, create matches from the final backward to R1
- *     so each match can reference its nextMatchId immediately.
- *  4. Advance bye winners into the next round.
+ * Generates a bracket for an event and persists it.
+ * Branches on eventFormat: SINGLE_ELIMINATION or ROUND_ROBIN.
  */
 export async function generateBracket(eventId: string): Promise<void> {
   const event = await getEventDetail(eventId);
@@ -45,8 +119,40 @@ export async function generateBracket(eventId: string): Promise<void> {
     throw new Error("At least 2 entrants are required to generate a bracket");
   }
 
+  if (event.eventFormat === "ROUND_ROBIN") {
+    await generateRoundRobinBracket(eventId, event.eventEntries.map((e) => e.playerProfileId));
+  } else {
+    await generateSingleEliminationBracket(eventId, event.eventEntries);
+  }
+}
+
+async function generateRoundRobinBracket(eventId: string, playerIds: string[]): Promise<void> {
+  const { matches } = buildRoundRobinSchedule(playerIds);
+
+  await prisma.$transaction(async (tx) => {
+    for (const m of matches) {
+      await tx.match.create({
+        data: {
+          eventId,
+          round: m.round,
+          position: m.position,
+          player1Id: m.player1Id,
+          player2Id: m.player2Id,
+          nextMatchId: null,
+          status: MatchStatus.PENDING,
+          winnerId: null,
+        },
+      });
+    }
+  });
+}
+
+async function generateSingleEliminationBracket(
+  eventId: string,
+  eventEntries: Array<{ playerProfileId: string; seed: number | null }>,
+): Promise<void> {
   // Sort by seed (ascending), unseeded entries go last
-  const sorted = [...event.eventEntries].sort((a, b) => {
+  const sorted = [...eventEntries].sort((a, b) => {
     if (a.seed === null && b.seed === null) return 0;
     if (a.seed === null) return 1;
     if (b.seed === null) return -1;

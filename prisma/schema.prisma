@@ -22,12 +22,15 @@ model User {
 }
 
 model PlayerProfile {
-  id          String   @id @default(cuid())
-  userId      String   @unique
-  displayName String
-  bio         String?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id           String    @id @default(cuid())
+  userId       String    @unique
+  playerNumber Int       @unique @default(autoincrement())
+  displayName  String
+  bio          String?
+  gender       Gender?
+  birthDate    DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
 
   user               User                    @relation(fields: [userId], references: [id], onDelete: Cascade)
   playerRatings      PlayerRating[]
@@ -157,8 +160,14 @@ model Event {
   ratingCategoryId String
   name             String
   format           MatchFormat @default(BEST_OF_5)
+  eventFormat      EventFormat @default(SINGLE_ELIMINATION)
   gamePointTarget  Int         @default(11)
   status           EventStatus @default(DRAFT)
+  maxParticipants  Int?
+  minRating        Float?
+  maxRating        Float?
+  minAge           Int?
+  maxAge           Int?
   createdAt        DateTime    @default(now())
 
   tournament     Tournament     @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
@@ -278,4 +287,16 @@ enum MatchFormat {
   BEST_OF_3
   BEST_OF_5
   BEST_OF_7
+}
+
+enum EventFormat {
+  SINGLE_ELIMINATION
+  ROUND_ROBIN
+}
+
+enum Gender {
+  MALE
+  FEMALE
+  OTHER
+  PREFER_NOT_TO_SAY
 }

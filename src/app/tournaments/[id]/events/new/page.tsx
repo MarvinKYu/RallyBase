@@ -17,6 +17,7 @@ export default async function NewEventPage({ params }: Props) {
   if (!tournament) notFound();
 
   const ratingCategories = await getRatingCategoriesForOrg(tournament.organizationId);
+  const isTournamentCreator = tournament.createdByClerkId === userId;
 
   return (
     <main className="mx-auto max-w-lg px-4 py-16">
@@ -25,7 +26,11 @@ export default async function NewEventPage({ params }: Props) {
         <h1 className="text-2xl font-semibold text-text-1">Create event</h1>
         <p className="text-sm text-text-2">Add an event to this tournament.</p>
       </div>
-      <EventForm tournamentId={id} ratingCategories={ratingCategories} />
+      <EventForm
+        tournamentId={id}
+        ratingCategories={ratingCategories}
+        isTournamentCreator={isTournamentCreator}
+      />
       <div className="mt-6">
         <Link
           href={`/tournaments/${id}`}

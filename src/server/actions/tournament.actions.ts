@@ -2,7 +2,16 @@
 
 import { auth } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
-import { createTournament, deleteTournament, createEvent, addEntrant } from "@/server/services/tournament.service";
+import {
+  createTournament,
+  deleteTournament,
+  createEvent,
+  addEntrant,
+  selfSignUpForEvent,
+  getEventDetail,
+} from "@/server/services/tournament.service";
+import { getMyProfile } from "@/server/services/player.service";
+import { findPlayerRatingByCategory } from "@/server/repositories/rating.repository";
 
 export type TournamentActionState = {
   error?: string;
@@ -44,7 +53,13 @@ export async function createEventAction(
     ratingCategoryId: formData.get("ratingCategoryId") as string,
     name: formData.get("name") as string,
     format: formData.get("format") as string,
+    eventFormat: (formData.get("eventFormat") as string) || "SINGLE_ELIMINATION",
     gamePointTarget: formData.get("gamePointTarget") as string,
+    maxParticipants: (formData.get("maxParticipants") as string) || undefined,
+    minRating: (formData.get("minRating") as string) || undefined,
+    maxRating: (formData.get("maxRating") as string) || undefined,
+    minAge: (formData.get("minAge") as string) || undefined,
+    maxAge: (formData.get("maxAge") as string) || undefined,
   };
 
   const result = await createEvent(tournamentId, data);
@@ -79,6 +94,30 @@ export async function addEntrantAction(
   if (playerProfileId) {
     await addEntrant(eventId, { playerProfileId });
   }
+
+  redirect(`/tournaments/${tournamentId}/events/${eventId}`);
+}
+
+// eventId and tournamentId are pre-bound via .bind(null, eventId, tournamentId)
+export async function signUpForEventAction(
+  eventId: string,
+  tournamentId: string,
+  _prevState: TournamentActionState,
+  _formData: FormData,
+): Promise<TournamentActionState> {
+  const { userId } = await auth();
+  if (!userId) return { error: "You must be signed in to register for an event." };
+
+  const profile = await getMyProfile();
+  if (!profile) return { error: "You need a player profile to register for events." };
+
+  const event = await getEventDetail(eventId);
+  if (!event) return { error: "Event not found." };
+
+  const playerRating = await findPlayerRatingByCategory(profile.id, event.ratingCategoryId);
+
+  const result = await selfSignUpForEvent(eventId, profile.id, playerRating, profile);
+  if ("error" in result) return { error: result.error };
 
   redirect(`/tournaments/${tournamentId}/events/${eventId}`);
 }

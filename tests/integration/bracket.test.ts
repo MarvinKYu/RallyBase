@@ -9,7 +9,7 @@ const EMAILS = CLERK_IDS.map((id, i) => `phase5_p${i + 1}@rallybase.test`);
 
 let eventId: string;
 let tournamentId: string;
-let profileIds: string[] = [];
+const profileIds: string[] = [];
 
 afterAll(async () => {
   if (eventId) {

@@ -1,5 +1,5 @@
 import { currentUser } from "@clerk/nextjs/server";
-import { RoleName } from "@prisma/client";
+import { Gender, RoleName } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { createProfileSchema } from "@/lib/schemas/player";
 import { upsertUserFromClerk } from "@/server/repositories/user.repository";
@@ -7,6 +7,7 @@ import {
   findProfileByUserId,
   findProfileById,
   searchProfiles,
+  type ProfileFilters,
 } from "@/server/repositories/player.repository";
 
 /**
@@ -49,7 +50,13 @@ export async function createPlayerProfile(
 
   const profile = await prisma.$transaction(async (tx) => {
     const prof = await tx.playerProfile.create({
-      data: { userId: dbUser.id, ...parsed.data },
+      data: {
+        userId: dbUser.id,
+        displayName: parsed.data.displayName,
+        bio: parsed.data.bio,
+        gender: parsed.data.gender as Gender | undefined,
+        birthDate: parsed.data.birthDate ? new Date(parsed.data.birthDate) : undefined,
+      },
     });
 
     const playerRole = await tx.role.findUniqueOrThrow({
@@ -82,8 +89,16 @@ export async function getMyProfile() {
   return findProfileByUserId(dbUser.id);
 }
 
-export async function searchPlayers(query: string) {
+export async function searchPlayers(
+  query: string,
+  filters?: Omit<ProfileFilters, "query">,
+) {
   const q = query.trim();
-  if (!q) return [];
-  return searchProfiles(q);
+  const hasFilters =
+    !!filters?.organizationId ||
+    !!filters?.ratingCategoryId ||
+    !!filters?.gender;
+
+  if (!q && !hasFilters) return [];
+  return searchProfiles({ query: q || undefined, ...filters });
 }

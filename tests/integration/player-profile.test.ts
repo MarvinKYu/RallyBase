@@ -99,22 +99,22 @@ describe("Player repository — findProfileById", () => {
 
 describe("Player repository — searchProfiles", () => {
   it("finds a profile by exact display name", async () => {
-    const results = await searchProfiles("Phase2 Player");
+    const results = await searchProfiles({ query: "Phase2 Player" });
     expect(results.some((p) => p.displayName === "Phase2 Player")).toBe(true);
   });
 
   it("finds a profile by partial display name (case-insensitive)", async () => {
-    const results = await searchProfiles("phase2");
+    const results = await searchProfiles({ query: "phase2" });
     expect(results.length).toBeGreaterThan(0);
   });
 
   it("returns an empty array for a query with no matches", async () => {
-    const results = await searchProfiles("zzz_no_match_xqz");
+    const results = await searchProfiles({ query: "zzz_no_match_xqz" });
     expect(results).toHaveLength(0);
   });
 
   it("includes playerRatings in search results", async () => {
-    const results = await searchProfiles("Phase2 Player");
+    const results = await searchProfiles({ query: "Phase2 Player" });
     expect(Array.isArray(results[0].playerRatings)).toBe(true);
   });
 });

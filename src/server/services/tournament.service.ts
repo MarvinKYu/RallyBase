@@ -1,16 +1,18 @@
-import { MatchFormat } from "@prisma/client";
+import { EventFormat, MatchFormat } from "@prisma/client";
 import { createTournamentSchema, createEventSchema, addEntrantSchema } from "@/lib/schemas/tournament";
 import {
   findAllOrganizations,
   findRatingCategoriesByOrganization,
   findAllTournaments,
   findTournamentById,
+  findTournamentsByPlayerProfile,
   createTournament as dbCreateTournament,
   deleteTournamentById,
   findEventById,
   createEvent as dbCreateEvent,
   findEventEntry,
   createEventEntry,
+  countEventEntries,
 } from "@/server/repositories/tournament.repository";
 
 // ── Queries ───────────────────────────────────────────────────────────────────
@@ -33,6 +35,10 @@ export async function getTournamentDetail(id: string) {
 
 export async function getEventDetail(id: string) {
   return findEventById(id);
+}
+
+export async function getTournamentsForPlayer(playerProfileId: string) {
+  return findTournamentsByPlayerProfile(playerProfileId);
 }
 
 // ── Mutations ─────────────────────────────────────────────────────────────────
@@ -88,14 +94,31 @@ export async function createEvent(
     return { fieldErrors: parsed.error.flatten().fieldErrors as Record<string, string[]> };
   }
 
-  const { ratingCategoryId, name, format, gamePointTarget } = parsed.data;
+  const {
+    ratingCategoryId,
+    name,
+    format,
+    eventFormat,
+    gamePointTarget,
+    maxParticipants,
+    minRating,
+    maxRating,
+    minAge,
+    maxAge,
+  } = parsed.data;
 
   const event = await dbCreateEvent({
     tournamentId,
     ratingCategoryId,
     name,
     format: format as MatchFormat,
+    eventFormat: eventFormat as EventFormat,
     gamePointTarget,
+    maxParticipants: maxParticipants || undefined,
+    minRating: minRating || undefined,
+    maxRating: maxRating || undefined,
+    minAge: minAge || undefined,
+    maxAge: maxAge || undefined,
   });
 
   const full = await findEventById(event.id);
@@ -120,6 +143,133 @@ export async function addEntrant(
 
   const existing = await findEventEntry(eventId, playerProfileId);
   if (existing) return { error: "This player is already entered in this event." };
+
+  const entry = await createEventEntry(eventId, playerProfileId);
+  return { entry };
+}
+
+// ── Eligibility ───────────────────────────────────────────────────────────────
+
+type EligibilityEvent = {
+  maxParticipants?: number | null;
+  minRating?: number | null;
+  maxRating?: number | null;
+  minAge?: number | null;
+  maxAge?: number | null;
+  tournament: { startDate: Date };
+};
+
+type EligibilityPlayer = {
+  birthDate?: Date | null;
+};
+
+type EligibilityRating = {
+  rating: number;
+} | null;
+
+export type EligibilityResult =
+  | { eligible: true }
+  | { eligible: false; reason: string };
+
+/**
+ * Pure function — no DB access. Checks if a player meets event eligibility requirements.
+ */
+export function checkEligibility(
+  player: EligibilityPlayer,
+  playerRating: EligibilityRating,
+  event: EligibilityEvent,
+  currentEntrantCount: number,
+): EligibilityResult {
+  if (
+    event.maxParticipants !== null &&
+    event.maxParticipants !== undefined &&
+    currentEntrantCount >= event.maxParticipants
+  ) {
+    return { eligible: false, reason: "This event is full." };
+  }
+
+  const rating = playerRating?.rating ?? 1500;
+
+  if (event.minRating !== null && event.minRating !== undefined && rating < event.minRating) {
+    return {
+      eligible: false,
+      reason: `Your rating (${Math.round(rating)}) is below the minimum (${Math.round(event.minRating)}).`,
+    };
+  }
+
+  if (event.maxRating !== null && event.maxRating !== undefined && rating > event.maxRating) {
+    return {
+      eligible: false,
+      reason: `Your rating (${Math.round(rating)}) exceeds the maximum (${Math.round(event.maxRating)}).`,
+    };
+  }
+
+  if (
+    (event.minAge !== null && event.minAge !== undefined) ||
+    (event.maxAge !== null && event.maxAge !== undefined)
+  ) {
+    if (!player.birthDate) {
+      return {
+        eligible: false,
+        reason: "This event has an age requirement. Please add your date of birth to your profile.",
+      };
+    }
+
+    const refDate = new Date(event.tournament.startDate);
+    const birth = new Date(player.birthDate);
+    let age = refDate.getFullYear() - birth.getFullYear();
+    const monthDiff = refDate.getMonth() - birth.getMonth();
+    if (monthDiff < 0 || (monthDiff === 0 && refDate.getDate() < birth.getDate())) {
+      age--;
+    }
+
+    if (event.minAge !== null && event.minAge !== undefined && age < event.minAge) {
+      return {
+        eligible: false,
+        reason: `You must be at least ${event.minAge} years old for this event.`,
+      };
+    }
+
+    if (event.maxAge !== null && event.maxAge !== undefined && age > event.maxAge) {
+      return {
+        eligible: false,
+        reason: `You must be ${event.maxAge} years old or younger for this event.`,
+      };
+    }
+  }
+
+  return { eligible: true };
+}
+
+/**
+ * Player self-signs up for an event after passing eligibility checks.
+ */
+export type SelfSignUpResult =
+  | { entry: { id: string } }
+  | { error: string };
+
+export async function selfSignUpForEvent(
+  eventId: string,
+  playerProfileId: string,
+  playerRating: EligibilityRating,
+  player: EligibilityPlayer,
+): Promise<SelfSignUpResult> {
+  const event = await findEventById(eventId);
+  if (!event) return { error: "Event not found." };
+
+  if (event.status !== "REGISTRATION_OPEN") {
+    return { error: "This event is not open for registration." };
+  }
+
+  const existing = await findEventEntry(eventId, playerProfileId);
+  if (existing) return { error: "You are already entered in this event." };
+
+  const entrantCount = await countEventEntries(eventId);
+
+  const eligibility = checkEligibility(player, playerRating, event, entrantCount);
+  if (!eligibility.eligible) {
+    return { error: eligibility.reason };
+  }
 
   const entry = await createEventEntry(eventId, playerProfileId);
   return { entry };

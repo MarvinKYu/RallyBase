@@ -1,27 +1,52 @@
 import { Suspense } from "react";
 import Link from "next/link";
+import { Gender } from "@prisma/client";
 import { searchPlayers } from "@/server/services/player.service";
+import { getOrganizations, getRatingCategoriesForOrg } from "@/server/services/tournament.service";
 import { PlayerSearchForm } from "@/components/players/PlayerSearchForm";
 
 export const metadata = { title: "Find Players — RallyBase" };
 
-type Props = { searchParams: Promise<{ q?: string }> };
+type Props = {
+  searchParams: Promise<{
+    q?: string;
+    org?: string;
+    discipline?: string;
+    gender?: string;
+  }>;
+};
 
-async function Results({ query }: { query: string }) {
-  if (!query) {
+async function Results({
+  query,
+  organizationId,
+  ratingCategoryId,
+  gender,
+}: {
+  query: string;
+  organizationId?: string;
+  ratingCategoryId?: string;
+  gender?: string;
+}) {
+  const hasFilter = !!organizationId || !!ratingCategoryId || !!gender;
+
+  if (!query && !hasFilter) {
     return (
       <p className="text-sm text-text-2">
-        Enter a name to search for players.
+        Enter a name or player # to search, or use filters above.
       </p>
     );
   }
 
-  const players = await searchPlayers(query);
+  const players = await searchPlayers(query, {
+    organizationId: organizationId || undefined,
+    ratingCategoryId: ratingCategoryId || undefined,
+    gender: gender ? (gender as Gender) : undefined,
+  });
 
   if (players.length === 0) {
     return (
       <p className="text-sm text-text-2">
-        No players found for &ldquo;{query}&rdquo;.
+        No players found{query ? ` for "${query}"` : ""}.
       </p>
     );
   }
@@ -34,9 +59,12 @@ async function Results({ query }: { query: string }) {
             href={`/profile/${p.id}`}
             className="flex items-center justify-between border-b border-border-subtle bg-surface px-4 py-3 transition-colors last:border-b-0 hover:bg-surface-hover"
           >
-            <span className="text-sm font-medium text-text-1">
-              {p.displayName}
-            </span>
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-text-3">#{p.playerNumber}</span>
+              <span className="text-sm font-medium text-text-1">
+                {p.displayName}
+              </span>
+            </div>
             <span className="text-xs text-text-3">
               {p.playerRatings.length} rating
               {p.playerRatings.length !== 1 ? "s" : ""}
@@ -49,7 +77,10 @@ async function Results({ query }: { query: string }) {
 }
 
 export default async function PlayersPage({ searchParams }: Props) {
-  const { q = "" } = await searchParams;
+  const { q = "", org = "", discipline = "", gender = "" } = await searchParams;
+
+  const organizations = await getOrganizations();
+  const ratingCategories = org ? await getRatingCategoriesForOrg(org) : [];
 
   return (
     <main className="mx-auto max-w-2xl px-4 py-12">
@@ -59,18 +90,26 @@ export default async function PlayersPage({ searchParams }: Props) {
             Find players
           </h1>
           <p className="mt-1 text-sm text-text-2">
-            Search for players by their display name.
+            Search by display name, player number, or filter by organization.
           </p>
         </div>
 
         <Suspense>
-          <PlayerSearchForm />
+          <PlayerSearchForm
+            organizations={organizations}
+            ratingCategories={ratingCategories}
+          />
         </Suspense>
 
         <Suspense
           fallback={<p className="text-sm text-text-3">Searching…</p>}
         >
-          <Results query={q} />
+          <Results
+            query={q}
+            organizationId={org || undefined}
+            ratingCategoryId={discipline || undefined}
+            gender={gender || undefined}
+          />
         </Suspense>
       </div>
     </main>
