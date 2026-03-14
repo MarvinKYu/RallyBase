@@ -1,5 +1,20 @@
 # Planned
 
+- For version 0.3
+
+## Add start time to events and tournaments
+- Tournament start time can be explicitly set or default to start time of earliest event
+
+## Add "Completed/Past" tournaments category in tournaments page
+- Tournaments should move into this category once past tournament end date
+- End date should default to tournament start date if not explicitly set
+
+## Add match history and rating graph to player dashboard
+
+# Completed 
+
+- Implemented in version 0.2
+
 ## Improve player search in default player search and in tournament add player
 - Add filters
 - Clear search bar after selecting
