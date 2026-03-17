@@ -8,9 +8,16 @@ Run `/session-start` at the beginning of each session to review project state.
 Run `/wrap-up` at the end of each session to commit, write the session log, and update memory and CLAUDE.md.
 
 ## Implementation Workflow:
-- One version at a time, with tests, followed by commit + push                                                         
-- Before each version: detail-drilling conversation with user to lock down specifics                                    
-- After each version: await user confirmation of no bugs before planning the next   
+- One version at a time, with tests, followed by commit + push
+- Before each version: detail-drilling conversation with user to lock down specifics
+- After each version: await user confirmation of no bugs before planning the next
+
+## Patch Versioning Workflow:
+Every change shipped after a planned version (bug fix, UI tweak, etc.) gets a patch version increment (e.g. v0.5.0 → v0.5.1 → v0.5.2). Each patch produces exactly two commits:
+1. **Code commit** — message includes the version tag, e.g. `fix(v0.5.1): description`. Create and push the git tag immediately after.
+2. **Docs commit** — updates CHANGELOG.md with the patch entry. No code changes in this commit.
+
+Do this automatically for every shipped change — no need to ask.
 
 ## Project Status
 
