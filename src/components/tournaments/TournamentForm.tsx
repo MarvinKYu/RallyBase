@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { useActionState } from "react";
 import { createTournamentAction, type TournamentActionState } from "@/server/actions/tournament.actions";
 
@@ -10,6 +11,7 @@ export function TournamentForm({ organizations }: { organizations: Org[] }) {
     createTournamentAction,
     null,
   );
+  const [showScheduling, setShowScheduling] = useState(false);
 
   return (
     <form action={dispatch} className="space-y-6">
@@ -99,6 +101,50 @@ export function TournamentForm({ organizations }: { organizations: Org[] }) {
             className="w-full rounded-md border border-border bg-elevated px-3 py-2 text-sm text-text-1 shadow-sm focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
           />
         </div>
+      </div>
+
+      {/* Scheduling — optional */}
+      <div className="space-y-4 rounded-md border border-border-subtle bg-elevated p-4">
+        <div className="flex items-center justify-between">
+          <p className="text-sm font-medium text-text-2">Scheduling</p>
+          <button
+            type="button"
+            onClick={() => setShowScheduling(!showScheduling)}
+            className="text-xs text-accent hover:text-accent-dim"
+          >
+            {showScheduling ? "Hide" : "Add scheduling"}
+          </button>
+        </div>
+
+        {showScheduling && (
+          <div className="space-y-3">
+            <div className="space-y-1">
+              <label htmlFor="startTime" className="block text-xs font-medium text-text-3">
+                Tournament start time
+              </label>
+              <input
+                id="startTime"
+                name="startTime"
+                type="datetime-local"
+                className="w-full rounded-md border border-border bg-surface px-3 py-2 text-sm text-text-1 shadow-sm focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
+              />
+            </div>
+            <div className="space-y-1">
+              <label htmlFor="withdrawDeadline" className="block text-xs font-medium text-text-3">
+                Withdrawal deadline
+              </label>
+              <input
+                id="withdrawDeadline"
+                name="withdrawDeadline"
+                type="datetime-local"
+                className="w-full rounded-md border border-border bg-surface px-3 py-2 text-sm text-text-1 shadow-sm focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
+              />
+              <p className="text-xs text-text-3">
+                If not set, defaults to 24 hours before tournament start time.
+              </p>
+            </div>
+          </div>
+        )}
       </div>
 
       <button

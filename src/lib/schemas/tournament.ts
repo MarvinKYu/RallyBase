@@ -9,6 +9,8 @@ export const createTournamentSchema = z.object({
   location: z.string().max(200, "Location must be 200 characters or fewer").optional(),
   startDate: z.string().min(1, "Start date is required"),
   endDate: z.string().optional(),
+  startTime: z.string().optional().or(z.literal("")),
+  withdrawDeadline: z.string().optional().or(z.literal("")),
 });
 
 export type CreateTournamentInput = z.infer<typeof createTournamentSchema>;
@@ -31,6 +33,7 @@ export const createEventSchema = z.object({
   maxRating: z.coerce.number().positive().optional().or(z.literal("")),
   minAge: z.coerce.number().int().positive().optional().or(z.literal("")),
   maxAge: z.coerce.number().int().positive().optional().or(z.literal("")),
+  startTime: z.string().optional().or(z.literal("")),
 });
 
 export type CreateEventInput = z.infer<typeof createEventSchema>;

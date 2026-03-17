@@ -14,7 +14,10 @@ import {
   findEventEntry,
   createEventEntry,
   countEventEntries,
+  deleteEventEntry,
+  findEventEntriesForPlayer,
 } from "@/server/repositories/tournament.repository";
+import { findPlayerRatingByCategory } from "@/server/repositories/rating.repository";
 
 // ── Queries ───────────────────────────────────────────────────────────────────
 
@@ -58,7 +61,7 @@ export async function createTournament(
     return { fieldErrors: parsed.error.flatten().fieldErrors as Record<string, string[]> };
   }
 
-  const { organizationId, name, location, startDate, endDate } = parsed.data;
+  const { organizationId, name, location, startDate, endDate, startTime, withdrawDeadline } = parsed.data;
 
   try {
     const tournament = await dbCreateTournament({
@@ -68,6 +71,8 @@ export async function createTournament(
       location: location || undefined,
       startDate: new Date(startDate),
       endDate: endDate ? new Date(endDate) : undefined,
+      startTime: startTime ? new Date(startTime) : undefined,
+      withdrawDeadline: withdrawDeadline ? new Date(withdrawDeadline) : undefined,
     });
 
     const full = await findTournamentById(tournament.id);
@@ -116,6 +121,7 @@ export async function createEvent(
     format,
     eventFormat,
     gamePointTarget,
+    startTime,
     maxParticipants,
     minRating,
     maxRating,
@@ -131,6 +137,7 @@ export async function createEvent(
       format: format as MatchFormat,
       eventFormat: eventFormat as EventFormat,
       gamePointTarget,
+      startTime: startTime ? new Date(startTime) : undefined,
       maxParticipants: maxParticipants || undefined,
       minRating: minRating || undefined,
       maxRating: maxRating || undefined,
@@ -296,4 +303,90 @@ export async function selfSignUpForEvent(
 
   const entry = await createEventEntry(eventId, playerProfileId);
   return { entry };
+}
+
+// ── Registration helpers ───────────────────────────────────────────────────────
+
+/**
+ * Pure function — no DB access. Determines if withdrawal is still allowed.
+ */
+export function isWithdrawalAllowed(
+  tournament: { withdrawDeadline: Date | null; startTime: Date | null },
+  now: Date,
+): boolean {
+  if (tournament.withdrawDeadline) {
+    return now < tournament.withdrawDeadline;
+  }
+  if (tournament.startTime) {
+    const deadline = new Date(tournament.startTime.getTime() - 24 * 60 * 60 * 1000);
+    return now < deadline;
+  }
+  return true;
+}
+
+/**
+ * Pure display helper — returns entity startTime or fallback.
+ */
+export function getEffectiveStartTime(
+  entity: { startTime: Date | null },
+  fallback?: Date | null,
+): Date | null {
+  return entity.startTime ?? fallback ?? null;
+}
+
+export type WithdrawResult = { success: true } | { error: string };
+
+export async function withdrawFromEvent(
+  eventId: string,
+  playerProfileId: string,
+): Promise<WithdrawResult> {
+  const event = await findEventById(eventId);
+  if (!event) return { error: "Event not found." };
+
+  if (event.status === "IN_PROGRESS" || event.status === "COMPLETED") {
+    return { error: "Cannot withdraw from an event that is in progress or completed." };
+  }
+
+  if (!isWithdrawalAllowed(event.tournament, new Date())) {
+    return { error: "The withdrawal deadline has passed." };
+  }
+
+  const existing = await findEventEntry(eventId, playerProfileId);
+  if (!existing) return { error: "You are not registered for this event." };
+
+  await deleteEventEntry(eventId, playerProfileId);
+  return { success: true };
+}
+
+export type RegisterForEventsResult = {
+  results: Record<string, { success: true } | { error: string }>;
+};
+
+export async function registerForEvents(
+  eventIds: string[],
+  playerProfileId: string,
+  player: EligibilityPlayer,
+): Promise<RegisterForEventsResult> {
+  const results: Record<string, { success: true } | { error: string }> = {};
+
+  for (const eventId of eventIds) {
+    const event = await findEventById(eventId);
+    if (!event) {
+      results[eventId] = { error: "Event not found." };
+      continue;
+    }
+
+    const playerRating = await findPlayerRatingByCategory(playerProfileId, event.ratingCategoryId);
+    const outcome = await selfSignUpForEvent(eventId, playerProfileId, playerRating, player);
+    results[eventId] = "error" in outcome ? { error: outcome.error } : { success: true };
+  }
+
+  return { results };
+}
+
+export async function getRegisteredEventIds(
+  playerProfileId: string,
+  eventIds: string[],
+): Promise<string[]> {
+  return findEventEntriesForPlayer(playerProfileId, eventIds);
 }

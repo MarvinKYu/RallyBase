@@ -147,6 +147,8 @@ model Tournament {
   location         String?
   startDate        DateTime
   endDate          DateTime?
+  startTime        DateTime?
+  withdrawDeadline DateTime?
   status           TournamentStatus @default(DRAFT)
   createdAt        DateTime         @default(now())
 
@@ -164,6 +166,7 @@ model Event {
   format           MatchFormat @default(BEST_OF_5)
   eventFormat      EventFormat @default(SINGLE_ELIMINATION)
   gamePointTarget  Int         @default(11)
+  startTime        DateTime?
   status           EventStatus @default(DRAFT)
   maxParticipants  Int?
   minRating        Float?

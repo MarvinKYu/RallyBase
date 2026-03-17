@@ -68,6 +68,37 @@ describe("createTournamentSchema", () => {
     });
     expect(result.success).toBe(false);
   });
+
+  it("accepts startTime and withdrawDeadline as datetime-local strings", () => {
+    const result = createTournamentSchema.safeParse({
+      organizationId: "org-abc",
+      name: "Spring Open",
+      startDate: "2026-04-01",
+      startTime: "2026-04-01T09:00",
+      withdrawDeadline: "2026-03-31T09:00",
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it("accepts empty string for startTime and withdrawDeadline", () => {
+    const result = createTournamentSchema.safeParse({
+      organizationId: "org-abc",
+      name: "Spring Open",
+      startDate: "2026-04-01",
+      startTime: "",
+      withdrawDeadline: "",
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it("accepts omitted startTime and withdrawDeadline", () => {
+    const result = createTournamentSchema.safeParse({
+      organizationId: "org-abc",
+      name: "Spring Open",
+      startDate: "2026-04-01",
+    });
+    expect(result.success).toBe(true);
+  });
 });
 
 describe("createEventSchema", () => {
@@ -129,6 +160,28 @@ describe("createEventSchema", () => {
       gamePointTarget: 11,
     });
     expect(result.success).toBe(false);
+  });
+
+  it("accepts optional startTime as datetime-local string", () => {
+    const result = createEventSchema.safeParse({
+      ratingCategoryId: "cat-abc",
+      name: "U1800 Singles",
+      format: "BEST_OF_5",
+      gamePointTarget: 11,
+      startTime: "2026-04-01T10:00",
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it("accepts empty string for startTime", () => {
+    const result = createEventSchema.safeParse({
+      ratingCategoryId: "cat-abc",
+      name: "U1800 Singles",
+      format: "BEST_OF_5",
+      gamePointTarget: 11,
+      startTime: "",
+    });
+    expect(result.success).toBe(true);
   });
 });
 

@@ -9,6 +9,8 @@ import {
   createEvent,
   addEntrant,
   selfSignUpForEvent,
+  withdrawFromEvent,
+  registerForEvents,
   getEventDetail,
   getTournamentDetail,
 } from "@/server/services/tournament.service";
@@ -33,6 +35,8 @@ export async function createTournamentAction(
     location: (formData.get("location") as string) || undefined,
     startDate: formData.get("startDate") as string,
     endDate: (formData.get("endDate") as string) || undefined,
+    startTime: (formData.get("startTime") as string) || undefined,
+    withdrawDeadline: (formData.get("withdrawDeadline") as string) || undefined,
   };
 
   const result = await createTournament(data, userId);
@@ -61,6 +65,7 @@ export async function createEventAction(
     format: formData.get("format") as string,
     eventFormat: (formData.get("eventFormat") as string) || "SINGLE_ELIMINATION",
     gamePointTarget: formData.get("gamePointTarget") as string,
+    startTime: (formData.get("startTime") as string) || undefined,
     maxParticipants: (formData.get("maxParticipants") as string) || undefined,
     minRating: (formData.get("minRating") as string) || undefined,
     maxRating: (formData.get("maxRating") as string) || undefined,
@@ -141,4 +146,57 @@ export async function signUpForEventAction(
   if ("error" in result) return { error: result.error };
 
   redirect(`/tournaments/${tournamentId}/events/${eventId}`);
+}
+
+export type RegisterActionState = {
+  errors: Record<string, string>;
+  generalError?: string;
+} | null;
+
+// tournamentId is pre-bound via .bind(null, tournamentId)
+export async function registerForEventsAction(
+  tournamentId: string,
+  _prevState: RegisterActionState,
+  formData: FormData,
+): Promise<RegisterActionState> {
+  const { userId } = await auth();
+  if (!userId) return { errors: {}, generalError: "You must be signed in to register." };
+
+  const profile = await getMyProfile();
+  if (!profile) return { errors: {}, generalError: "You need a player profile to register." };
+
+  const eventIds = formData.getAll("eventIds") as string[];
+  if (eventIds.length === 0) {
+    return { errors: {}, generalError: "Please select at least one event." };
+  }
+
+  const { results } = await registerForEvents(eventIds, profile.id, profile);
+
+  const errors: Record<string, string> = {};
+  for (const [eventId, result] of Object.entries(results)) {
+    if ("error" in result) errors[eventId] = result.error;
+  }
+
+  if (Object.keys(errors).length === 0) {
+    redirect(`/tournaments/${tournamentId}`);
+  }
+
+  return { errors };
+}
+
+// eventId and tournamentId are pre-bound via .bind(null, eventId, tournamentId)
+export async function withdrawFromEventAction(
+  eventId: string,
+  tournamentId: string,
+): Promise<void> {
+  const { userId } = await auth();
+  if (!userId) redirect("/sign-in");
+
+  const profile = await getMyProfile();
+  if (!profile) throw new Error("You need a player profile to withdraw.");
+
+  const result = await withdrawFromEvent(eventId, profile.id);
+  if ("error" in result) throw new Error(result.error);
+
+  redirect(`/tournaments/${tournamentId}/register`);
 }

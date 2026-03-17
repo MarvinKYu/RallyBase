@@ -8,7 +8,6 @@ import { searchPlayers, getMyProfile } from "@/server/services/player.service";
 import { addEntrantAction } from "@/server/actions/tournament.actions";
 import { generateBracketAction } from "@/server/actions/bracket.actions";
 import { EntrantSearchForm } from "@/components/tournaments/EntrantSearchForm";
-import { SignUpButton } from "@/components/tournaments/SignUpButton";
 import { DeleteEventButton } from "@/components/tournaments/DeleteEventButton";
 
 type Props = {
@@ -53,7 +52,6 @@ export default async function EventDetailPage({ params, searchParams }: Props) {
 
   const isTD = !!userId && event.tournament.createdByClerkId === userId;
   const enteredIds = new Set(event.eventEntries.map((e) => e.playerProfileId));
-  const isEntered = !!profile && enteredIds.has(profile.id);
   const isRoundRobin = event.eventFormat === "ROUND_ROBIN";
   const searchResults = q ? await searchPlayers(q) : [];
 
@@ -84,6 +82,11 @@ export default async function EventDetailPage({ params, searchParams }: Props) {
             {isRoundRobin ? "Round Robin" : "Single Elimination"} ·{" "}
             {formatLabel[event.format] ?? event.format} · First to {event.gamePointTarget}
           </p>
+          {(event as { startTime?: Date | null }).startTime && (
+            <p className="mt-1 text-sm text-text-3">
+              Starts {new Date((event as { startTime: Date }).startTime).toLocaleString()}
+            </p>
+          )}
           {eligibilityLines.length > 0 && (
             <p className="mt-1 text-xs text-text-3">{eligibilityLines.join(" · ")}</p>
           )}
@@ -125,13 +128,6 @@ export default async function EventDetailPage({ params, searchParams }: Props) {
             )}
           </div>
         </div>
-
-        {/* Player self-signup */}
-        {profile && !isEntered && event.status === "REGISTRATION_OPEN" && (
-          <section>
-            <SignUpButton eventId={eventId} tournamentId={id} />
-          </section>
-        )}
 
         {/* Entrants */}
         <section>

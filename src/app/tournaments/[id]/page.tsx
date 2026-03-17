@@ -45,11 +45,25 @@ export default async function TournamentDetailPage({ params }: Props) {
             {tournament.endDate &&
               ` – ${new Date(tournament.endDate).toLocaleDateString()}`}
           </p>
+          {(tournament as { startTime?: Date | null }).startTime && (
+            <p className="mt-0.5 text-sm text-text-3">
+              Starts {new Date((tournament as { startTime: Date }).startTime).toLocaleString()}
+            </p>
+          )}
         </div>
 
         <section>
           <div className="mb-4 flex items-center justify-between">
             <h2 className="text-lg font-medium text-text-1">Events</h2>
+            <div className="flex items-center gap-2">
+            {userId && tournament.events.some((e) => e.status === "REGISTRATION_OPEN") && (
+              <Link
+                href={`/tournaments/${id}/register`}
+                className="rounded-md border border-border px-3 py-1.5 text-xs font-medium text-text-2 transition-colors hover:bg-surface-hover"
+              >
+                Register
+              </Link>
+            )}
             {userId && tournament.createdByClerkId === userId && (
               <Link
                 href={`/tournaments/${id}/events/new`}
@@ -58,6 +72,7 @@ export default async function TournamentDetailPage({ params }: Props) {
                 Add event
               </Link>
             )}
+          </div>
           </div>
 
           {tournament.events.length === 0 ? (

@@ -121,6 +121,19 @@ export function EventForm({
         </div>
       </div>
 
+      {/* Start time */}
+      <div className="space-y-1">
+        <label htmlFor="startTime" className="block text-sm font-medium text-text-2">
+          Event start time <span className="font-normal text-text-3">(optional)</span>
+        </label>
+        <input
+          id="startTime"
+          name="startTime"
+          type="datetime-local"
+          className="w-full rounded-md border border-border bg-elevated px-3 py-2 text-sm text-text-1 shadow-sm focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
+        />
+      </div>
+
       {/* Eligibility settings — TD only */}
       {isTournamentCreator && (
         <div className="space-y-4 rounded-md border border-border-subtle bg-elevated p-4">

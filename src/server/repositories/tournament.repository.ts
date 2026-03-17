@@ -70,6 +70,8 @@ export async function createTournament(data: {
   location?: string;
   startDate: Date;
   endDate?: Date;
+  startTime?: Date;
+  withdrawDeadline?: Date;
 }) {
   return prisma.tournament.create({ data });
 }
@@ -171,6 +173,7 @@ export async function createEvent(data: {
   format: MatchFormat;
   eventFormat: EventFormat;
   gamePointTarget: number;
+  startTime?: Date;
   maxParticipants?: number;
   minRating?: number;
   maxRating?: number;
@@ -200,4 +203,21 @@ export async function createEventEntry(
   return prisma.eventEntry.create({
     data: { eventId, playerProfileId, seed },
   });
+}
+
+export async function deleteEventEntry(eventId: string, playerProfileId: string) {
+  return prisma.eventEntry.delete({
+    where: { eventId_playerProfileId: { eventId, playerProfileId } },
+  });
+}
+
+export async function findEventEntriesForPlayer(
+  playerProfileId: string,
+  eventIds: string[],
+): Promise<string[]> {
+  const entries = await prisma.eventEntry.findMany({
+    where: { playerProfileId, eventId: { in: eventIds } },
+    select: { eventId: true },
+  });
+  return entries.map((e) => e.eventId);
 }
