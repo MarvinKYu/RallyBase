@@ -55,11 +55,14 @@ export function validateGameScore(
   pointTarget: number,
 ): GameResult {
   if (p1 === 0 && p2 === 0) return "unplayed";
-  const p1Won = p1 >= pointTarget && p1 - p2 >= 2;
-  const p2Won = p2 >= pointTarget && p2 - p1 >= 2;
-  if (p1Won && !p2Won) return "p1";
-  if (p2Won && !p1Won) return "p2";
-  return "invalid";
+  const winner = Math.max(p1, p2);
+  const loser = Math.min(p1, p2);
+  const diff = winner - loser;
+  if (winner < pointTarget) return "invalid";
+  if (diff < 2) return "invalid";
+  // If the game went past pointTarget (deuce), the margin must be exactly 2
+  if (winner > pointTarget && diff !== 2) return "invalid";
+  return p1 > p2 ? "p1" : "p2";
 }
 
 /**

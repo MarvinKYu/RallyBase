@@ -2,9 +2,29 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## Session Workflow
+
+Run `/session-start` at the beginning of each session to review project state.
+Run `/wrap-up` at the end of each session to commit, write the session log, and update memory and CLAUDE.md.
+
 ## Project Status
 
-**All 8 MVP phases are complete and the app is live on Vercel.** Stage 2 features (player search improvements, self-signup, round-robin format, TD/player view separation, bracket UI fix) are also complete as of 2026-03-13.
+**Current version: v0.3.0.** The app is live on Vercel. All MVP phases and Stage 2 features are complete. Next target is v0.4.0 (Security, Integrity & Correctness).
+
+### Version History
+- v0.1.0 — MVP (8 phases)
+- v0.1.1 — P2002 email fix
+- v0.1.2 — react-hook-form removal (production crash)
+- v0.1.3 — View code link fix
+- v0.2.0 — Delete tournament + dark theme redesign
+- v0.3.0 — Stage 2 (player search, self-signup, round-robin, TD views, bracket fix)
+
+### Upcoming
+- v0.4.0 — Security, Integrity & Correctness (TD restrictions, name uniqueness, void AWAITING_CONFIRMATION, RR tiebreaker fix, 4-digit verify code, rating in player search)
+- v0.4.1 — UI Polish (bracket submit button, score input UX, hide bracket for RR, dashboard nav link)
+- v0.5.0 — Player Registration Overhaul (start time, separate signup page, player withdrawal)
+- v0.6.0 — Tournament Lifecycle (TD dashboard page, past tournaments category)
+- v0.7.0 — Player History (match history, rating graph)
 
 ## Tech Stack
 
@@ -117,9 +137,9 @@ Submitted scores live in `match_result_submission_games`. Official scores are on
 - **User email uniqueness**: Clerk treats email+password and Google OAuth sign-ins as separate accounts with different `clerkId`s. `upsertUserFromClerk` matches on `clerkId OR email` to merge them.
 - **Tournament ownership**: `Tournament.createdByClerkId` (nullable String) stores the Clerk user ID of the creator. Existing/seeded tournaments have `null` and show no delete button.
 
-## Implementation Phases — All Complete
+## Completed Versions
 
-**MVP (Phases 1–8)**
+**v0.1.0 — MVP (Phases 1–8)**
 - ✅ Phase 1 — Foundation (Next.js, Clerk, Prisma, schema)
 - ✅ Phase 2 — Player System (profiles, search, rating display)
 - ✅ Phase 3 — Ratings (Elo engine, rating service, transactions)
@@ -129,7 +149,12 @@ Submitted scores live in `match_result_submission_games`. Official scores are on
 - ✅ Phase 7 — Rating Integration (ratings applied on match confirmation)
 - ✅ Phase 8 — Polish (responsive UI, demo seed data, Vercel deployment config)
 
-**Stage 2 (2026-03-13)**
+**v0.1.1** — P2002 email uniqueness fix
+**v0.1.2** — react-hook-form removal (production crash fix)
+**v0.1.3** — View code link fix
+**v0.2.0** — Delete tournament + dark theme redesign
+
+**v0.3.0 — Stage 2 (2026-03-13)**
 - ✅ F1 — Player search improvements (player number, gender, birthDate, filters)
 - ✅ F2 — Player self-signup (eligibility fields, SignUpButton, age/rating checks)
 - ✅ F3 — Round-robin format (circle-method algorithm, standings page, EventFormat enum)

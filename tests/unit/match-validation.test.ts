@@ -36,6 +36,21 @@ describe("validateGameScore", () => {
     expect(validateGameScore(21, 20, 21)).toBe("invalid");
     expect(validateGameScore(23, 21, 21)).toBe("p1");
   });
+
+  it("rejects scores where loser has far more points than pointTarget (e.g. 11-50)", () => {
+    expect(validateGameScore(11, 50, 11)).toBe("invalid");
+    expect(validateGameScore(50, 11, 11)).toBe("invalid");
+  });
+
+  it("rejects deuce scores with gap greater than 2 (e.g. 14-11)", () => {
+    expect(validateGameScore(14, 11, 11)).toBe("invalid");
+    expect(validateGameScore(11, 14, 11)).toBe("invalid");
+  });
+
+  it("accepts valid deuce scores", () => {
+    expect(validateGameScore(15, 13, 11)).toBe("p1");
+    expect(validateGameScore(13, 15, 11)).toBe("p2");
+  });
 });
 
 describe("validateMatchSubmission — BEST_OF_5", () => {
