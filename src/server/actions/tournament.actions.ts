@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import {
   createTournament,
   deleteTournament,
+  deleteEvent,
   createEvent,
   addEntrant,
   selfSignUpForEvent,
@@ -83,6 +84,16 @@ export async function deleteTournamentAction(tournamentId: string): Promise<void
   if ("error" in result) throw new Error(result.error);
 
   redirect("/tournaments");
+}
+
+export async function deleteEventAction(eventId: string, tournamentId: string): Promise<void> {
+  const { userId } = await auth();
+  if (!userId) redirect("/sign-in");
+
+  const result = await deleteEvent(eventId, userId);
+  if ("error" in result) throw new Error(result.error);
+
+  redirect(`/tournaments/${tournamentId}`);
 }
 
 // eventId and tournamentId are pre-bound via .bind(null, eventId, tournamentId)

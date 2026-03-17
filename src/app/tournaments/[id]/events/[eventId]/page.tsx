@@ -9,6 +9,7 @@ import { addEntrantAction } from "@/server/actions/tournament.actions";
 import { generateBracketAction } from "@/server/actions/bracket.actions";
 import { EntrantSearchForm } from "@/components/tournaments/EntrantSearchForm";
 import { SignUpButton } from "@/components/tournaments/SignUpButton";
+import { DeleteEventButton } from "@/components/tournaments/DeleteEventButton";
 
 type Props = {
   params: Promise<{ id: string; eventId: string }>;
@@ -74,7 +75,10 @@ export default async function EventDetailPage({ params, searchParams }: Props) {
               {event.tournament.name}
             </Link>
           </p>
-          <h1 className="text-3xl font-semibold text-text-1">{event.name}</h1>
+          <div className="flex items-start justify-between gap-4">
+            <h1 className="text-3xl font-semibold text-text-1">{event.name}</h1>
+            {isTD && <DeleteEventButton eventId={eventId} tournamentId={id} />}
+          </div>
           <p className="mt-1 text-sm text-text-2">
             {event.ratingCategory.name} ·{" "}
             {isRoundRobin ? "Round Robin" : "Single Elimination"} ·{" "}

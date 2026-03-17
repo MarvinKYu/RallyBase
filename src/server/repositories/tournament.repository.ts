@@ -95,6 +95,53 @@ export async function deleteTournamentById(id: string) {
   });
 }
 
+export async function deleteEventById(eventId: string) {
+  const matchRows = await prisma.match.findMany({
+    where: { eventId },
+    select: { id: true, status: true },
+  });
+
+  const allMatchIds = matchRows.map((m) => m.id);
+  const completedMatchIds = matchRows
+    .filter((m) => m.status === "COMPLETED")
+    .map((m) => m.id);
+
+  await prisma.$transaction(async (tx) => {
+    // Reverse rating changes for completed matches
+    if (completedMatchIds.length > 0) {
+      const transactions = await tx.ratingTransaction.findMany({
+        where: { matchId: { in: completedMatchIds } },
+      });
+      for (const txn of transactions) {
+        await tx.playerRating.update({
+          where: {
+            playerProfileId_ratingCategoryId: {
+              playerProfileId: txn.playerProfileId,
+              ratingCategoryId: txn.ratingCategoryId,
+            },
+          },
+          data: { rating: txn.ratingBefore, gamesPlayed: { decrement: 1 } },
+        });
+      }
+    }
+
+    if (allMatchIds.length > 0) {
+      // Detach rating transactions from matches before cascade
+      await tx.ratingTransaction.updateMany({
+        where: { matchId: { in: allMatchIds } },
+        data: { matchId: null },
+      });
+      // Break nextMatchId FK cycle (onDelete: NoAction)
+      await tx.match.updateMany({
+        where: { id: { in: allMatchIds } },
+        data: { nextMatchId: null },
+      });
+    }
+
+    await tx.event.delete({ where: { id: eventId } });
+  });
+}
+
 // ── Events ────────────────────────────────────────────────────────────────────
 
 export async function findEventById(id: string) {

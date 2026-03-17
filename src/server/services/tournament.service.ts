@@ -8,6 +8,7 @@ import {
   findTournamentsByPlayerProfile,
   createTournament as dbCreateTournament,
   deleteTournamentById,
+  deleteEventById,
   findEventById,
   createEvent as dbCreateEvent,
   findEventEntry,
@@ -85,6 +86,14 @@ export async function deleteTournament(tournamentId: string, clerkId: string) {
   if (tournament.createdByClerkId !== clerkId) return { error: "Not authorized." };
   await deleteTournamentById(tournamentId);
   return { success: true };
+}
+
+export async function deleteEvent(eventId: string, clerkId: string) {
+  const event = await findEventById(eventId);
+  if (!event) return { error: "Event not found." };
+  if (event.tournament.createdByClerkId !== clerkId) return { error: "Not authorized." };
+  await deleteEventById(eventId);
+  return { success: true, tournamentId: event.tournament.id };
 }
 
 export type CreateEventResult =
