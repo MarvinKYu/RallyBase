@@ -23,18 +23,6 @@ Do this automatically for every shipped change — no need to ask.
 
 **Current version: v0.4.2.** The app is live on Vercel. Next target is v0.5.0 (Player Registration Overhaul).
 
-### Version History
-- v0.1.0 — MVP (8 phases)
-- v0.1.1 — P2002 email fix
-- v0.1.2 — react-hook-form removal (production crash)
-- v0.1.3 — View code link fix
-- v0.2.0 — Delete tournament + dark theme redesign
-- v0.3.0 — Stage 2 (player search, self-signup, round-robin, TD views, bracket fix)
-- v0.3.1 — Deuce score validation fix
-- v0.4.0 — Security, integrity & correctness (TD restrictions, name uniqueness, RR tiebreaker, 4-digit code, player search rating)
-- v0.4.1 — UI polish (RR bracket redirect, score input UX, alignment fixes, Dashboard nav)
-- v0.4.2 — Delete event (rating reversal, FK cascade)
-
 ### Upcoming
 - v0.5.0 — Player Registration Overhaul (start time, separate signup page, player withdrawal)
 - v0.6.0 — Tournament Lifecycle (TD dashboard page, past tournaments category)
@@ -151,26 +139,3 @@ Submitted scores live in `match_result_submission_games`. Official scores are on
 - **User email uniqueness**: Clerk treats email+password and Google OAuth sign-ins as separate accounts with different `clerkId`s. `upsertUserFromClerk` matches on `clerkId OR email` to merge them.
 - **Tournament ownership**: `Tournament.createdByClerkId` (nullable String) stores the Clerk user ID of the creator. Existing/seeded tournaments have `null` and show no delete button.
 
-## Completed Versions
-
-**v0.1.0 — MVP (Phases 1–8)**
-- ✅ Phase 1 — Foundation (Next.js, Clerk, Prisma, schema)
-- ✅ Phase 2 — Player System (profiles, search, rating display)
-- ✅ Phase 3 — Ratings (Elo engine, rating service, transactions)
-- ✅ Phase 4 — Tournaments (create tournament/event, entrants, list/detail pages)
-- ✅ Phase 5 — Brackets (single-elimination generator, bracket UI)
-- ✅ Phase 6 — Match Results (submission, confirmation code workflow)
-- ✅ Phase 7 — Rating Integration (ratings applied on match confirmation)
-- ✅ Phase 8 — Polish (responsive UI, demo seed data, Vercel deployment config)
-
-**v0.1.1** — P2002 email uniqueness fix
-**v0.1.2** — react-hook-form removal (production crash fix)
-**v0.1.3** — View code link fix
-**v0.2.0** — Delete tournament + dark theme redesign
-
-**v0.3.0 — Stage 2 (2026-03-13)**
-- ✅ F1 — Player search improvements (player number, gender, birthDate, filters)
-- ✅ F2 — Player self-signup (eligibility fields, SignUpButton, age/rating checks)
-- ✅ F3 — Round-robin format (circle-method algorithm, standings page, EventFormat enum)
-- ✅ F4 — TD/player view separation (tdSubmitMatch, tdVoidMatch, conditional UI)
-- ✅ F5 — Bracket UI alignment fix (CARD_H = 104px)
