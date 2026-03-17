@@ -16,8 +16,10 @@ export default async function NewEventPage({ params }: Props) {
   const tournament = await getTournamentDetail(id);
   if (!tournament) notFound();
 
-  const ratingCategories = await getRatingCategoriesForOrg(tournament.organizationId);
   const isTournamentCreator = tournament.createdByClerkId === userId;
+  if (!isTournamentCreator) redirect(`/tournaments/${id}`);
+
+  const ratingCategories = await getRatingCategoriesForOrg(tournament.organizationId);
 
   return (
     <main className="mx-auto max-w-lg px-4 py-16">

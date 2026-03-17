@@ -9,6 +9,7 @@ import {
   addEntrant,
   selfSignUpForEvent,
   getEventDetail,
+  getTournamentDetail,
 } from "@/server/services/tournament.service";
 import { getMyProfile } from "@/server/services/player.service";
 import { findPlayerRatingByCategory } from "@/server/repositories/rating.repository";
@@ -48,6 +49,10 @@ export async function createEventAction(
 ): Promise<TournamentActionState> {
   const { userId } = await auth();
   if (!userId) return { error: "You must be signed in to create an event." };
+
+  const tournament = await getTournamentDetail(tournamentId);
+  if (!tournament) return { error: "Tournament not found." };
+  if (tournament.createdByClerkId !== userId) return { error: "Only the tournament creator can add events." };
 
   const data = {
     ratingCategoryId: formData.get("ratingCategoryId") as string,
@@ -89,6 +94,11 @@ export async function addEntrantAction(
 ): Promise<void> {
   const { userId } = await auth();
   if (!userId) redirect("/sign-in");
+
+  const tournament = await getTournamentDetail(tournamentId);
+  if (!tournament || tournament.createdByClerkId !== userId) {
+    redirect(`/tournaments/${tournamentId}/events/${eventId}`);
+  }
 
   const playerProfileId = formData.get("playerProfileId") as string;
   if (playerProfileId) {

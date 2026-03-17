@@ -82,7 +82,9 @@ export default async function StandingsPage({ params }: Props) {
                       key={s.playerProfileId}
                       className="border-b border-border-subtle bg-surface last:border-b-0"
                     >
-                      <td className="px-4 py-2 text-text-3">{i + 1}</td>
+                      <td className="px-4 py-2 text-text-3">
+                        {s.tied ? `T-${s.rank}` : s.rank}
+                      </td>
                       <td className="px-4 py-2 font-medium text-text-1">
                         <Link
                           href={`/profile/${s.playerProfileId}`}
@@ -176,7 +178,7 @@ export default async function StandingsPage({ params }: Props) {
                               Enter result
                             </Link>
                           )}
-                          {isTD && match.status === "COMPLETED" && (
+                          {isTD && (match.status === "COMPLETED" || match.status === "AWAITING_CONFIRMATION") && (
                             <form action={tdVoidMatchAction.bind(null, match.id, id, eventId)}>
                               <button
                                 type="submit"

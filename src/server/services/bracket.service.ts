@@ -6,6 +6,7 @@ import {
   winnerSlotInNextMatch,
 } from "@/server/algorithms/bracket";
 import { buildRoundRobinSchedule } from "@/server/algorithms/round-robin";
+import { computeHeadToHead, compareTiebreakers } from "@/server/algorithms/round-robin-tiebreaker";
 import {
   findMatchesByEventId,
   countMatchesByEventId,
@@ -34,6 +35,8 @@ export interface RoundRobinStanding {
   gamesLost: number;
   pointsFor: number;
   pointsAgainst: number;
+  rank: number;
+  tied: boolean;
 }
 
 export async function getRoundRobinStandings(eventId: string): Promise<RoundRobinStanding[]> {
@@ -62,6 +65,8 @@ export async function getRoundRobinStandings(eventId: string): Promise<RoundRobi
       gamesLost: 0,
       pointsFor: 0,
       pointsAgainst: 0,
+      rank: 0,
+      tied: false,
     });
   }
 
@@ -96,10 +101,55 @@ export async function getRoundRobinStandings(eventId: string): Promise<RoundRobi
     }
   }
 
-  return Array.from(standingsMap.values()).sort((a, b) => {
-    if (b.wins !== a.wins) return b.wins - a.wins;
-    return b.gamesWon - b.gamesLost - (a.gamesWon - a.gamesLost);
-  });
+  // Group by win count, sort each group with H2H tiebreakers, assign ranks
+  const winGroups = new Map<number, RoundRobinStanding[]>();
+  for (const s of standingsMap.values()) {
+    if (!winGroups.has(s.wins)) winGroups.set(s.wins, []);
+    winGroups.get(s.wins)!.push(s);
+  }
+
+  const finalSorted: RoundRobinStanding[] = [];
+  const sortedWinCounts = [...winGroups.keys()].sort((a, b) => b - a);
+
+  for (const wins of sortedWinCounts) {
+    const group = winGroups.get(wins)!;
+    const startRank = finalSorted.length + 1;
+
+    if (group.length === 1) {
+      group[0].rank = startRank;
+      group[0].tied = false;
+      finalSorted.push(group[0]);
+      continue;
+    }
+
+    const hhMap = computeHeadToHead(group.map((p) => p.playerProfileId), matches);
+    const compare = (a: RoundRobinStanding, b: RoundRobinStanding) =>
+      compareTiebreakers(a.playerProfileId, b.playerProfileId, hhMap, group.length);
+
+    group.sort(compare);
+
+    // Assign ranks within the group — players with equal tiebreakers share a rank
+    for (let i = 0; i < group.length; i++) {
+      if (i === 0) {
+        group[i].rank = startRank;
+      } else if (compare(group[i - 1], group[i]) === 0) {
+        group[i].rank = group[i - 1].rank;
+      } else {
+        group[i].rank = startRank + i;
+      }
+    }
+
+    // Mark tied flag for players sharing a rank
+    for (let i = 0; i < group.length; i++) {
+      group[i].tied =
+        (i > 0 && group[i].rank === group[i - 1].rank) ||
+        (i < group.length - 1 && group[i].rank === group[i + 1].rank);
+    }
+
+    finalSorted.push(...group);
+  }
+
+  return finalSorted;
 }
 
 // ── Bracket generation ────────────────────────────────────────────────────────

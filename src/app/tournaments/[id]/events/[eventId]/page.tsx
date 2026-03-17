@@ -109,7 +109,7 @@ export default async function EventDetailPage({ params, searchParams }: Props) {
                 {isRoundRobin ? "View standings" : "Standings"}
               </Link>
             )}
-            {!hasBracket && userId && event.eventEntries.length >= (isRoundRobin ? 3 : 2) && (
+            {!hasBracket && isTD && event.eventEntries.length >= (isRoundRobin ? 3 : 2) && (
               <form action={generateBracketAction.bind(null, eventId, id)}>
                 <button
                   type="submit"
@@ -164,8 +164,8 @@ export default async function EventDetailPage({ params, searchParams }: Props) {
           )}
         </section>
 
-        {/* TD: Add entrant — signed-in users only */}
-        {userId && (
+        {/* TD: Add entrant */}
+        {isTD && (
           <section>
             <h2 className="mb-4 text-lg font-medium text-text-1">Add entrant</h2>
             <div className="space-y-4">
@@ -183,12 +183,20 @@ export default async function EventDetailPage({ params, searchParams }: Props) {
                 <ul className="overflow-hidden rounded-lg border border-border">
                   {searchResults.map((player) => {
                     const alreadyIn = enteredIds.has(player.id);
+                    const playerRating = player.playerRatings.find(
+                      (r) => r.ratingCategoryId === event.ratingCategoryId,
+                    );
                     return (
                       <li
                         key={player.id}
                         className="flex items-center justify-between border-b border-border-subtle bg-surface px-4 py-3 last:border-b-0"
                       >
-                        <span className="text-sm text-text-1">{player.displayName}</span>
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm text-text-1">{player.displayName}</span>
+                          <span className="text-xs text-text-3">
+                            {playerRating ? Math.round(playerRating.rating) : "Unrated"}
+                          </span>
+                        </div>
                         {alreadyIn ? (
                           <span className="text-xs text-text-3">Already entered</span>
                         ) : (

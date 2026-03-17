@@ -66,9 +66,12 @@ export async function submitMatchResult(
     .slice(0, validation.gamesPlayed)
     .map((g, i) => ({ gameNumber: i + 1, ...g }));
 
+  const confirmationCode = Math.floor(Math.random() * 10000).toString().padStart(4, "0");
+
   const submission = await createSubmission({
     matchId,
     submittedById: submittedByProfileId,
+    confirmationCode,
     games: playedGames,
   });
 

@@ -152,6 +152,8 @@ model Tournament {
 
   organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   events       Event[]
+
+  @@unique([organizationId, name])
 }
 
 model Event {
@@ -174,6 +176,8 @@ model Event {
   ratingCategory RatingCategory @relation(fields: [ratingCategoryId], references: [id])
   eventEntries   EventEntry[]
   matches        Match[]
+
+  @@unique([tournamentId, name])
 }
 
 model EventEntry {
@@ -232,7 +236,7 @@ model MatchResultSubmission {
   id               String           @id @default(cuid())
   matchId          String
   submittedById    String
-  confirmationCode String           @unique @default(cuid())
+  confirmationCode String           @unique
   status           SubmissionStatus @default(PENDING)
   createdAt        DateTime         @default(now())
   confirmedAt      DateTime?

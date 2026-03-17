@@ -100,7 +100,7 @@ function MatchCard({
               Enter result
             </Link>
           )}
-          {isTD && match.status === "COMPLETED" && !isBye && (
+          {isTD && (match.status === "COMPLETED" || match.status === "AWAITING_CONFIRMATION") && !isBye && (
             <form action={tdVoidMatchAction.bind(null, match.id, tournamentId, eventId)}>
               <button
                 type="submit"

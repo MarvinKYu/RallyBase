@@ -32,7 +32,7 @@ export function ConfirmResultForm({ matchId, tournamentId, eventId }: Props) {
           id="confirmationCode"
           name="confirmationCode"
           type="text"
-          placeholder="Enter the code from your opponent"
+          placeholder="4-digit code from your opponent"
           autoComplete="off"
           className="w-full rounded-md border border-border bg-elevated px-3 py-2 font-mono text-sm text-text-1 placeholder:text-text-3 shadow-sm focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
         />

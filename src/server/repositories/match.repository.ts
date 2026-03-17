@@ -61,6 +61,7 @@ export async function findSubmissionByCode(confirmationCode: string) {
 export async function createSubmission(data: {
   matchId: string;
   submittedById: string;
+  confirmationCode: string;
   games: Array<{ gameNumber: number; player1Points: number; player2Points: number }>;
 }) {
   return prisma.$transaction(async (tx) => {
@@ -68,6 +69,7 @@ export async function createSubmission(data: {
       data: {
         matchId: data.matchId,
         submittedById: data.submittedById,
+        confirmationCode: data.confirmationCode,
         games: { create: data.games },
       },
     });

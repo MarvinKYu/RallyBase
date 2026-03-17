@@ -21,11 +21,13 @@ async function Results({
   organizationId,
   ratingCategoryId,
   gender,
+  displayRatingCategoryId,
 }: {
   query: string;
   organizationId?: string;
   ratingCategoryId?: string;
   gender?: string;
+  displayRatingCategoryId?: string;
 }) {
   const hasFilter = !!organizationId || !!ratingCategoryId || !!gender;
 
@@ -53,25 +55,29 @@ async function Results({
 
   return (
     <ul className="overflow-hidden rounded-lg border border-border">
-      {players.map((p) => (
-        <li key={p.id}>
-          <Link
-            href={`/profile/${p.id}`}
-            className="flex items-center justify-between border-b border-border-subtle bg-surface px-4 py-3 transition-colors last:border-b-0 hover:bg-surface-hover"
-          >
-            <div className="flex items-center gap-2">
-              <span className="text-xs text-text-3">#{p.playerNumber}</span>
-              <span className="text-sm font-medium text-text-1">
-                {p.displayName}
+      {players.map((p) => {
+        const rating = displayRatingCategoryId
+          ? p.playerRatings.find((r) => r.ratingCategoryId === displayRatingCategoryId)
+          : p.playerRatings[0];
+        return (
+          <li key={p.id}>
+            <Link
+              href={`/profile/${p.id}`}
+              className="flex items-center justify-between border-b border-border-subtle bg-surface px-4 py-3 transition-colors last:border-b-0 hover:bg-surface-hover"
+            >
+              <div className="flex items-center gap-2">
+                <span className="text-xs text-text-3">#{p.playerNumber}</span>
+                <span className="text-sm font-medium text-text-1">
+                  {p.displayName}
+                </span>
+              </div>
+              <span className="text-xs text-text-3">
+                {rating ? Math.round(rating.rating) : "Unrated"}
               </span>
-            </div>
-            <span className="text-xs text-text-3">
-              {p.playerRatings.length} rating
-              {p.playerRatings.length !== 1 ? "s" : ""}
-            </span>
-          </Link>
-        </li>
-      ))}
+            </Link>
+          </li>
+        );
+      })}
     </ul>
   );
 }
@@ -81,6 +87,18 @@ export default async function PlayersPage({ searchParams }: Props) {
 
   const organizations = await getOrganizations();
   const ratingCategories = org ? await getRatingCategoriesForOrg(org) : [];
+
+  // Determine which rating category to display on result cards.
+  // Priority: active discipline filter → active org's first category → default org's "Singles" category
+  let displayRatingCategoryId: string | undefined = discipline || undefined;
+  if (!displayRatingCategoryId) {
+    const contextCategories = org
+      ? ratingCategories
+      : await getRatingCategoriesForOrg(organizations[0]?.id ?? "");
+    displayRatingCategoryId =
+      contextCategories.find((c) => c.name.toLowerCase().includes("singles"))?.id ??
+      contextCategories[0]?.id;
+  }
 
   return (
     <main className="mx-auto max-w-2xl px-4 py-12">
@@ -109,6 +127,7 @@ export default async function PlayersPage({ searchParams }: Props) {
             organizationId={org || undefined}
             ratingCategoryId={discipline || undefined}
             gender={gender || undefined}
+            displayRatingCategoryId={displayRatingCategoryId}
           />
         </Suspense>
       </div>

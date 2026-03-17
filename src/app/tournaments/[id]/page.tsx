@@ -50,7 +50,7 @@ export default async function TournamentDetailPage({ params }: Props) {
         <section>
           <div className="mb-4 flex items-center justify-between">
             <h2 className="text-lg font-medium text-text-1">Events</h2>
-            {userId && (
+            {userId && tournament.createdByClerkId === userId && (
               <Link
                 href={`/tournaments/${id}/events/new`}
                 className="rounded-md bg-accent px-3 py-1.5 text-xs font-medium text-background transition-colors hover:bg-accent-dim"

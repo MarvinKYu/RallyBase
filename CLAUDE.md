@@ -7,6 +7,11 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 Run `/session-start` at the beginning of each session to review project state.
 Run `/wrap-up` at the end of each session to commit, write the session log, and update memory and CLAUDE.md.
 
+## Implementation Workflow:
+- One version at a time, with tests, followed by commit + push                                                         
+- Before each version: detail-drilling conversation with user to lock down specifics                                    
+- After each version: await user confirmation of no bugs before planning the next   
+
 ## Project Status
 
 **Current version: v0.3.0.** The app is live on Vercel. All MVP phases and Stage 2 features are complete. Next target is v0.4.0 (Security, Integrity & Correctness).

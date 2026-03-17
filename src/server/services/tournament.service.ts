@@ -1,4 +1,4 @@
-import { EventFormat, MatchFormat } from "@prisma/client";
+import { EventFormat, MatchFormat, Prisma } from "@prisma/client";
 import { createTournamentSchema, createEventSchema, addEntrantSchema } from "@/lib/schemas/tournament";
 import {
   findAllOrganizations,
@@ -59,17 +59,24 @@ export async function createTournament(
 
   const { organizationId, name, location, startDate, endDate } = parsed.data;
 
-  const tournament = await dbCreateTournament({
-    organizationId,
-    createdByClerkId,
-    name,
-    location: location || undefined,
-    startDate: new Date(startDate),
-    endDate: endDate ? new Date(endDate) : undefined,
-  });
+  try {
+    const tournament = await dbCreateTournament({
+      organizationId,
+      createdByClerkId,
+      name,
+      location: location || undefined,
+      startDate: new Date(startDate),
+      endDate: endDate ? new Date(endDate) : undefined,
+    });
 
-  const full = await findTournamentById(tournament.id);
-  return { tournament: full! };
+    const full = await findTournamentById(tournament.id);
+    return { tournament: full! };
+  } catch (e) {
+    if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === "P2002") {
+      return { fieldErrors: { name: ["A tournament with this name already exists in this organization."] } };
+    }
+    throw e;
+  }
 }
 
 export async function deleteTournament(tournamentId: string, clerkId: string) {
@@ -107,22 +114,29 @@ export async function createEvent(
     maxAge,
   } = parsed.data;
 
-  const event = await dbCreateEvent({
-    tournamentId,
-    ratingCategoryId,
-    name,
-    format: format as MatchFormat,
-    eventFormat: eventFormat as EventFormat,
-    gamePointTarget,
-    maxParticipants: maxParticipants || undefined,
-    minRating: minRating || undefined,
-    maxRating: maxRating || undefined,
-    minAge: minAge || undefined,
-    maxAge: maxAge || undefined,
-  });
+  try {
+    const event = await dbCreateEvent({
+      tournamentId,
+      ratingCategoryId,
+      name,
+      format: format as MatchFormat,
+      eventFormat: eventFormat as EventFormat,
+      gamePointTarget,
+      maxParticipants: maxParticipants || undefined,
+      minRating: minRating || undefined,
+      maxRating: maxRating || undefined,
+      minAge: minAge || undefined,
+      maxAge: maxAge || undefined,
+    });
 
-  const full = await findEventById(event.id);
-  return { event: full! };
+    const full = await findEventById(event.id);
+    return { event: full! };
+  } catch (e) {
+    if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === "P2002") {
+      return { fieldErrors: { name: ["An event with this name already exists in this tournament."] } };
+    }
+    throw e;
+  }
 }
 
 export type AddEntrantResult =

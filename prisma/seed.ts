@@ -74,6 +74,7 @@ async function completeMatch({
       data: {
         matchId,
         submittedById,
+        confirmationCode: Math.floor(Math.random() * 10000).toString().padStart(4, "0"),
         status: SubmissionStatus.CONFIRMED,
         confirmedAt: new Date(),
         games: { create: games.map((g, i) => ({ gameNumber: i + 1, ...g })) },
