@@ -3,7 +3,7 @@
 import { auth } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 import { generateBracket } from "@/server/services/bracket.service";
-import { getTournamentDetail } from "@/server/services/tournament.service";
+import { getTournamentDetail, getEventDetail } from "@/server/services/tournament.service";
 
 // eventId and tournamentId are pre-bound via .bind(null, eventId, tournamentId)
 export async function generateBracketAction(
@@ -21,5 +21,7 @@ export async function generateBracketAction(
 
   await generateBracket(eventId);
 
-  redirect(`/tournaments/${tournamentId}/events/${eventId}/bracket`);
+  const event = await getEventDetail(eventId);
+  const dest = event?.eventFormat === "ROUND_ROBIN" ? "standings" : "bracket";
+  redirect(`/tournaments/${tournamentId}/events/${eventId}/${dest}`);
 }

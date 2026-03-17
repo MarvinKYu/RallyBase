@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { useActionState } from "react";
 import { submitResultAction, type MatchActionState } from "@/server/actions/match.actions";
 
@@ -11,6 +12,12 @@ interface Props {
   maxGames: number;
   player1Name: string;
   player2Name: string;
+}
+
+function parseInvalidGameIndex(error: string | undefined): number | null {
+  if (!error) return null;
+  const m = error.match(/Game (\d+)/i);
+  return m ? parseInt(m[1], 10) - 1 : null;
 }
 
 export function SubmitResultForm({
@@ -27,6 +34,34 @@ export function SubmitResultForm({
     boundAction,
     null,
   );
+
+  const [scores, setScores] = useState<Array<{ p1: string; p2: string }>>(
+    Array.from({ length: maxGames }, () => ({ p1: "0", p2: "0" })),
+  );
+
+  const invalidIndex = parseInvalidGameIndex(state?.error);
+
+  function updateScore(gameIndex: number, player: "p1" | "p2", value: string) {
+    setScores((prev) => {
+      const next = [...prev];
+      next[gameIndex] = { ...next[gameIndex], [player]: value };
+      return next;
+    });
+  }
+
+  function handleFocus(gameIndex: number, player: "p1" | "p2") {
+    updateScore(gameIndex, player, "");
+  }
+
+  function handleBlur(gameIndex: number, player: "p1" | "p2") {
+    setScores((prev) => {
+      const next = [...prev];
+      if (next[gameIndex][player] === "") {
+        next[gameIndex] = { ...next[gameIndex], [player]: "0" };
+      }
+      return next;
+    });
+  }
 
   return (
     <form action={dispatch} className="space-y-6">
@@ -45,30 +80,47 @@ export function SubmitResultForm({
         </div>
 
         {/* Game rows */}
-        {Array.from({ length: maxGames }, (_, i) => (
-          <div
-            key={i}
-            className="grid grid-cols-[2rem_1fr_1fr] items-center gap-4 border-b border-border-subtle bg-surface px-4 py-3 last:border-b-0"
-          >
-            <span className="text-sm text-text-3">{i + 1}</span>
-            <input
-              type="number"
-              min={0}
-              name={`games.${i}.player1Points`}
-              defaultValue={0}
-              className="w-full rounded-md border border-border bg-elevated px-3 py-1.5 text-sm text-text-1 placeholder:text-text-3 shadow-sm focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
-              placeholder="0"
-            />
-            <input
-              type="number"
-              min={0}
-              name={`games.${i}.player2Points`}
-              defaultValue={0}
-              className="w-full rounded-md border border-border bg-elevated px-3 py-1.5 text-sm text-text-1 placeholder:text-text-3 shadow-sm focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
-              placeholder="0"
-            />
-          </div>
-        ))}
+        {scores.map((score, i) => {
+          const isInvalid = invalidIndex === i;
+          return (
+            <div
+              key={i}
+              className={`grid grid-cols-[2rem_1fr_1fr] items-center gap-4 border-b border-border-subtle px-4 py-3 last:border-b-0 ${
+                isInvalid ? "bg-red-950/30" : "bg-surface"
+              }`}
+            >
+              <span className="text-sm text-text-3">{i + 1}</span>
+              <input
+                type="number"
+                min={0}
+                name={`games.${i}.player1Points`}
+                value={score.p1}
+                onChange={(e) => updateScore(i, "p1", e.target.value)}
+                onFocus={() => handleFocus(i, "p1")}
+                onBlur={() => handleBlur(i, "p1")}
+                className={`w-full rounded-md border bg-elevated px-3 py-1.5 text-sm text-text-1 shadow-sm focus:outline-none focus:ring-1 ${
+                  isInvalid
+                    ? "border-red-500 focus:border-red-500 focus:ring-red-500"
+                    : "border-border focus:border-accent focus:ring-accent"
+                }`}
+              />
+              <input
+                type="number"
+                min={0}
+                name={`games.${i}.player2Points`}
+                value={score.p2}
+                onChange={(e) => updateScore(i, "p2", e.target.value)}
+                onFocus={() => handleFocus(i, "p2")}
+                onBlur={() => handleBlur(i, "p2")}
+                className={`w-full rounded-md border bg-elevated px-3 py-1.5 text-sm text-text-1 shadow-sm focus:outline-none focus:ring-1 ${
+                  isInvalid
+                    ? "border-red-500 focus:border-red-500 focus:ring-red-500"
+                    : "border-border focus:border-accent focus:ring-accent"
+                }`}
+              />
+            </div>
+          );
+        })}
       </div>
 
       <p className="text-xs text-text-3">

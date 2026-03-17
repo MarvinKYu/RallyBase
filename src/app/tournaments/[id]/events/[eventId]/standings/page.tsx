@@ -179,7 +179,7 @@ export default async function StandingsPage({ params }: Props) {
                             </Link>
                           )}
                           {isTD && (match.status === "COMPLETED" || match.status === "AWAITING_CONFIRMATION") && (
-                            <form action={tdVoidMatchAction.bind(null, match.id, id, eventId)}>
+                            <form action={tdVoidMatchAction.bind(null, match.id, id, eventId)} className="flex items-center">
                               <button
                                 type="submit"
                                 className="text-xs font-medium text-red-400 hover:underline"

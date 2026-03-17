@@ -1,4 +1,4 @@
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
 import { auth } from "@clerk/nextjs/server";
 import { getEventDetail } from "@/server/services/tournament.service";
@@ -70,7 +70,7 @@ function MatchCard({
           {!isTD && match.status === "PENDING" && match.player1Id && match.player2Id && (
             <Link
               href={`/matches/${match.id}/submit`}
-              className="text-[10px] font-medium text-text-3 underline-offset-2 hover:text-accent hover:underline"
+              className="text-[10px] font-medium text-accent underline-offset-2 hover:underline"
             >
               Submit
             </Link>
@@ -101,7 +101,7 @@ function MatchCard({
             </Link>
           )}
           {isTD && (match.status === "COMPLETED" || match.status === "AWAITING_CONFIRMATION") && !isBye && (
-            <form action={tdVoidMatchAction.bind(null, match.id, tournamentId, eventId)}>
+            <form action={tdVoidMatchAction.bind(null, match.id, tournamentId, eventId)} className="flex items-center">
               <button
                 type="submit"
                 className="text-[10px] font-medium text-red-400 underline-offset-2 hover:underline"
@@ -125,6 +125,9 @@ export default async function BracketPage({ params }: Props) {
   ]);
 
   if (!event) notFound();
+  if (event.eventFormat === "ROUND_ROBIN") {
+    redirect(`/tournaments/${id}/events/${eventId}/standings`);
+  }
 
   const isTD = !!userId && event.tournament.createdByClerkId === userId;
 
