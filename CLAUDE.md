@@ -21,10 +21,9 @@ Do this automatically for every shipped change — no need to ask.
 
 ## Project Status
 
-**Current version: v0.5.2.** The app is live on Vercel. Next target is v0.6.0 (Tournament Lifecycle).
+**Current version: v0.6.0.** The app is live on Vercel. Next target is v0.7.0 (Player History).
 
 ### Upcoming
-- v0.6.0 — Tournament Lifecycle (publish/draft workflow, TD dashboard, edit event/tournament, past tournaments)
 - v0.7.0 — Player History (match history, rating graph)
 - v0.8.0 — Tournament Templates (save/load tournament templates)
 
@@ -138,7 +137,7 @@ Submitted scores live in `match_result_submission_games`. Official scores are on
 - **Tournament deletion FK cycle**: `Match.nextMatchId` uses `onDelete: NoAction`. Deleting a tournament requires nulling `nextMatchId` on all its matches first, then detaching `RatingTransaction.matchId`, then deleting the tournament. See `deleteTournamentById` in `tournament.repository.ts`.
 - **User email uniqueness**: Clerk treats email+password and Google OAuth sign-ins as separate accounts with different `clerkId`s. `upsertUserFromClerk` matches on `clerkId OR email` to merge them.
 - **Tournament ownership**: `Tournament.createdByClerkId` (nullable String) stores the Clerk user ID of the creator. Existing/seeded tournaments have `null` and show no delete button.
-- **Event status change UI missing**: no UI for TDs to change event status from `DRAFT` → `REGISTRATION_OPEN`. Players cannot register for draft events. Planned for v0.6.0.
+- **Existing live tournaments default to DRAFT**: any tournaments created before v0.6.0 without a `createdByClerkId` have `status = 'DRAFT'` and won't appear in the public list. Run `UPDATE "Tournament" SET status = 'PUBLISHED' WHERE "createdByClerkId" IS NULL;` on the production DB after deploying v0.6.0.
 - **Timezone limitation**: `datetime-local` inputs are stored as UTC. `toLocaleString()` on the client converts to browser local time. UTC labels added as mitigation; proper timezone handling is future work.
 - **`prisma migrate dev` unavailable**: non-interactive terminal requires writing migration SQL manually and applying via `prisma db execute --file <path> --schema prisma/schema.prisma`.
 

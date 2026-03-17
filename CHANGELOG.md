@@ -10,6 +10,25 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 ---
 
+## [0.6.0] - 2026-03-17
+
+### Added
+- **TD manage page** at `/tournaments/[id]/manage` — management hub with status controls, match overview per event, and links to edit/bracket/standings.
+- **Tournament status transitions** — full lifecycle: DRAFT → PUBLISHED → IN_PROGRESS → COMPLETED, TD-only, forward-only.
+- **Event status transitions** — full lifecycle: DRAFT → REGISTRATION_OPEN → IN_PROGRESS → COMPLETED, TD-only, forward-only.
+- **Edit tournament page** at `/tournaments/[id]/edit` — pre-filled form for name, location, dates, and scheduling.
+- **Edit event page** at `/tournaments/[id]/events/[eventId]/edit` — pre-filled form; rating category and event format shown read-only to prevent destructive changes.
+- **Past/upcoming split** on the tournament list — tournaments split by `startDate` relative to today.
+- **My Drafts section** on the tournament list — TDs see their DRAFT tournaments (links to manage page) at the top.
+- **DRAFT guard** on tournament detail — non-TD visitors to a DRAFT tournament URL are redirected to `/tournaments`.
+- **Manage link** on tournament detail page for the TD.
+
+### Changed
+- DRAFT tournaments are excluded from the public tournament list.
+- Seeded demo tournaments now default to `PUBLISHED` status.
+
+---
+
 ## [0.5.2] - 2026-03-17
 
 ### Changed
