@@ -1,57 +1,5 @@
 # Planned Features Roadmap
 
-## v0.4.0 — Security, Integrity & Correctness
-
-### Restrict event creation and player addition to tournament creator
-- Currently any logged-in user can create events and add entrants to any tournament
-- Lock to the tournament's `createdByClerkId`; org/platform admins as future extension points
-
-### Enforce tournament and event name uniqueness
-- Tournament names unique globally; event names unique within a tournament
-- DB constraint + Zod validation + form error display
-
-### TD can void matches in AWAITING_CONFIRMATION state
-- Currently `tdVoidMatch` only handles completed matches
-- Extend to also reset matches that are waiting for confirmation
-
-### Round robin tiebreaker — proper subset logic
-- Current standings sort by W/L then games differential across all matches
-- Fix: tiebreakers must use only head-to-head matches among tied players
-- Priority: (1) games/sets won in head-to-head among tied, (2) points won in those matches, (3) head-to-head result if only two remain tied
-- Fix `bracket.service.ts` standings sort and add unit tests
-
-### Change verification code to 4-digit numerical
-- Schema change: String cuid → 4-digit zero-padded String
-- New generation logic: random 0000–9999
-- Update UI display
-
-### Player search shows current rating
-- Add rating display to player search results cards
-- Default to USATT / singles discipline filter
-
----
-
-## v0.4.1 — UI Polish
-
-No schema changes. Can ship independently or alongside v0.4.0.
-
-### Change SUBMIT button color in bracket view
-- Visual inconsistency fix
-
-### Update match score input UX
-- Clear field contents on focus
-- Default to 0 if clicked away with no input
-- On invalid submission, retain previously entered values and highlight the invalid row/field
-
-### Remove bracket display for round robin events
-- Round robin events should show the standings page, not an empty/broken bracket view
-- Hide the bracket nav link and redirect if accessed directly
-
-### Dashboard button in header nav
-- Add explicit "Dashboard" nav link alongside the existing RallyBase logo link
-
----
-
 ## v0.5.0 — Player Registration Overhaul
 
 Depends on v0.4.0 (TD restriction must be enforced before building the player-facing flow).
@@ -102,8 +50,6 @@ Depends on v0.4.0 (TD restriction must be enforced before building the player-fa
 
 ## Dependency Notes
 
-- v0.4.1 has no dependencies — can be done in parallel with or after v0.4.0
-- v0.5.0 requires v0.4.0 (TD restriction must gate the new player signup page correctly)
 - v0.6.0 item 2 (past tournaments) requires v0.5.0 `startTime` field
 - v0.7.0 has no dependencies beyond the existing rating_transactions ledger
 
@@ -133,3 +79,19 @@ Depends on v0.4.0 (TD restriction must be enforced before building the player-fa
 - Round-robin format (circle-method algorithm, standings page, EventFormat enum)
 - TD/player view separation (tdSubmitMatch, tdVoidMatch, conditional UI)
 - Bracket UI alignment fix (CARD_H = 104px)
+
+## v0.3.1 — Deuce score validation fix
+
+## v0.4.0 — Security, Integrity & Correctness
+- TD restriction on event/entrant/bracket actions
+- Tournament and event name uniqueness (DB constraint + form error)
+- TD can void matches in AWAITING_CONFIRMATION state
+- Round-robin tiebreaker uses head-to-head subset
+- Verification code changed to 4-digit zero-padded number
+- Player search shows current rating (context-sensitive, Unrated fallback)
+
+## v0.4.1 — UI Polish
+- Round-robin bracket redirect to standings
+- Match score input UX (clear on focus, retain on error, highlight invalid row)
+- Void button alignment fix
+- Dashboard nav link added to header
