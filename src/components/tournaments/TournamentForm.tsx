@@ -120,7 +120,7 @@ export function TournamentForm({ organizations }: { organizations: Org[] }) {
           <div className="space-y-3">
             <div className="space-y-1">
               <label htmlFor="startTime" className="block text-xs font-medium text-text-3">
-                Tournament start time
+                Tournament start time <span className="font-normal">(UTC)</span>
               </label>
               <input
                 id="startTime"
@@ -131,7 +131,7 @@ export function TournamentForm({ organizations }: { organizations: Org[] }) {
             </div>
             <div className="space-y-1">
               <label htmlFor="withdrawDeadline" className="block text-xs font-medium text-text-3">
-                Withdrawal deadline
+                Withdrawal deadline <span className="font-normal">(UTC)</span>
               </label>
               <input
                 id="withdrawDeadline"

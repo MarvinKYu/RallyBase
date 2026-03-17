@@ -59,7 +59,7 @@ export default async function TournamentDetailPage({ params }: Props) {
             {tournament.events.length > 0 && (
               <Link
                 href={`/tournaments/${id}/register`}
-                className="rounded-md border border-border px-3 py-1.5 text-xs font-medium text-text-2 transition-colors hover:bg-surface-hover"
+                className="rounded-md bg-accent px-3 py-1.5 text-xs font-medium text-background transition-colors hover:bg-accent-dim"
               >
                 Register for Events
               </Link>

@@ -124,7 +124,7 @@ export function EventForm({
       {/* Start time */}
       <div className="space-y-1">
         <label htmlFor="startTime" className="block text-sm font-medium text-text-2">
-          Event start time <span className="font-normal text-text-3">(optional)</span>
+          Event start time <span className="font-normal text-text-3">(optional, UTC)</span>
         </label>
         <input
           id="startTime"
