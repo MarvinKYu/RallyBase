@@ -10,3 +10,6 @@ prisma/generated/
 /.clerk/
 
 scripts/
+
+# personal notes
+docs/learning-plan.md
