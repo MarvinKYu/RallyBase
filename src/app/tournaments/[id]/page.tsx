@@ -56,12 +56,12 @@ export default async function TournamentDetailPage({ params }: Props) {
           <div className="mb-4 flex items-center justify-between">
             <h2 className="text-lg font-medium text-text-1">Events</h2>
             <div className="flex items-center gap-2">
-            {userId && tournament.events.some((e) => e.status === "REGISTRATION_OPEN") && (
+            {tournament.events.length > 0 && (
               <Link
                 href={`/tournaments/${id}/register`}
                 className="rounded-md border border-border px-3 py-1.5 text-xs font-medium text-text-2 transition-colors hover:bg-surface-hover"
               >
-                Register
+                Register for Events
               </Link>
             )}
             {userId && tournament.createdByClerkId === userId && (
