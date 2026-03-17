@@ -10,6 +10,13 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 ---
 
+## [0.4.2] - 2026-03-16
+
+### Added
+- **Delete event:** tournament directors can delete an event from the event detail page. Applied rating transactions are reversed before removal; all matches, entries, and submissions are cleaned up via cascade.
+
+---
+
 ## [0.4.1] - 2026-03-16
 
 ### Added
@@ -106,7 +113,8 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 ---
 
-[Unreleased]: https://github.com/MarvinKYu/RallyBase/compare/v0.4.1...HEAD
+[Unreleased]: https://github.com/MarvinKYu/RallyBase/compare/v0.4.2...HEAD
+[0.4.2]: https://github.com/MarvinKYu/RallyBase/compare/v0.4.1...v0.4.2
 [0.4.1]: https://github.com/MarvinKYu/RallyBase/compare/v0.4.0...v0.4.1
 [0.4.0]: https://github.com/MarvinKYu/RallyBase/compare/v0.3.1...v0.4.0
 [0.3.1]: https://github.com/MarvinKYu/RallyBase/compare/v0.3.0...v0.3.1

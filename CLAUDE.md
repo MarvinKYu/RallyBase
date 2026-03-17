@@ -14,7 +14,7 @@ Run `/wrap-up` at the end of each session to commit, write the session log, and 
 
 ## Project Status
 
-**Current version: v0.4.1.** The app is live on Vercel. Next target is v0.5.0 (Player Registration Overhaul).
+**Current version: v0.4.2.** The app is live on Vercel. Next target is v0.5.0 (Player Registration Overhaul).
 
 ### Version History
 - v0.1.0 — MVP (8 phases)
@@ -26,6 +26,7 @@ Run `/wrap-up` at the end of each session to commit, write the session log, and 
 - v0.3.1 — Deuce score validation fix
 - v0.4.0 — Security, integrity & correctness (TD restrictions, name uniqueness, RR tiebreaker, 4-digit code, player search rating)
 - v0.4.1 — UI polish (RR bracket redirect, score input UX, alignment fixes, Dashboard nav)
+- v0.4.2 — Delete event (rating reversal, FK cascade)
 
 ### Upcoming
 - v0.5.0 — Player Registration Overhaul (start time, separate signup page, player withdrawal)

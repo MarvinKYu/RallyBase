@@ -1,3 +1,5 @@
+# Planned Features Shortlist
+
 # Planned Features Roadmap
 
 ## v0.5.0 — Player Registration Overhaul
@@ -95,3 +97,6 @@ Depends on v0.4.0 (TD restriction must be enforced before building the player-fa
 - Match score input UX (clear on focus, retain on error, highlight invalid row)
 - Void button alignment fix
 - Dashboard nav link added to header
+
+## v0.4.2 — Delete Event
+- TD can delete an event from the event detail page; ratings reversed, FK cascade handled
