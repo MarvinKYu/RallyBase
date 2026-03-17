@@ -1,26 +1,5 @@
 # Planned Features Roadmap
 
-## v0.5.0 — Player Registration Overhaul
-
-Depends on v0.4.0 (TD restriction must be enforced before building the player-facing flow).
-
-### Add start time to events and tournaments
-- `startTime DateTime?` on both `Tournament` and `Event`
-- Tournament start defaults to earliest event start
-- Used as basis for withdraw deadline calculation
-
-### Separate player signup page
-- New flow: player navigates to a tournament → sees list of events with eligibility status → selects events → submits
-- TD-side "add entrant" search remains unchanged
-- New route: `/tournaments/[id]/register`
-
-### Player withdrawal from event
-- Player can withdraw from an event before the withdraw deadline
-- Deadline: TD-set field on tournament (`withdrawDeadline DateTime?`), defaulting to 24h before `Tournament.startTime`
-- Block withdrawal after bracket is generated regardless of deadline
-
----
-
 ## v0.6.0 — Tournament Lifecycle
 
 ### TD publish/draft workflow
