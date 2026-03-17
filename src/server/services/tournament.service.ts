@@ -1,16 +1,29 @@
-import { EventFormat, MatchFormat, Prisma } from "@prisma/client";
-import { createTournamentSchema, createEventSchema, addEntrantSchema } from "@/lib/schemas/tournament";
+import { EventFormat, EventStatus, MatchFormat, Prisma, TournamentStatus } from "@prisma/client";
+import {
+  createTournamentSchema,
+  createEventSchema,
+  updateTournamentSchema,
+  updateEventSchema,
+  addEntrantSchema,
+} from "@/lib/schemas/tournament";
 import {
   findAllOrganizations,
   findRatingCategoriesByOrganization,
   findAllTournaments,
+  findPublicTournaments,
+  findTournamentsByCreator,
+  findTournamentManageDetail,
   findTournamentById,
   findTournamentsByPlayerProfile,
   createTournament as dbCreateTournament,
+  updateTournamentById,
+  setTournamentStatus,
   deleteTournamentById,
   deleteEventById,
   findEventById,
   createEvent as dbCreateEvent,
+  updateEventById,
+  setEventStatus,
   findEventEntry,
   createEventEntry,
   countEventEntries,
@@ -18,6 +31,19 @@ import {
   findEventEntriesForPlayer,
 } from "@/server/repositories/tournament.repository";
 import { findPlayerRatingByCategory } from "@/server/repositories/rating.repository";
+
+const TOURNAMENT_STATUS_ORDER: TournamentStatus[] = [
+  "DRAFT",
+  "PUBLISHED",
+  "IN_PROGRESS",
+  "COMPLETED",
+];
+const EVENT_STATUS_ORDER: EventStatus[] = [
+  "DRAFT",
+  "REGISTRATION_OPEN",
+  "IN_PROGRESS",
+  "COMPLETED",
+];
 
 // ── Queries ───────────────────────────────────────────────────────────────────
 
@@ -43,6 +69,21 @@ export async function getEventDetail(id: string) {
 
 export async function getTournamentsForPlayer(playerProfileId: string) {
   return findTournamentsByPlayerProfile(playerProfileId);
+}
+
+export async function getPublicTournaments() {
+  return findPublicTournaments();
+}
+
+export async function getMyTournaments(clerkId: string) {
+  return findTournamentsByCreator(clerkId);
+}
+
+export async function getTournamentManageDetail(tournamentId: string, clerkId: string) {
+  const tournament = await findTournamentManageDetail(tournamentId);
+  if (!tournament) return null;
+  if (tournament.createdByClerkId !== clerkId) return null;
+  return tournament;
 }
 
 // ── Mutations ─────────────────────────────────────────────────────────────────
@@ -99,6 +140,143 @@ export async function deleteEvent(eventId: string, clerkId: string) {
   if (event.tournament.createdByClerkId !== clerkId) return { error: "Not authorized." };
   await deleteEventById(eventId);
   return { success: true, tournamentId: event.tournament.id };
+}
+
+export type UpdateTournamentResult =
+  | { tournament: NonNullable<Awaited<ReturnType<typeof findTournamentById>>> }
+  | { error: string }
+  | { fieldErrors: Record<string, string[]> };
+
+export async function updateTournament(
+  tournamentId: string,
+  data: unknown,
+  clerkId: string,
+): Promise<UpdateTournamentResult> {
+  const tournament = await findTournamentById(tournamentId);
+  if (!tournament) return { error: "Tournament not found." };
+  if (tournament.createdByClerkId !== clerkId) return { error: "Not authorized." };
+
+  const parsed = updateTournamentSchema.safeParse(data);
+  if (!parsed.success) {
+    return { fieldErrors: parsed.error.flatten().fieldErrors as Record<string, string[]> };
+  }
+
+  const { name, location, startDate, endDate, startTime, withdrawDeadline } = parsed.data;
+
+  try {
+    await updateTournamentById(tournamentId, {
+      name,
+      location: location || null,
+      startDate: new Date(startDate),
+      endDate: endDate ? new Date(endDate) : null,
+      startTime: startTime ? new Date(startTime) : null,
+      withdrawDeadline: withdrawDeadline ? new Date(withdrawDeadline) : null,
+    });
+    const updated = await findTournamentById(tournamentId);
+    return { tournament: updated! };
+  } catch (e) {
+    if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === "P2002") {
+      return {
+        fieldErrors: { name: ["A tournament with this name already exists in this organization."] },
+      };
+    }
+    throw e;
+  }
+}
+
+export type UpdateEventResult =
+  | { event: NonNullable<Awaited<ReturnType<typeof findEventById>>> }
+  | { error: string }
+  | { fieldErrors: Record<string, string[]> };
+
+export async function updateEvent(
+  eventId: string,
+  data: unknown,
+  clerkId: string,
+): Promise<UpdateEventResult> {
+  const event = await findEventById(eventId);
+  if (!event) return { error: "Event not found." };
+  if (event.tournament.createdByClerkId !== clerkId) return { error: "Not authorized." };
+
+  const parsed = updateEventSchema.safeParse(data);
+  if (!parsed.success) {
+    return { fieldErrors: parsed.error.flatten().fieldErrors as Record<string, string[]> };
+  }
+
+  const {
+    name,
+    format,
+    gamePointTarget,
+    startTime,
+    maxParticipants,
+    minRating,
+    maxRating,
+    minAge,
+    maxAge,
+  } = parsed.data;
+
+  try {
+    await updateEventById(eventId, {
+      name,
+      format: format as MatchFormat,
+      gamePointTarget,
+      startTime: startTime ? new Date(startTime) : null,
+      maxParticipants: maxParticipants || null,
+      minRating: minRating || null,
+      maxRating: maxRating || null,
+      minAge: minAge || null,
+      maxAge: maxAge || null,
+    });
+    const updated = await findEventById(eventId);
+    return { event: updated! };
+  } catch (e) {
+    if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === "P2002") {
+      return {
+        fieldErrors: { name: ["An event with this name already exists in this tournament."] },
+      };
+    }
+    throw e;
+  }
+}
+
+export type AdvanceStatusResult =
+  | { status: TournamentStatus | EventStatus }
+  | { error: string };
+
+export async function advanceTournamentStatus(
+  tournamentId: string,
+  clerkId: string,
+): Promise<AdvanceStatusResult> {
+  const tournament = await findTournamentById(tournamentId);
+  if (!tournament) return { error: "Tournament not found." };
+  if (tournament.createdByClerkId !== clerkId) return { error: "Not authorized." };
+
+  const currentIndex = TOURNAMENT_STATUS_ORDER.indexOf(tournament.status);
+  if (currentIndex === -1 || currentIndex === TOURNAMENT_STATUS_ORDER.length - 1) {
+    return { error: "Tournament is already completed." };
+  }
+
+  const nextStatus = TOURNAMENT_STATUS_ORDER[currentIndex + 1];
+  await setTournamentStatus(tournamentId, nextStatus);
+  return { status: nextStatus };
+}
+
+export async function advanceEventStatus(
+  eventId: string,
+  clerkId: string,
+): Promise<AdvanceStatusResult> {
+  const event = await findEventById(eventId);
+  if (!event) return { error: "Event not found." };
+  if (event.tournament.createdByClerkId !== clerkId) return { error: "Not authorized." };
+
+  const currentIndex = EVENT_STATUS_ORDER.indexOf(event.status);
+  if (currentIndex === -1 || currentIndex === EVENT_STATUS_ORDER.length - 1) {
+    return { error: "Event is already completed." };
+  }
+
+  const nextStatus = EVENT_STATUS_ORDER[currentIndex + 1];
+  await setEventStatus(eventId, nextStatus);
+  return { status: nextStatus };
 }
 
 export type CreateEventResult =

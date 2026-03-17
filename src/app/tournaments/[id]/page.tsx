@@ -1,4 +1,4 @@
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
 import { auth } from "@clerk/nextjs/server";
 import { getTournamentDetail } from "@/server/services/tournament.service";
@@ -24,6 +24,13 @@ export default async function TournamentDetailPage({ params }: Props) {
   const tournament = await getTournamentDetail(id);
   if (!tournament) notFound();
 
+  const isTD = userId !== null && tournament.createdByClerkId === userId;
+
+  // Guard: DRAFT tournaments are only visible to their creator
+  if (tournament.status === "DRAFT" && !isTD) {
+    redirect("/tournaments");
+  }
+
   return (
     <main className="mx-auto max-w-2xl px-4 py-12">
       <div className="space-y-8">
@@ -33,8 +40,16 @@ export default async function TournamentDetailPage({ params }: Props) {
               <p className="text-sm text-text-3">{tournament.organization.name}</p>
               <h1 className="text-3xl font-semibold text-text-1">{tournament.name}</h1>
             </div>
-            {userId && tournament.createdByClerkId === userId && (
-              <DeleteTournamentButton tournamentId={tournament.id} />
+            {isTD && (
+              <div className="flex shrink-0 items-center gap-2">
+                <Link
+                  href={`/tournaments/${id}/manage`}
+                  className="rounded-md bg-accent px-3 py-1.5 text-xs font-medium text-background transition-colors hover:bg-accent-dim"
+                >
+                  Manage
+                </Link>
+                <DeleteTournamentButton tournamentId={tournament.id} />
+              </div>
             )}
           </div>
           {tournament.location && (
@@ -50,29 +65,34 @@ export default async function TournamentDetailPage({ params }: Props) {
               Starts {new Date((tournament as { startTime: Date }).startTime).toLocaleString()}
             </p>
           )}
+          {tournament.status === "DRAFT" && (
+            <p className="mt-2 rounded-md border border-amber-800 bg-amber-950/40 px-3 py-1.5 text-xs text-amber-300">
+              This tournament is a draft and not visible to the public.
+            </p>
+          )}
         </div>
 
         <section>
           <div className="mb-4 flex items-center justify-between">
             <h2 className="text-lg font-medium text-text-1">Events</h2>
             <div className="flex items-center gap-2">
-            {tournament.events.length > 0 && (
-              <Link
-                href={`/tournaments/${id}/register`}
-                className="rounded-md bg-accent px-3 py-1.5 text-xs font-medium text-background transition-colors hover:bg-accent-dim"
-              >
-                Register for Events
-              </Link>
-            )}
-            {userId && tournament.createdByClerkId === userId && (
-              <Link
-                href={`/tournaments/${id}/events/new`}
-                className="rounded-md bg-accent px-3 py-1.5 text-xs font-medium text-background transition-colors hover:bg-accent-dim"
-              >
-                Add event
-              </Link>
-            )}
-          </div>
+              {tournament.events.length > 0 && (
+                <Link
+                  href={`/tournaments/${id}/register`}
+                  className="rounded-md bg-accent px-3 py-1.5 text-xs font-medium text-background transition-colors hover:bg-accent-dim"
+                >
+                  Register for Events
+                </Link>
+              )}
+              {isTD && (
+                <Link
+                  href={`/tournaments/${id}/events/new`}
+                  className="rounded-md bg-accent px-3 py-1.5 text-xs font-medium text-background transition-colors hover:bg-accent-dim"
+                >
+                  Add event
+                </Link>
+              )}
+            </div>
           </div>
 
           {tournament.events.length === 0 ? (

@@ -1,4 +1,4 @@
-import { EventFormat, MatchFormat } from "@prisma/client";
+import { EventFormat, EventStatus, MatchFormat, TournamentStatus } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 
 // ── Organizations / Rating Categories ─────────────────────────────────────────
@@ -27,6 +27,52 @@ export async function findAllTournaments() {
       events: { select: { id: true } },
     },
     orderBy: { startDate: "desc" },
+  });
+}
+
+export async function findPublicTournaments() {
+  return prisma.tournament.findMany({
+    where: { status: { not: "DRAFT" } },
+    include: {
+      organization: true,
+      events: { select: { id: true } },
+    },
+    orderBy: { startDate: "desc" },
+  });
+}
+
+export async function findTournamentsByCreator(creatorClerkId: string) {
+  return prisma.tournament.findMany({
+    where: { createdByClerkId: creatorClerkId },
+    include: {
+      organization: true,
+      events: { select: { id: true } },
+    },
+    orderBy: { startDate: "desc" },
+  });
+}
+
+export async function findTournamentManageDetail(id: string) {
+  return prisma.tournament.findUnique({
+    where: { id },
+    include: {
+      organization: true,
+      events: {
+        include: {
+          ratingCategory: true,
+          _count: { select: { eventEntries: true } },
+          matches: {
+            include: {
+              player1: { select: { displayName: true } },
+              player2: { select: { displayName: true } },
+              matchGames: { orderBy: { gameNumber: "asc" } },
+            },
+            orderBy: [{ round: "asc" }, { position: "asc" }],
+          },
+        },
+        orderBy: { createdAt: "asc" },
+      },
+    },
   });
 }
 
@@ -144,6 +190,24 @@ export async function deleteEventById(eventId: string) {
   });
 }
 
+export async function updateTournamentById(
+  id: string,
+  data: {
+    name: string;
+    location?: string | null;
+    startDate: Date;
+    endDate?: Date | null;
+    startTime?: Date | null;
+    withdrawDeadline?: Date | null;
+  },
+) {
+  return prisma.tournament.update({ where: { id }, data });
+}
+
+export async function setTournamentStatus(id: string, status: TournamentStatus) {
+  return prisma.tournament.update({ where: { id }, data: { status } });
+}
+
 // ── Events ────────────────────────────────────────────────────────────────────
 
 export async function findEventById(id: string) {
@@ -181,6 +245,27 @@ export async function createEvent(data: {
   maxAge?: number;
 }) {
   return prisma.event.create({ data });
+}
+
+export async function updateEventById(
+  id: string,
+  data: {
+    name: string;
+    format: MatchFormat;
+    gamePointTarget: number;
+    startTime?: Date | null;
+    maxParticipants?: number | null;
+    minRating?: number | null;
+    maxRating?: number | null;
+    minAge?: number | null;
+    maxAge?: number | null;
+  },
+) {
+  return prisma.event.update({ where: { id }, data });
+}
+
+export async function setEventStatus(id: string, status: EventStatus) {
+  return prisma.event.update({ where: { id }, data: { status } });
 }
 
 // ── Entries ───────────────────────────────────────────────────────────────────

@@ -238,6 +238,7 @@ async function main() {
       location: "Austin Recreation Center, Austin TX",
       startDate: new Date("2026-04-12"),
       endDate: new Date("2026-04-13"),
+      status: "PUBLISHED",
     },
   });
 

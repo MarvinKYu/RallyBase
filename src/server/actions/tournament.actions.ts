@@ -4,6 +4,10 @@ import { auth } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 import {
   createTournament,
+  updateTournament,
+  updateEvent,
+  advanceTournamentStatus,
+  advanceEventStatus,
   deleteTournament,
   deleteEvent,
   createEvent,
@@ -44,6 +48,82 @@ export async function createTournamentAction(
   if ("error" in result) return { error: result.error };
 
   redirect(`/tournaments/${result.tournament.id}`);
+}
+
+// tournamentId is pre-bound via .bind(null, tournamentId)
+export async function updateTournamentAction(
+  tournamentId: string,
+  _prevState: TournamentActionState,
+  formData: FormData,
+): Promise<TournamentActionState> {
+  const { userId } = await auth();
+  if (!userId) return { error: "You must be signed in to edit a tournament." };
+
+  const data = {
+    name: formData.get("name") as string,
+    location: (formData.get("location") as string) || undefined,
+    startDate: formData.get("startDate") as string,
+    endDate: (formData.get("endDate") as string) || undefined,
+    startTime: (formData.get("startTime") as string) || undefined,
+    withdrawDeadline: (formData.get("withdrawDeadline") as string) || undefined,
+  };
+
+  const result = await updateTournament(tournamentId, data, userId);
+  if ("fieldErrors" in result) return { fieldErrors: result.fieldErrors };
+  if ("error" in result) return { error: result.error };
+
+  redirect(`/tournaments/${tournamentId}`);
+}
+
+// eventId and tournamentId are pre-bound via .bind(null, eventId, tournamentId)
+export async function updateEventAction(
+  eventId: string,
+  tournamentId: string,
+  _prevState: TournamentActionState,
+  formData: FormData,
+): Promise<TournamentActionState> {
+  const { userId } = await auth();
+  if (!userId) return { error: "You must be signed in to edit an event." };
+
+  const data = {
+    name: formData.get("name") as string,
+    format: formData.get("format") as string,
+    gamePointTarget: formData.get("gamePointTarget") as string,
+    startTime: (formData.get("startTime") as string) || undefined,
+    maxParticipants: (formData.get("maxParticipants") as string) || undefined,
+    minRating: (formData.get("minRating") as string) || undefined,
+    maxRating: (formData.get("maxRating") as string) || undefined,
+    minAge: (formData.get("minAge") as string) || undefined,
+    maxAge: (formData.get("maxAge") as string) || undefined,
+  };
+
+  const result = await updateEvent(eventId, data, userId);
+  if ("fieldErrors" in result) return { fieldErrors: result.fieldErrors };
+  if ("error" in result) return { error: result.error };
+
+  redirect(`/tournaments/${tournamentId}/events/${eventId}`);
+}
+
+// tournamentId is pre-bound via .bind(null, tournamentId)
+export async function advanceTournamentStatusAction(tournamentId: string): Promise<void> {
+  const { userId } = await auth();
+  if (!userId) redirect("/sign-in");
+
+  const result = await advanceTournamentStatus(tournamentId, userId);
+  if ("error" in result) throw new Error(result.error);
+
+  redirect(`/tournaments/${tournamentId}/manage`);
+}
+
+// eventId and tournamentId are pre-bound via .bind(null, eventId, tournamentId)
+export async function advanceEventStatusAction(eventId: string, tournamentId: string): Promise<void> {
+  const { userId } = await auth();
+  if (!userId) redirect("/sign-in");
+
+  const result = await advanceEventStatus(eventId, userId);
+  if ("error" in result) throw new Error(result.error);
+
+  redirect(`/tournaments/${tournamentId}/manage`);
 }
 
 // tournamentId is pre-bound via .bind(null, tournamentId) in the client component

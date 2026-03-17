@@ -6,12 +6,33 @@ import { createTournamentAction, type TournamentActionState } from "@/server/act
 
 type Org = { id: string; name: string };
 
-export function TournamentForm({ organizations }: { organizations: Org[] }) {
+type TournamentDefaultValues = {
+  name?: string;
+  location?: string;
+  startDate?: string;
+  endDate?: string;
+  startTime?: string;
+  withdrawDeadline?: string;
+};
+
+export function TournamentForm({
+  organizations = [],
+  action = createTournamentAction,
+  defaultValues,
+  submitLabel = "Create tournament",
+}: {
+  organizations?: Org[];
+  action?: (prevState: TournamentActionState, formData: FormData) => Promise<TournamentActionState>;
+  defaultValues?: TournamentDefaultValues;
+  submitLabel?: string;
+}) {
   const [state, dispatch, isPending] = useActionState<TournamentActionState, FormData>(
-    createTournamentAction,
+    action,
     null,
   );
-  const [showScheduling, setShowScheduling] = useState(false);
+  const [showScheduling, setShowScheduling] = useState(
+    !!(defaultValues?.startTime || defaultValues?.withdrawDeadline),
+  );
 
   return (
     <form action={dispatch} className="space-y-6">
@@ -21,26 +42,29 @@ export function TournamentForm({ organizations }: { organizations: Org[] }) {
         </p>
       )}
 
-      <div className="space-y-1">
-        <label htmlFor="organizationId" className="block text-sm font-medium text-text-2">
-          Organization <span className="text-red-400">*</span>
-        </label>
-        <select
-          id="organizationId"
-          name="organizationId"
-          className="w-full rounded-md border border-border bg-elevated px-3 py-2 text-sm text-text-1 shadow-sm focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
-        >
-          <option value="">Select an organization…</option>
-          {organizations.map((org) => (
-            <option key={org.id} value={org.id}>
-              {org.name}
-            </option>
-          ))}
-        </select>
-        {state?.fieldErrors?.organizationId && (
-          <p className="text-sm text-red-400">{state.fieldErrors.organizationId[0]}</p>
-        )}
-      </div>
+      {/* Organization — only shown in create mode */}
+      {organizations.length > 0 && (
+        <div className="space-y-1">
+          <label htmlFor="organizationId" className="block text-sm font-medium text-text-2">
+            Organization <span className="text-red-400">*</span>
+          </label>
+          <select
+            id="organizationId"
+            name="organizationId"
+            className="w-full rounded-md border border-border bg-elevated px-3 py-2 text-sm text-text-1 shadow-sm focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
+          >
+            <option value="">Select an organization…</option>
+            {organizations.map((org) => (
+              <option key={org.id} value={org.id}>
+                {org.name}
+              </option>
+            ))}
+          </select>
+          {state?.fieldErrors?.organizationId && (
+            <p className="text-sm text-red-400">{state.fieldErrors.organizationId[0]}</p>
+          )}
+        </div>
+      )}
 
       <div className="space-y-1">
         <label htmlFor="name" className="block text-sm font-medium text-text-2">
@@ -50,6 +74,7 @@ export function TournamentForm({ organizations }: { organizations: Org[] }) {
           id="name"
           name="name"
           type="text"
+          defaultValue={defaultValues?.name}
           placeholder="e.g. Spring Open 2026"
           className="w-full rounded-md border border-border bg-elevated px-3 py-2 text-sm text-text-1 placeholder:text-text-3 shadow-sm focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
         />
@@ -66,6 +91,7 @@ export function TournamentForm({ organizations }: { organizations: Org[] }) {
           id="location"
           name="location"
           type="text"
+          defaultValue={defaultValues?.location}
           placeholder="e.g. Chicago, IL"
           className="w-full rounded-md border border-border bg-elevated px-3 py-2 text-sm text-text-1 placeholder:text-text-3 shadow-sm focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
         />
@@ -83,6 +109,7 @@ export function TournamentForm({ organizations }: { organizations: Org[] }) {
             id="startDate"
             name="startDate"
             type="date"
+            defaultValue={defaultValues?.startDate}
             className="w-full rounded-md border border-border bg-elevated px-3 py-2 text-sm text-text-1 shadow-sm focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
           />
           {state?.fieldErrors?.startDate && (
@@ -98,6 +125,7 @@ export function TournamentForm({ organizations }: { organizations: Org[] }) {
             id="endDate"
             name="endDate"
             type="date"
+            defaultValue={defaultValues?.endDate}
             className="w-full rounded-md border border-border bg-elevated px-3 py-2 text-sm text-text-1 shadow-sm focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
           />
         </div>
@@ -126,6 +154,7 @@ export function TournamentForm({ organizations }: { organizations: Org[] }) {
                 id="startTime"
                 name="startTime"
                 type="datetime-local"
+                defaultValue={defaultValues?.startTime}
                 className="w-full rounded-md border border-border bg-surface px-3 py-2 text-sm text-text-1 shadow-sm focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
               />
             </div>
@@ -137,6 +166,7 @@ export function TournamentForm({ organizations }: { organizations: Org[] }) {
                 id="withdrawDeadline"
                 name="withdrawDeadline"
                 type="datetime-local"
+                defaultValue={defaultValues?.withdrawDeadline}
                 className="w-full rounded-md border border-border bg-surface px-3 py-2 text-sm text-text-1 shadow-sm focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
               />
               <p className="text-xs text-text-3">
@@ -152,7 +182,7 @@ export function TournamentForm({ organizations }: { organizations: Org[] }) {
         disabled={isPending}
         className="w-full rounded-md bg-accent px-4 py-2 text-sm font-medium text-background transition-colors hover:bg-accent-dim focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-2 focus:ring-offset-background disabled:cursor-not-allowed disabled:opacity-50"
       >
-        {isPending ? "Creating tournament…" : "Create tournament"}
+        {isPending ? `${submitLabel}…` : submitLabel}
       </button>
     </form>
   );
