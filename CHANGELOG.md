@@ -10,6 +10,36 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 ---
 
+## [0.4.1] - 2026-03-16
+
+### Added
+- **Dashboard nav link:** explicit "Dashboard" link added to the header navigation bar alongside the existing logo link.
+
+### Fixed
+- **Round-robin bracket redirect:** navigating to the bracket page for a round-robin event now redirects to the standings page. Generating a round-robin schedule also redirects to standings instead of bracket.
+- **Void button alignment:** the Void button in bracket match cards and standings schedule rows was pushed slightly below sibling text due to its `<form>` wrapper being a block element. Wrapper is now inline-flex.
+- **Submit link color:** the player "Submit" link in bracket match cards is now accent-colored, matching the TD "Enter result" link.
+- **Match score input UX:** score fields now clear on focus and default back to 0 on blur if left empty. Values are retained after a failed submission. The row containing an invalid score is highlighted in red.
+
+---
+
+## [0.4.0] - 2026-03-16
+
+### Added
+- **Player search shows current rating:** player search results (global search and tournament add-entrant search) now display each player's rating. Global search defaults to USATT singles; active org/discipline filters update the displayed rating accordingly. Shows "Unrated" when no rating exists in the relevant category.
+- **Dashboard nav link:** explicit "Dashboard" link added to the header navigation bar alongside the existing logo link.
+
+### Changed
+- **Verification code is now 4 digits:** match result confirmation codes changed from a long cuid string to a 4-digit zero-padded number (e.g. `0472`). A new code is generated on each submission attempt.
+
+### Fixed
+- **TD restriction on event/entrant/bracket actions:** creating events, adding entrants, and generating brackets are now restricted to the tournament creator at both the UI and server action level. Other signed-in users no longer see these controls.
+- **Tournament and event name uniqueness:** tournament names are now unique within an organisation; event names are unique within a tournament. Duplicate names return a form-level field error.
+- **TD can void matches in AWAITING_CONFIRMATION state:** the Void button now appears for matches awaiting confirmation (not only completed matches), allowing TDs to cancel a pending submission and reset the match.
+- **Round-robin tiebreaker uses head-to-head subset:** standings sort now applies tiebreakers using only the head-to-head matches among tied players (games won → points for → direct H2H result for two-player ties), rather than overall event statistics. Tied players share a rank displayed as `T-1`, `T-2`, etc.
+
+---
+
 ## [0.3.1] - 2026-03-16
 
 ### Fixed
@@ -76,7 +106,9 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 ---
 
-[Unreleased]: https://github.com/MarvinKYu/RallyBase/compare/v0.3.1...HEAD
+[Unreleased]: https://github.com/MarvinKYu/RallyBase/compare/v0.4.1...HEAD
+[0.4.1]: https://github.com/MarvinKYu/RallyBase/compare/v0.4.0...v0.4.1
+[0.4.0]: https://github.com/MarvinKYu/RallyBase/compare/v0.3.1...v0.4.0
 [0.3.1]: https://github.com/MarvinKYu/RallyBase/compare/v0.3.0...v0.3.1
 [0.3.0]: https://github.com/MarvinKYu/RallyBase/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/MarvinKYu/RallyBase/compare/v0.1.3...v0.2.0

@@ -2,7 +2,7 @@
 
 ## Version 0.4.0
 
-### Bracket page still showing up in round robin format
+### Bracket page showing up in round robin format after event creation
 After creating a new round robin event with 3 players (call them A, B, C for simplicity) and clicking "generate schedule", app generates a bracket with quarterfinal between player B and C, semifinal between player A and B, and final between player A and C, and shows it on webpage. this should not exist at all, after generating schedule for round robin TD should see the page that can be navigated to by "view standings" button that shows current standings with table of players, w/l, games, points and the match schedule. 
 
 ### Text alignment for matches from TD view

@@ -14,7 +14,7 @@ Run `/wrap-up` at the end of each session to commit, write the session log, and 
 
 ## Project Status
 
-**Current version: v0.3.0.** The app is live on Vercel. All MVP phases and Stage 2 features are complete. Next target is v0.4.0 (Security, Integrity & Correctness).
+**Current version: v0.4.1.** The app is live on Vercel. Next target is v0.5.0 (Player Registration Overhaul).
 
 ### Version History
 - v0.1.0 — MVP (8 phases)
@@ -23,10 +23,11 @@ Run `/wrap-up` at the end of each session to commit, write the session log, and 
 - v0.1.3 — View code link fix
 - v0.2.0 — Delete tournament + dark theme redesign
 - v0.3.0 — Stage 2 (player search, self-signup, round-robin, TD views, bracket fix)
+- v0.3.1 — Deuce score validation fix
+- v0.4.0 — Security, integrity & correctness (TD restrictions, name uniqueness, RR tiebreaker, 4-digit code, player search rating)
+- v0.4.1 — UI polish (RR bracket redirect, score input UX, alignment fixes, Dashboard nav)
 
 ### Upcoming
-- v0.4.0 — Security, Integrity & Correctness (TD restrictions, name uniqueness, void AWAITING_CONFIRMATION, RR tiebreaker fix, 4-digit verify code, rating in player search)
-- v0.4.1 — UI Polish (bracket submit button, score input UX, hide bracket for RR, dashboard nav link)
 - v0.5.0 — Player Registration Overhaul (start time, separate signup page, player withdrawal)
 - v0.6.0 — Tournament Lifecycle (TD dashboard page, past tournaments category)
 - v0.7.0 — Player History (match history, rating graph)
