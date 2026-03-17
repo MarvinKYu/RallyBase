@@ -10,6 +10,21 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 ---
 
+## [0.5.0] - 2026-03-17
+
+### Added
+- **Start times:** optional `startTime` field on both `Tournament` and `Event`. Displayed on tournament detail, event detail, and register pages.
+- **Withdrawal deadline:** optional `withdrawDeadline` field on `Tournament`. If not set, defaults to 24 hours before `Tournament.startTime`. If neither is set, withdrawal is always allowed (until bracket is generated).
+- **Player registration page:** new `/tournaments/[id]/register` route — players see all events in one place, select eligible ones via checkboxes, and submit with a single "Register Selected" button. Per-event status badges and eligibility reasons shown inline.
+- **Player withdrawal:** players can withdraw from an event via a confirm-dialog button on the register page, subject to the withdrawal deadline.
+- **Scheduling inputs on forms:** `TournamentForm` gains a collapsible "Scheduling" section with `startTime` and `withdrawDeadline` datetime-local inputs. `EventForm` gains an optional `startTime` input.
+- **Register link on tournament detail:** a "Register" button appears on the tournament detail page for signed-in users when at least one event is `REGISTRATION_OPEN`.
+
+### Changed
+- **SignUpButton removed from event detail page:** `/register` is now the only player self-registration path. The `SignUpButton` component and `signUpForEventAction` remain in the codebase but are no longer rendered.
+
+---
+
 ## [0.4.2] - 2026-03-16
 
 ### Added
@@ -113,7 +128,8 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 ---
 
-[Unreleased]: https://github.com/MarvinKYu/RallyBase/compare/v0.4.2...HEAD
+[Unreleased]: https://github.com/MarvinKYu/RallyBase/compare/v0.5.0...HEAD
+[0.5.0]: https://github.com/MarvinKYu/RallyBase/compare/v0.4.2...v0.5.0
 [0.4.2]: https://github.com/MarvinKYu/RallyBase/compare/v0.4.1...v0.4.2
 [0.4.1]: https://github.com/MarvinKYu/RallyBase/compare/v0.4.0...v0.4.1
 [0.4.0]: https://github.com/MarvinKYu/RallyBase/compare/v0.3.1...v0.4.0
