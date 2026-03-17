@@ -10,6 +10,23 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 ---
 
+## [0.5.2] - 2026-03-17
+
+### Changed
+- **Register for Events button** is now accent green for visibility on the tournament detail page.
+
+### Fixed
+- **UTC labels on datetime inputs:** `startTime` and `withdrawDeadline` inputs now show `(UTC)` in their labels to make the timezone expectation explicit.
+
+---
+
+## [0.5.1] - 2026-03-17
+
+### Fixed
+- **Register for Events link always visible:** the link was previously hidden unless a user was logged in AND at least one event was `REGISTRATION_OPEN`. It now appears whenever the tournament has any events, regardless of their status or the viewer's auth state.
+
+---
+
 ## [0.5.0] - 2026-03-17
 
 ### Added
@@ -128,7 +145,9 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 ---
 
-[Unreleased]: https://github.com/MarvinKYu/RallyBase/compare/v0.5.0...HEAD
+[Unreleased]: https://github.com/MarvinKYu/RallyBase/compare/v0.5.2...HEAD
+[0.5.2]: https://github.com/MarvinKYu/RallyBase/compare/v0.5.1...v0.5.2
+[0.5.1]: https://github.com/MarvinKYu/RallyBase/compare/v0.5.0...v0.5.1
 [0.5.0]: https://github.com/MarvinKYu/RallyBase/compare/v0.4.2...v0.5.0
 [0.4.2]: https://github.com/MarvinKYu/RallyBase/compare/v0.4.1...v0.4.2
 [0.4.1]: https://github.com/MarvinKYu/RallyBase/compare/v0.4.0...v0.4.1
