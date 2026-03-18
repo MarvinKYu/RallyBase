@@ -10,6 +10,13 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 ---
 
+## [0.6.3] - 2026-03-18
+
+### Changed
+- When an event transitions to IN_PROGRESS (via manual advance or tournament-level cascade), its bracket or round-robin schedule is now auto-generated if none exists yet and there are enough players (SE ≥ 2, RR ≥ 3). If the condition isn't met, the manual "Generate bracket" button remains available.
+
+---
+
 ## [0.6.2] - 2026-03-18
 
 ### Changed
