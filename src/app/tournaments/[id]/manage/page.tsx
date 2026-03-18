@@ -6,7 +6,8 @@ import {
   advanceTournamentStatusAction,
   advanceEventStatusAction,
 } from "@/server/actions/tournament.actions";
-import type { TournamentStatus, EventStatus, MatchStatus } from "@prisma/client";
+import type { TournamentStatus, EventStatus } from "@prisma/client";
+import { EventMatchList } from "@/components/tournaments/EventMatchList";
 
 type Props = { params: Promise<{ id: string }> };
 
@@ -52,13 +53,6 @@ const STATUS_BADGE_CLASSES: Record<string, string> = {
   COMPLETED: "bg-surface border border-border text-text-2",
 };
 
-const MATCH_STATUS_LABELS: Record<MatchStatus, string> = {
-  PENDING: "Pending",
-  IN_PROGRESS: "In Progress",
-  AWAITING_CONFIRMATION: "Awaiting Confirmation",
-  COMPLETED: "Completed",
-};
-
 function StatusBadge({ status }: { status: string }) {
   const label =
     (TOURNAMENT_STATUS_LABELS as Record<string, string>)[status] ??
@@ -68,19 +62,6 @@ function StatusBadge({ status }: { status: string }) {
   return (
     <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${classes}`}>
       {label}
-    </span>
-  );
-}
-
-function ScoreSummary({
-  games,
-}: {
-  games: { gameNumber: number; player1Points: number; player2Points: number }[];
-}) {
-  if (games.length === 0) return null;
-  return (
-    <span className="text-xs text-text-3">
-      {games.map((g) => `${g.player1Points}–${g.player2Points}`).join(", ")}
     </span>
   );
 }
@@ -148,17 +129,6 @@ export default async function ManageTournamentPage({ params }: Props) {
             <p className="text-sm text-text-2">No events yet.</p>
           ) : (
             tournament.events.map((event) => {
-              const matchesByRound = event.matches.reduce<
-                Record<number, typeof event.matches>
-              >((acc, m) => {
-                if (!acc[m.round]) acc[m.round] = [];
-                acc[m.round].push(m);
-                return acc;
-              }, {});
-              const rounds = Object.keys(matchesByRound)
-                .map(Number)
-                .sort((a, b) => a - b);
-
               return (
                 <div
                   key={event.id}
@@ -222,42 +192,7 @@ export default async function ManageTournamentPage({ params }: Props) {
                   </div>
 
                   {/* Match list */}
-                  <div className="divide-y divide-border-subtle bg-surface">
-                    {event.matches.length === 0 ? (
-                      <p className="px-4 py-3 text-sm text-text-3">No bracket generated yet.</p>
-                    ) : (
-                      rounds.map((round) => (
-                        <div key={round}>
-                          <p className="bg-elevated/50 px-4 py-1.5 text-xs font-medium uppercase tracking-wide text-text-3">
-                            Round {round}
-                          </p>
-                          {matchesByRound[round].map((match) => (
-                            <div
-                              key={match.id}
-                              className="flex items-center justify-between px-4 py-2.5"
-                            >
-                              <div className="space-y-0.5">
-                                <p className="text-sm text-text-1">
-                                  {match.player1?.displayName ?? "TBD"} vs.{" "}
-                                  {match.player2?.displayName ?? "TBD"}
-                                </p>
-                                <ScoreSummary games={match.matchGames} />
-                              </div>
-                              <span
-                                className={`text-xs ${
-                                  match.status === "COMPLETED"
-                                    ? "text-text-3"
-                                    : "text-text-2"
-                                }`}
-                              >
-                                {MATCH_STATUS_LABELS[match.status]}
-                              </span>
-                            </div>
-                          ))}
-                        </div>
-                      ))
-                    )}
-                  </div>
+                  <EventMatchList matches={event.matches} />
                 </div>
               );
             })

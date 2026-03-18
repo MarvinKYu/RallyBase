@@ -4,6 +4,7 @@ import { auth } from "@clerk/nextjs/server";
 import { getTournamentDetail } from "@/server/services/tournament.service";
 import { TournamentForm } from "@/components/tournaments/TournamentForm";
 import { updateTournamentAction } from "@/server/actions/tournament.actions";
+import { DeleteTournamentButton } from "@/components/tournaments/DeleteTournamentButton";
 
 type Props = { params: Promise<{ id: string }> };
 
@@ -56,13 +57,14 @@ export default async function EditTournamentPage({ params }: Props) {
         }}
         submitLabel="Save changes"
       />
-      <div className="mt-6">
+      <div className="mt-6 flex items-center justify-between">
         <Link
           href={`/tournaments/${id}/manage`}
           className="text-sm text-text-2 transition-colors hover:text-text-1"
         >
           ← Back to manage
         </Link>
+        <DeleteTournamentButton tournamentId={id} />
       </div>
     </main>
   );

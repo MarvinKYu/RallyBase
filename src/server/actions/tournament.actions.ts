@@ -47,7 +47,7 @@ export async function createTournamentAction(
   if ("fieldErrors" in result) return { fieldErrors: result.fieldErrors };
   if ("error" in result) return { error: result.error };
 
-  redirect(`/tournaments/${result.tournament.id}`);
+  redirect(`/tournaments/${result.tournament.id}/manage`);
 }
 
 // tournamentId is pre-bound via .bind(null, tournamentId)
