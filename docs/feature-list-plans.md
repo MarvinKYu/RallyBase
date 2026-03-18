@@ -1,5 +1,48 @@
 # Planned Features Roadmap
 
+## v0.6.1 — TD UI/Navigation fixes
+
+### Event detail navigation from TD dashboard
+- Event cards in the manage page are currently not clickable; each event card should link directly to the event detail page.
+
+### Edit event button on event detail page
+- "Edit event" button/link should appear on the event detail page for the TD, not only in the tournament detail event list.
+
+### Back button routing fixes
+- "Back" on the edit tournament page should go to `/manage`, not to the tournament detail page.
+- "Back" on the event detail page should go to `/manage` (not tournament detail) when the viewer is the TD; show a "Back to manage" link for TDs.
+
+### Add event button moved to TD dashboard only
+- Remove the "Add event" button from the tournament detail page. It belongs in the TD manage page only.
+
+---
+
+## v0.6.2 — Registration lifecycle automation
+
+### Hide draft-tournament matches from player dashboard
+- Pending matches from tournaments in DRAFT status should not appear in a player's upcoming matches on the dashboard. Safeguard: only show pending matches where the tournament status is PUBLISHED or IN_PROGRESS.
+
+### Auto-open registration when tournament published
+- When a tournament transitions from DRAFT → PUBLISHED, all its events should automatically transition to REGISTRATION_OPEN.
+- Any new event created while the tournament is already in PUBLISHED state should default to REGISTRATION_OPEN (not DRAFT).
+
+### Auto-close registration when tournament starts
+- When a tournament transitions to IN_PROGRESS, all events still in REGISTRATION_OPEN should automatically transition to IN_PROGRESS (closing registration).
+
+---
+
+## v0.6.3 — Event auto-start and bracket auto-generation
+
+### Auto-start events at their startTime
+- Events with a `startTime` set should automatically transition to IN_PROGRESS at that time.
+- Requires a scheduled task (e.g. Vercel Cron) — larger scope than a simple patch.
+
+### Auto-generate brackets and RR schedules on event start
+- When an event transitions to IN_PROGRESS (whether manually or via auto-start), its bracket or round-robin schedule should be generated automatically if it hasn't been already.
+- Removes the manual "Generate bracket" / "Generate schedule" step.
+
+---
+
 ## v0.6.0 — Tournament Lifecycle
 
 ### TD publish/draft workflow
@@ -114,3 +157,12 @@
 ## v0.5.2 — Register button styling + UTC labels
 - Register for Events button styled as accent green
 - datetime-local inputs labelled with (UTC) to make timezone expectation explicit
+
+## v0.6.0 — Tournament Lifecycle
+- TD manage page at `/tournaments/[id]/manage` with status controls, match overview, and links to edit/bracket/standings
+- Full tournament status lifecycle: DRAFT → PUBLISHED → IN_PROGRESS → COMPLETED
+- Full event status lifecycle: DRAFT → REGISTRATION_OPEN → IN_PROGRESS → COMPLETED
+- Edit tournament and edit event pages with pre-filled forms; event format and rating category read-only in edit mode
+- Past/upcoming split on tournament list; DRAFT tournaments hidden from public
+- My Drafts section on list page for TDs; DRAFT guard on tournament detail
+- Seeded tournaments default to PUBLISHED
