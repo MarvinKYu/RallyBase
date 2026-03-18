@@ -1,4 +1,4 @@
-import { describe, it, expect, afterAll } from "vitest";
+import { describe, it, expect, beforeAll, afterAll } from "vitest";
 import { PrismaClient } from "@prisma/client";
 import {
   createTournament,
@@ -130,6 +130,13 @@ describe("advanceTournamentStatus", () => {
 });
 
 describe("advanceEventStatus", () => {
+  beforeAll(async () => {
+    // The advanceTournamentStatus cascade (v0.6.2) moves events from DRAFT →
+    // REGISTRATION_OPEN → IN_PROGRESS as the tournament advances. Reset to DRAFT
+    // so these tests can exercise the full event status progression in isolation.
+    await prisma.event.update({ where: { id: eventId }, data: { status: "DRAFT" } });
+  });
+
   it("advances DRAFT → REGISTRATION_OPEN", async () => {
     const result = await advanceEventStatus(eventId, TEST_CLERK_ID);
     expect("status" in result).toBe(true);
