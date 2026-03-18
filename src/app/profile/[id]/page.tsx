@@ -2,7 +2,10 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { auth } from "@clerk/nextjs/server";
 import { MatchStatus } from "@prisma/client";
-import { getPlayerProfile } from "@/server/services/player.service";
+import { getPlayerProfile, getPlayerMatchHistory } from "@/server/services/player.service";
+import { getPlayerRatingHistories } from "@/server/services/rating.service";
+import MatchHistoryList from "@/components/players/MatchHistoryList";
+import RatingGraph from "@/components/players/RatingGraph";
 import { prisma } from "@/lib/prisma";
 
 type Props = { params: Promise<{ id: string }> };
@@ -51,6 +54,11 @@ export default async function ProfilePage({ params }: Props) {
         take: 10,
       })
     : [];
+
+  const [matchHistory, ratingHistories] = await Promise.all([
+    getPlayerMatchHistory(profile.id),
+    getPlayerRatingHistories(profile.id),
+  ]);
 
   const statusLabel: Record<string, string> = {
     PENDING: "Pending",
@@ -150,6 +158,18 @@ export default async function ProfilePage({ params }: Props) {
               ))}
             </div>
           )}
+        </section>
+
+        {/* Match History */}
+        <section>
+          <h2 className="mb-4 text-lg font-medium text-text-1">Match history</h2>
+          <MatchHistoryList matches={matchHistory} playerProfileId={profile.id} />
+        </section>
+
+        {/* Rating History */}
+        <section>
+          <h2 className="mb-4 text-lg font-medium text-text-1">Rating history</h2>
+          <RatingGraph transactions={ratingHistories} />
         </section>
 
         <Link

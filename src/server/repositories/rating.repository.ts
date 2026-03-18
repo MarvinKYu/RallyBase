@@ -28,6 +28,22 @@ export async function findPlayerRatingByCategory(
   });
 }
 
+export async function findAllRatingTransactionsByProfile(playerProfileId: string) {
+  return prisma.ratingTransaction.findMany({
+    where: { playerProfileId },
+    include: {
+      ratingCategory: {
+        select: {
+          id: true,
+          name: true,
+          organization: { select: { id: true, name: true } },
+        },
+      },
+    },
+    orderBy: { createdAt: "asc" },
+  });
+}
+
 export async function findRatingTransactionsByProfileAndCategory(
   playerProfileId: string,
   ratingCategoryId: string,

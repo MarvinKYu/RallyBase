@@ -4,6 +4,7 @@ import {
   findPlayerRatingsByProfileId,
   findPlayerRatingByCategory,
   findRatingTransactionsByProfileAndCategory,
+  findAllRatingTransactionsByProfile,
 } from "@/server/repositories/rating.repository";
 
 /** Returns all current rating snapshots for a player, across all rating categories. */
@@ -17,6 +18,11 @@ export async function getRatingHistoryForPlayer(
   ratingCategoryId: string,
 ) {
   return findRatingTransactionsByProfileAndCategory(playerProfileId, ratingCategoryId);
+}
+
+/** Returns all rating transactions for a player across all categories, chronological order. */
+export async function getPlayerRatingHistories(playerProfileId: string) {
+  return findAllRatingTransactionsByProfile(playerProfileId);
 }
 
 export interface ApplyRatingResultParams {

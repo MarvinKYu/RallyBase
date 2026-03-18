@@ -9,6 +9,7 @@ import {
   searchProfiles,
   type ProfileFilters,
 } from "@/server/repositories/player.repository";
+import { findCompletedMatchesByPlayerId } from "@/server/repositories/match.repository";
 
 /**
  * Syncs the signed-in Clerk user to the database (lazy upsert).
@@ -87,6 +88,10 @@ export async function getPlayerProfile(id: string) {
 export async function getMyProfile() {
   const dbUser = await getOrCreateDbUser();
   return findProfileByUserId(dbUser.id);
+}
+
+export async function getPlayerMatchHistory(playerProfileId: string) {
+  return findCompletedMatchesByPlayerId(playerProfileId);
 }
 
 export async function searchPlayers(
