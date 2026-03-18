@@ -1,3 +1,26 @@
+# Planned Features Shortlist- TODO: Analyze and place into roadmap
+
+## Create new tournament should auto direct to the manage page, not tournament overview
+
+## Separate all tournaments view from my tournaments 
+- Create separate location for "my tournaments" where player has registered/played in, organized by three sections: ongoing, upcoming, past. 
+
+## Add delete functionality to edit views
+- Add "delete tournament" to edit tournament page
+- Add "delete event" to edit event page
+
+## In manage page, scheduled matches should be collapsible and scrollable
+- right now, all matches in event are displayed. could clog up UI for large events with many matches. 
+
+## Add "Generate Draws" for round robin events
+- Specify group size for RR event (make this a permanent feature for RR events and events having a RR stage)
+- If number of registrants > group size, determine group draws based on ratings
+
+## Add RR -> SE event type
+- Select number of advancers from each group, seed in bracket according to group result and then by rating
+- Display bracket as groups finish playing and advancers get seeded
+- Once all RR group matches complete, automatically start SE stage
+
 # Planned Features Roadmap
 
 ## v0.6.1 — TD UI/Navigation fixes
@@ -31,23 +54,11 @@
 
 ---
 
-## v0.6.3 — Event auto-start and bracket auto-generation
-
-### Auto-start events at their startTime
-- Events with a `startTime` set should automatically transition to IN_PROGRESS at that time.
-- Requires a scheduled task (e.g. Vercel Cron) — larger scope than a simple patch.
-
-### Auto-generate brackets and RR schedules on event start
-- When an event transitions to IN_PROGRESS (whether manually or via auto-start), its bracket or round-robin schedule should be generated automatically if it hasn't been already.
-- Removes the manual "Generate bracket" / "Generate schedule" step.
-
----
-
 ## v0.7.0 — Player History
 
 ### Match history on player dashboard
 - List of past rated matches on the player's own profile page
-- Shows opponent, result, rating delta, and date
+- Shows tournament/event the match took place in, opponent, result, rating delta, and date
 
 ### Rating graph
 - Line chart using Recharts showing rating over time
@@ -132,6 +143,22 @@
 ## v0.5.2 — Register button styling + UTC labels
 - Register for Events button styled as accent green
 - datetime-local inputs labelled with (UTC) to make timezone expectation explicit
+
+## v0.6.3 — Bracket auto-generation on event start
+- When an event transitions to IN_PROGRESS (manually or via tournament cascade), its bracket/schedule is auto-generated if none exists and player count meets the minimum (SE ≥ 2, RR ≥ 3). Manual button remains as fallback.
+- Auto-start at `startTime` deferred — requires Vercel Cron (Hobby plan only supports daily; revisit on Pro upgrade).
+
+## v0.6.2 — Registration lifecycle automation
+- Auto-open registration on tournament publish (DRAFT → REGISTRATION_OPEN for all events).
+- Auto-close registration on tournament start (REGISTRATION_OPEN → IN_PROGRESS for all events).
+- Auto-complete tournament when last event completes.
+- Draft-tournament matches hidden from player dashboard.
+
+## v0.6.1 — TD UI/Navigation fixes
+- Event names on manage page are clickable links to event detail.
+- Edit Event button on event detail page for TDs.
+- Back-button routing fixes (edit tournament → manage, event detail → manage for TDs).
+- Add Event button moved from tournament detail to manage page.
 
 ## v0.6.0 — Tournament Lifecycle
 - TD manage page at `/tournaments/[id]/manage` with status controls, match overview, and links to edit/bracket/standings
