@@ -10,6 +10,14 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 ---
 
+## [0.6.5] - 2026-03-18
+
+### Changed
+- Match list on the manage page now starts collapsed by default.
+- When the last match in an IN_PROGRESS event is completed (via player confirmation or TD submit), the event automatically advances to COMPLETED. If that was the last non-completed event, the tournament also auto-completes.
+
+---
+
 ## [0.6.4] - 2026-03-18
 
 ### Changed
