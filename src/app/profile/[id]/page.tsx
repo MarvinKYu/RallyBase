@@ -34,6 +34,7 @@ export default async function ProfilePage({ params }: Props) {
               MatchStatus.AWAITING_CONFIRMATION,
             ],
           },
+          event: { tournament: { status: { not: "DRAFT" } } },
         },
         include: {
           player1: { select: { id: true, displayName: true } },

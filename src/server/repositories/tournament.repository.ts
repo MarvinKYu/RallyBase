@@ -268,6 +268,23 @@ export async function setEventStatus(id: string, status: EventStatus) {
   return prisma.event.update({ where: { id }, data: { status } });
 }
 
+export async function setEventStatusByTournamentId(
+  tournamentId: string,
+  fromStatus: EventStatus,
+  toStatus: EventStatus,
+) {
+  return prisma.event.updateMany({
+    where: { tournamentId, status: fromStatus },
+    data: { status: toStatus },
+  });
+}
+
+export async function countNonCompletedEvents(tournamentId: string) {
+  return prisma.event.count({
+    where: { tournamentId, status: { not: "COMPLETED" } },
+  });
+}
+
 // ── Entries ───────────────────────────────────────────────────────────────────
 
 export async function findEventEntry(eventId: string, playerProfileId: string) {

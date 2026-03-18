@@ -29,6 +29,8 @@ import {
   countEventEntries,
   deleteEventEntry,
   findEventEntriesForPlayer,
+  setEventStatusByTournamentId,
+  countNonCompletedEvents,
 } from "@/server/repositories/tournament.repository";
 import { findPlayerRatingByCategory } from "@/server/repositories/rating.repository";
 
@@ -258,6 +260,13 @@ export async function advanceTournamentStatus(
 
   const nextStatus = TOURNAMENT_STATUS_ORDER[currentIndex + 1];
   await setTournamentStatus(tournamentId, nextStatus);
+
+  if (nextStatus === "PUBLISHED") {
+    await setEventStatusByTournamentId(tournamentId, "DRAFT", "REGISTRATION_OPEN");
+  } else if (nextStatus === "IN_PROGRESS") {
+    await setEventStatusByTournamentId(tournamentId, "REGISTRATION_OPEN", "IN_PROGRESS");
+  }
+
   return { status: nextStatus };
 }
 
@@ -276,6 +285,14 @@ export async function advanceEventStatus(
 
   const nextStatus = EVENT_STATUS_ORDER[currentIndex + 1];
   await setEventStatus(eventId, nextStatus);
+
+  if (nextStatus === "COMPLETED") {
+    const remaining = await countNonCompletedEvents(event.tournamentId);
+    if (remaining === 0) {
+      await setTournamentStatus(event.tournamentId, "COMPLETED");
+    }
+  }
+
   return { status: nextStatus };
 }
 
