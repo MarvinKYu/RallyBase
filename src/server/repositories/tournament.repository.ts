@@ -285,6 +285,24 @@ export async function countNonCompletedEvents(tournamentId: string) {
   });
 }
 
+export async function countMatchesByEventId(eventId: string) {
+  return prisma.match.count({ where: { eventId } });
+}
+
+export async function findEventSummariesByTournament(
+  tournamentId: string,
+  status: EventStatus,
+) {
+  return prisma.event.findMany({
+    where: { tournamentId, status },
+    select: {
+      id: true,
+      eventFormat: true,
+      _count: { select: { eventEntries: true, matches: true } },
+    },
+  });
+}
+
 // ── Entries ───────────────────────────────────────────────────────────────────
 
 export async function findEventEntry(eventId: string, playerProfileId: string) {

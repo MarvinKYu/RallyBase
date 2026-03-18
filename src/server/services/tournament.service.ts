@@ -31,7 +31,10 @@ import {
   findEventEntriesForPlayer,
   setEventStatusByTournamentId,
   countNonCompletedEvents,
+  countMatchesByEventId,
+  findEventSummariesByTournament,
 } from "@/server/repositories/tournament.repository";
+import { generateBracket } from "@/server/services/bracket.service";
 import { findPlayerRatingByCategory } from "@/server/repositories/rating.repository";
 
 const TOURNAMENT_STATUS_ORDER: TournamentStatus[] = [
@@ -241,6 +244,22 @@ export async function updateEvent(
   }
 }
 
+async function tryAutoGenerateBracket(
+  eventId: string,
+  eventFormat: EventFormat,
+  entryCount: number,
+  matchCount: number,
+): Promise<void> {
+  if (matchCount > 0) return;
+  const minPlayers = eventFormat === "ROUND_ROBIN" ? 3 : 2;
+  if (entryCount < minPlayers) return;
+  try {
+    await generateBracket(eventId);
+  } catch {
+    // silently skip — manual button remains available
+  }
+}
+
 export type AdvanceStatusResult =
   | { status: TournamentStatus | EventStatus }
   | { error: string };
@@ -265,6 +284,15 @@ export async function advanceTournamentStatus(
     await setEventStatusByTournamentId(tournamentId, "DRAFT", "REGISTRATION_OPEN");
   } else if (nextStatus === "IN_PROGRESS") {
     await setEventStatusByTournamentId(tournamentId, "REGISTRATION_OPEN", "IN_PROGRESS");
+    const events = await findEventSummariesByTournament(tournamentId, "IN_PROGRESS");
+    for (const ev of events) {
+      await tryAutoGenerateBracket(
+        ev.id,
+        ev.eventFormat,
+        ev._count.eventEntries,
+        ev._count.matches,
+      );
+    }
   }
 
   return { status: nextStatus };
@@ -285,6 +313,16 @@ export async function advanceEventStatus(
 
   const nextStatus = EVENT_STATUS_ORDER[currentIndex + 1];
   await setEventStatus(eventId, nextStatus);
+
+  if (nextStatus === "IN_PROGRESS") {
+    const matchCount = await countMatchesByEventId(eventId);
+    await tryAutoGenerateBracket(
+      eventId,
+      event.eventFormat,
+      event.eventEntries.length,
+      matchCount,
+    );
+  }
 
   if (nextStatus === "COMPLETED") {
     const remaining = await countNonCompletedEvents(event.tournamentId);
