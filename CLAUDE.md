@@ -4,8 +4,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Session Workflow
 
-Run `/session-start` at the beginning of each session to review project state.
-Run `/wrap-up` at the end of each session to commit, write the session log, and update memory and CLAUDE.md.
+Run `/session-start` at the beginning of each session to review project state and create the session log stub for today.
+Run `/wrap-up` at the end of each session to verify the session log is complete, update memory, and update CLAUDE.md.
 
 ## Implementation Workflow:
 - One version at a time, with tests, followed by commit + push
@@ -15,7 +15,7 @@ Run `/wrap-up` at the end of each session to commit, write the session log, and 
 ## Patch Versioning Workflow:
 Every change shipped after a planned version (bug fix, UI tweak, etc.) gets a patch version increment (e.g. v0.5.0 → v0.5.1 → v0.5.2). Each patch produces exactly two commits:
 1. **Code commit** — message includes the version tag, e.g. `fix(v0.5.1): description`. Create and push the git tag immediately after.
-2. **Docs commit** — updates CHANGELOG.md with the patch entry. No code changes in this commit.
+2. **Docs commit** — updates `CHANGELOG.md`, `docs/session-logs/YYYY-MM-DD.md`, `docs/bug-list.md`, and `docs/feature-list-plans.md` together in a single commit. No code changes in this commit.
 
 Do this automatically for every shipped change — no need to ask.
 
