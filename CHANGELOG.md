@@ -10,6 +10,16 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 ---
 
+## [0.6.2] - 2026-03-18
+
+### Changed
+- Publishing a tournament now automatically opens registration for all DRAFT events (DRAFT → REGISTRATION_OPEN).
+- Starting a tournament now automatically moves all REGISTRATION_OPEN events to IN_PROGRESS.
+- When the last event in a tournament is marked COMPLETED, the tournament automatically advances to COMPLETED (no manual step needed; the "Complete Tournament" button remains as a safety valve for 0-event tournaments).
+- Player dashboard no longer shows upcoming matches from DRAFT tournaments.
+
+---
+
 ## [0.6.1] - 2026-03-18
 
 ### Changed
