@@ -1,20 +1,5 @@
 # Planned Features Roadmap
 
-## v0.6.4 — TD UX Polish
-
-### Auto-redirect to manage page after creating a tournament
-- After a TD creates a new tournament, redirect to `/tournaments/[id]/manage` instead of the tournament overview page.
-
-### Delete from edit views
-- Add a "Delete Tournament" button on the edit tournament page.
-- Add a "Delete Event" button on the edit event page.
-
-### Collapsible match list in manage page
-- Match lists per event in the TD manage page should be collapsible and scrollable.
-- Prevents UI from becoming unwieldy for large events with many matches.
-
----
-
 ## v0.7.0 — Player History
 
 ### Match history on player dashboard

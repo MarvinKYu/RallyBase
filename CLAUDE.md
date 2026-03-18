@@ -21,13 +21,11 @@ Do this automatically for every shipped change — no need to ask.
 
 ## Project Status
 
-**Current version: v0.6.0.** The app is live on Vercel. Next target is v0.6.1 (TD UI/Navigation fixes).
+**Current version: v0.6.5.** The app is live on Vercel. Next target is v0.7.0 (Player History).
 
 ### Upcoming
-- v0.6.1 — TD UI/Navigation fixes (event cards clickable, edit event on event detail, back-button routing, Add Event button moved to manage page)
-- v0.6.2 — Registration lifecycle automation (auto-open on publish, auto-close on start, draft-tournament matches hidden from dashboard)
-- v0.6.3 — Event auto-start and bracket auto-generation (requires Vercel Cron)
 - v0.7.0 — Player History (match history, rating graph)
+- v0.7.1 — My Tournaments (separate section for player's own tournaments)
 - v0.8.0 — Tournament Templates (save/load tournament templates)
 
 ## Tech Stack
