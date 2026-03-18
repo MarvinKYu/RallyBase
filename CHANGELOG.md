@@ -10,6 +10,13 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 ---
 
+## [0.7.1] - 2026-03-18
+
+### Fixed
+- `advanceEventStatus` integration tests were failing because the v0.6.2 tournament cascade (DRAFT→PUBLISHED, PUBLISHED→IN_PROGRESS) silently advanced the shared test event to IN_PROGRESS before the `advanceEventStatus` describe block ran. Added a `beforeAll` reset to DRAFT at the top of that describe block to isolate it from the tournament cascade side-effects.
+
+---
+
 ## [0.7.0] - 2026-03-18
 
 ### Added

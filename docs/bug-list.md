@@ -5,6 +5,12 @@
 
 # Fixed
 
+## Version 0.7.1
+
+### `advanceEventStatus` integration tests failing after v0.6.2
+- The v0.6.2 tournament status cascade (DRAFT→PUBLISHED moves events to REGISTRATION_OPEN; PUBLISHED→IN_PROGRESS moves events to IN_PROGRESS) was silently advancing the shared test event before the `advanceEventStatus` describe block ran, leaving it at IN_PROGRESS instead of DRAFT.
+- Fixed by adding a `beforeAll` reset inside the `advanceEventStatus` describe block to restore the event to DRAFT, properly isolating that test group from the tournament cascade side-effects.
+
 ## Version 0.6.3
 
 ### Brackets/RR schedules should be generated automatically upon event start
