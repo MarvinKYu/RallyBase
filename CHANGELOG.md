@@ -10,6 +10,16 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 ---
 
+## [0.6.4] - 2026-03-18
+
+### Changed
+- Creating a new tournament now redirects to the manage page instead of the tournament detail page.
+- Edit tournament page now shows a Delete button (bottom-right), matching the existing confirmation flow.
+- Edit event page now shows a Delete button (bottom-right), matching the existing confirmation flow.
+- Match list on the manage page is now collapsible (click "▾ Matches (N)" to toggle) and scrollable (`max-h-96 overflow-y-auto`) so long match lists no longer extend the page.
+
+---
+
 ## [0.6.3] - 2026-03-18
 
 ### Changed
