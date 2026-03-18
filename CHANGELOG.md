@@ -10,6 +10,17 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 ---
 
+## [0.6.1] - 2026-03-18
+
+### Changed
+- Event names on the TD manage page are now clickable links to the event detail page.
+- Added **Edit event** button on the event detail page for TDs, linking to the edit event form.
+- Edit tournament page back button now returns to the manage page instead of the tournament detail page.
+- Event detail back link is now context-aware: TDs go to the manage page, others go to the tournament detail page.
+- **Add Event** button moved from the tournament detail page to the manage page.
+
+---
+
 ## [0.6.0] - 2026-03-17
 
 ### Added
