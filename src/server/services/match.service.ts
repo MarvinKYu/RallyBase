@@ -9,6 +9,12 @@ import {
   voidMatch,
 } from "@/server/repositories/match.repository";
 import { applyRatingResult } from "@/server/services/rating.service";
+import {
+  setEventStatus,
+  countNonCompletedMatches,
+  countNonCompletedEvents,
+  setTournamentStatus,
+} from "@/server/repositories/tournament.repository";
 import { prisma } from "@/lib/prisma";
 
 // ── Queries ───────────────────────────────────────────────────────────────────
@@ -158,6 +164,18 @@ export async function confirmMatchResult(
     matchId,
   });
 
+  // Auto-complete event if all matches are now done
+  if (match.event.status === "IN_PROGRESS") {
+    const remainingMatches = await countNonCompletedMatches(match.eventId);
+    if (remainingMatches === 0) {
+      await setEventStatus(match.eventId, "COMPLETED");
+      const remainingEvents = await countNonCompletedEvents(match.event.tournament.id);
+      if (remainingEvents === 0) {
+        await setTournamentStatus(match.event.tournament.id, "COMPLETED");
+      }
+    }
+  }
+
   return {
     success: true,
     tournamentId: match.event.tournament.id,
@@ -223,6 +241,18 @@ export async function tdSubmitMatch(params: TdSubmitParams): Promise<TdSubmitRes
     ratingCategoryId: match.event.ratingCategoryId,
     matchId,
   });
+
+  // Auto-complete event if all matches are now done
+  if (match.event.status === "IN_PROGRESS") {
+    const remainingMatches = await countNonCompletedMatches(match.eventId);
+    if (remainingMatches === 0) {
+      await setEventStatus(match.eventId, "COMPLETED");
+      const remainingEvents = await countNonCompletedEvents(match.event.tournament.id);
+      if (remainingEvents === 0) {
+        await setTournamentStatus(match.event.tournament.id, "COMPLETED");
+      }
+    }
+  }
 
   return {
     success: true,

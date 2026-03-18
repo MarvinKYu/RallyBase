@@ -13,6 +13,7 @@ export async function findMatchById(id: string) {
       event: {
         select: {
           id: true,
+          status: true,
           format: true,
           eventFormat: true,
           gamePointTarget: true,
@@ -46,6 +47,7 @@ export async function findSubmissionByCode(confirmationCode: string) {
           event: {
             select: {
               id: true,
+              status: true,
               format: true,
               gamePointTarget: true,
               ratingCategoryId: true,

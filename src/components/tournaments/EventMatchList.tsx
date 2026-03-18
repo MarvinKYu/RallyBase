@@ -33,7 +33,7 @@ function ScoreSummary({
 }
 
 export function EventMatchList({ matches }: { matches: Match[] }) {
-  const [collapsed, setCollapsed] = useState(false);
+  const [collapsed, setCollapsed] = useState(true);
 
   const matchesByRound = matches.reduce<Record<number, Match[]>>((acc, m) => {
     if (!acc[m.round]) acc[m.round] = [];
