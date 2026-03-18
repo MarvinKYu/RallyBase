@@ -10,6 +10,19 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 ---
 
+## [0.7.0] - 2026-03-18
+
+### Added
+- **Match history list** on every player profile page — shows all COMPLETED rated matches with tournament/event, linked opponent, W/L result + game score (e.g. "W 3–1"), and rating delta (color-coded green/red). Visible to any viewer.
+- **Rating history graph** on every player profile page — Recharts `LineChart` showing rating over time sourced from the `rating_transactions` ledger. If the player has ratings in multiple org/discipline categories, a dropdown picker appears above the graph. Shows "No rating history yet" if no transactions exist.
+- `findCompletedMatchesByPlayerId` repository function — queries completed matches for a player, including match games and the player's own rating transactions.
+- `findAllRatingTransactionsByProfile` repository function — queries all rating transactions for a player across all categories in chronological order.
+- `getPlayerMatchHistory` service function in `player.service.ts`.
+- `getPlayerRatingHistories` service function in `rating.service.ts`.
+- Integration tests for both new service functions (`tests/integration/player-history.test.ts`).
+
+---
+
 ## [0.6.5] - 2026-03-18
 
 ### Changed

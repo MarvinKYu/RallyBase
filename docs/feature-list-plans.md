@@ -1,15 +1,6 @@
 # Planned Features Roadmap
 
-## v0.7.0 — Player History
-
-### Match history on player dashboard
-- List of past rated matches on the player's own profile page.
-- Shows tournament/event, opponent, result, rating delta, and date.
-
-### Rating graph
-- Line chart using Recharts showing rating over time.
-- Sourced from `rating_transactions` ledger.
-- Scoped by org/discipline (picker if multiple).
+## ~~v0.7.0 — Player History~~ ✅ Shipped 2026-03-18
 
 ---
 
