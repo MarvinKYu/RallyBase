@@ -84,14 +84,6 @@ export default async function TournamentDetailPage({ params }: Props) {
                   Register for Events
                 </Link>
               )}
-              {isTD && (
-                <Link
-                  href={`/tournaments/${id}/events/new`}
-                  className="rounded-md bg-accent px-3 py-1.5 text-xs font-medium text-background transition-colors hover:bg-accent-dim"
-                >
-                  Add event
-                </Link>
-              )}
             </div>
           </div>
 

@@ -75,7 +75,17 @@ export default async function EventDetailPage({ params, searchParams }: Props) {
           </p>
           <div className="flex items-start justify-between gap-4">
             <h1 className="text-3xl font-semibold text-text-1">{event.name}</h1>
-            {isTD && <DeleteEventButton eventId={eventId} tournamentId={id} />}
+            {isTD && (
+            <div className="flex shrink-0 items-center gap-2">
+              <Link
+                href={`/tournaments/${id}/events/${eventId}/edit`}
+                className="rounded-md border border-border px-3 py-1.5 text-xs font-medium text-text-2 transition-colors hover:border-accent hover:text-text-1"
+              >
+                Edit event
+              </Link>
+              <DeleteEventButton eventId={eventId} tournamentId={id} />
+            </div>
+          )}
           </div>
           <p className="mt-1 text-sm text-text-2">
             {event.ratingCategory.name} ·{" "}
@@ -239,10 +249,10 @@ export default async function EventDetailPage({ params, searchParams }: Props) {
         )}
 
         <Link
-          href={`/tournaments/${id}`}
+          href={isTD ? `/tournaments/${id}/manage` : `/tournaments/${id}`}
           className="text-sm text-text-2 transition-colors hover:text-text-1"
         >
-          ← Back to tournament
+          {isTD ? "← Back to manage" : "← Back to tournament"}
         </Link>
       </div>
     </main>

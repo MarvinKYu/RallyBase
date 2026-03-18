@@ -134,7 +134,15 @@ export default async function ManageTournamentPage({ params }: Props) {
 
         {/* Events */}
         <section className="space-y-6">
-          <h2 className="text-lg font-medium text-text-1">Events</h2>
+          <div className="flex items-center justify-between">
+            <h2 className="text-lg font-medium text-text-1">Events</h2>
+            <Link
+              href={`/tournaments/${id}/events/new`}
+              className="rounded-md border border-border px-3 py-1.5 text-xs font-medium text-text-2 transition-colors hover:border-accent hover:text-text-1"
+            >
+              Add event
+            </Link>
+          </div>
 
           {tournament.events.length === 0 ? (
             <p className="text-sm text-text-2">No events yet.</p>
@@ -159,7 +167,12 @@ export default async function ManageTournamentPage({ params }: Props) {
                   {/* Event header */}
                   <div className="flex items-start justify-between gap-4 border-b border-border bg-elevated px-4 py-3">
                     <div className="space-y-1">
-                      <p className="font-medium text-text-1">{event.name}</p>
+                      <Link
+                        href={`/tournaments/${id}/events/${event.id}`}
+                        className="font-medium text-text-1 hover:underline"
+                      >
+                        {event.name}
+                      </Link>
                       <div className="flex items-center gap-2">
                         <StatusBadge status={event.status} />
                         <span className="text-xs text-text-3">

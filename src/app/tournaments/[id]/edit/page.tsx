@@ -58,10 +58,10 @@ export default async function EditTournamentPage({ params }: Props) {
       />
       <div className="mt-6">
         <Link
-          href={`/tournaments/${id}`}
+          href={`/tournaments/${id}/manage`}
           className="text-sm text-text-2 transition-colors hover:text-text-1"
         >
-          ← Back to tournament
+          ← Back to manage
         </Link>
       </div>
     </main>
