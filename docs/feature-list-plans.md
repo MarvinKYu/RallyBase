@@ -43,31 +43,6 @@
 
 ---
 
-## v0.6.0 — Tournament Lifecycle
-
-### TD publish/draft workflow
-- TDs can save a tournament as `DRAFT` and return to it later before making it visible
-- Published tournaments (`PUBLISHED`) are visible to all users; drafts are only visible to the TD
-- TD dashboard or tournament detail page includes a "Publish" button to transition from draft → published
-- Requires hiding draft tournaments from the public tournament list and all player-facing pages
-
-### TD dashboard page
-- New TD-only page per tournament (`/tournaments/[id]/manage` or similar)
-- Shows all events, all matches with scores, and match status at a glance
-- Gated to tournament creator
-
-### Edit event and edit tournament
-- TDs can edit tournament and event settings from the detail pages
-- Discuss at implementation time: edit-in-place vs. redirect to pre-filled creation form
-- Changes to eligibility settings (rating range, age range, max participants) take effect immediately
-
-### Completed/Past tournaments category
-- Tournaments list page splits into Upcoming and Past sections based on tournament end date
-- End date defaults to start date if not explicitly set
-- Requires v0.5.0 `startTime`
-
----
-
 ## v0.7.0 — Player History
 
 ### Match history on player dashboard
