@@ -14,6 +14,7 @@ import {
   findTournamentsByCreator,
   findTournamentManageDetail,
   findTournamentById,
+  findTournamentsWithEntriesByProfile,
   findTournamentsByPlayerProfile,
   createTournament as dbCreateTournament,
   updateTournamentById,
@@ -74,6 +75,10 @@ export async function getEventDetail(id: string) {
 
 export async function getTournamentsForPlayer(playerProfileId: string) {
   return findTournamentsByPlayerProfile(playerProfileId);
+}
+
+export async function getPlayerTournamentHistory(playerProfileId: string) {
+  return findTournamentsWithEntriesByProfile(playerProfileId);
 }
 
 export async function getPublicTournaments() {

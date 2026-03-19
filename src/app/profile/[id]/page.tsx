@@ -4,8 +4,10 @@ import { auth } from "@clerk/nextjs/server";
 import { MatchStatus } from "@prisma/client";
 import { getPlayerProfile, getPlayerMatchHistory } from "@/server/services/player.service";
 import { getPlayerRatingHistories } from "@/server/services/rating.service";
+import { getPlayerTournamentHistory } from "@/server/services/tournament.service";
 import MatchHistoryList from "@/components/players/MatchHistoryList";
 import RatingGraph from "@/components/players/RatingGraph";
+import MyTournamentsPreview from "@/components/players/MyTournamentsPreview";
 import { prisma } from "@/lib/prisma";
 
 type Props = { params: Promise<{ id: string }> };
@@ -62,9 +64,10 @@ export default async function ProfilePage({ params }: Props) {
     .sort((a, b) => (STATUS_PRIORITY[a.status] ?? 9) - (STATUS_PRIORITY[b.status] ?? 9))
     .slice(0, 5);
 
-  const [matchHistory, ratingHistories] = await Promise.all([
+  const [matchHistory, ratingHistories, tournamentHistory] = await Promise.all([
     getPlayerMatchHistory(profile.id),
     getPlayerRatingHistories(profile.id),
+    isOwnProfile ? getPlayerTournamentHistory(profile.id) : Promise.resolve([]),
   ]);
 
   const statusLabel: Record<string, string> = {
@@ -126,6 +129,11 @@ export default async function ProfilePage({ params }: Props) {
               </div>
             )}
           </section>
+
+          {/* My Tournaments preview (own profile only) */}
+          {isOwnProfile && (
+            <MyTournamentsPreview tournaments={tournamentHistory} profileId={profile.id} />
+          )}
 
           {/* Upcoming matches (own profile only) */}
           {isOwnProfile && (

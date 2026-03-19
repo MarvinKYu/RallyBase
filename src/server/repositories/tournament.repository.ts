@@ -92,6 +92,22 @@ export async function findTournamentById(id: string) {
   });
 }
 
+export async function findTournamentsWithEntriesByProfile(playerProfileId: string) {
+  return prisma.tournament.findMany({
+    where: {
+      events: { some: { eventEntries: { some: { playerProfileId } } } },
+    },
+    include: {
+      organization: { select: { id: true, name: true } },
+      events: {
+        where: { eventEntries: { some: { playerProfileId } } },
+        select: { id: true, name: true, status: true },
+      },
+    },
+    orderBy: { startDate: "desc" },
+  });
+}
+
 export async function findTournamentsByPlayerProfile(playerProfileId: string) {
   return prisma.tournament.findMany({
     where: {

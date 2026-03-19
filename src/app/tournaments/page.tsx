@@ -4,8 +4,10 @@ import {
   getPublicTournaments,
   getMyTournaments,
   getTournamentsForPlayer,
+  getPlayerTournamentHistory,
 } from "@/server/services/tournament.service";
 import { getMyProfile } from "@/server/services/player.service";
+import MyTournamentsPreview from "@/components/players/MyTournamentsPreview";
 
 export const metadata = { title: "Tournaments — RallyBase" };
 
@@ -53,9 +55,10 @@ export default async function TournamentsPage() {
     userId ? getMyProfile() : null,
   ]);
 
-  const [myDraftTournaments, registeredTournaments] = await Promise.all([
+  const [myDraftTournaments, registeredTournaments, myTournamentHistory] = await Promise.all([
     userId ? getMyTournaments(userId) : Promise.resolve([]),
     profile ? getTournamentsForPlayer(profile.id) : Promise.resolve([]),
+    profile ? getPlayerTournamentHistory(profile.id) : Promise.resolve([]),
   ]);
 
   // Draft tournaments created by me (not yet published)
@@ -89,6 +92,11 @@ export default async function TournamentsPage() {
             </Link>
           )}
         </div>
+
+        {/* My Tournaments preview — logged-in players */}
+        {profile && (
+          <MyTournamentsPreview tournaments={myTournamentHistory} profileId={profile.id} />
+        )}
 
         {/* My Draft Tournaments — TD only */}
         {myDrafts.length > 0 && (
