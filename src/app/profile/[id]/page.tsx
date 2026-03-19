@@ -16,16 +16,20 @@ export async function generateMetadata({ params }: Props) {
   return { title: profile ? `${profile.displayName} — RallyBase` : "Player not found" };
 }
 
+const STATUS_PRIORITY: Record<string, number> = {
+  IN_PROGRESS: 0,
+  AWAITING_CONFIRMATION: 1,
+  PENDING: 2,
+};
+
 export default async function ProfilePage({ params }: Props) {
   const { id } = await params;
   const { userId } = await auth();
   const profile = await getPlayerProfile(id);
   if (!profile) notFound();
 
-  // Determine if the viewer is the profile owner, so we can show their dashboard
   const isOwnProfile = !!userId && profile.user.clerkId === userId;
 
-  // Fetch upcoming matches for profile owner's view
   const upcomingMatches = isOwnProfile
     ? await prisma.match.findMany({
         where: {
@@ -51,9 +55,12 @@ export default async function ProfilePage({ params }: Props) {
           },
         },
         orderBy: { createdAt: "asc" },
-        take: 10,
       })
     : [];
+
+  const top5 = [...upcomingMatches]
+    .sort((a, b) => (STATUS_PRIORITY[a.status] ?? 9) - (STATUS_PRIORITY[b.status] ?? 9))
+    .slice(0, 5);
 
   const [matchHistory, ratingHistories] = await Promise.all([
     getPlayerMatchHistory(profile.id),
@@ -67,111 +74,143 @@ export default async function ProfilePage({ params }: Props) {
   };
 
   return (
-    <main className="mx-auto max-w-2xl px-4 py-12">
-      <div className="space-y-8">
-        {/* Header */}
-        <div>
-          <div className="flex items-baseline gap-2">
-            <h1 className="text-3xl font-semibold text-text-1">
-              {profile.displayName}
-            </h1>
-            <span className="text-sm text-text-3">#{profile.playerNumber}</span>
+    <main className="mx-auto max-w-4xl px-4 py-12">
+      <div className="grid grid-cols-1 gap-8 md:grid-cols-2 md:items-start">
+        {/* Left column */}
+        <div className="space-y-8">
+          {/* Header */}
+          <div>
+            <div className="flex items-baseline gap-2">
+              <h1 className="text-3xl font-semibold text-text-1">
+                {profile.displayName}
+              </h1>
+              <span className="text-sm text-text-3">#{profile.playerNumber}</span>
+            </div>
+            {profile.bio && (
+              <p className="mt-2 text-text-2">{profile.bio}</p>
+            )}
           </div>
-          {profile.bio && (
-            <p className="mt-2 text-text-2">{profile.bio}</p>
-          )}
-        </div>
 
-        {/* Upcoming matches (own profile only) */}
-        {upcomingMatches.length > 0 && (
+          {/* Ratings */}
           <section>
-            <h2 className="mb-4 text-lg font-medium text-text-1">Upcoming matches</h2>
-            <ul className="overflow-hidden rounded-lg border border-border">
-              {upcomingMatches.map((m) => {
-                const opponent = m.player1Id === profile.id ? m.player2 : m.player1;
-                return (
-                  <li
-                    key={m.id}
+            <h2 className="mb-4 text-lg font-medium text-text-1">Ratings</h2>
+            {profile.playerRatings.length === 0 ? (
+              <p className="text-sm text-text-2">
+                No ratings yet. Enter a tournament to get started.
+              </p>
+            ) : (
+              <div className="overflow-hidden rounded-lg border border-border">
+                {profile.playerRatings.map((pr) => (
+                  <div
+                    key={pr.id}
                     className="flex items-center justify-between border-b border-border-subtle bg-surface px-4 py-3 last:border-b-0"
                   >
                     <div>
                       <p className="text-sm font-medium text-text-1">
-                        vs {opponent?.displayName ?? "TBD"}
+                        {pr.ratingCategory.name}
                       </p>
                       <p className="text-xs text-text-3">
-                        {m.event.tournament.name} · {m.event.name}
+                        {pr.ratingCategory.organization.name}
                       </p>
                     </div>
-                    <div className="flex items-center gap-3">
-                      <span className="text-xs text-text-3">
-                        {statusLabel[m.status] ?? m.status}
-                      </span>
-                      <Link
-                        href={
-                          m.status === "AWAITING_CONFIRMATION"
-                            ? `/matches/${m.id}/confirm`
-                            : `/matches/${m.id}/submit`
-                        }
-                        className="rounded-md bg-accent px-3 py-1 text-xs font-medium text-background transition-colors hover:bg-accent-dim"
-                      >
-                        {m.status === "AWAITING_CONFIRMATION" ? "Confirm" : "Submit"}
-                      </Link>
+                    <div className="text-right">
+                      <p className="text-lg font-semibold text-accent">
+                        {Math.round(pr.rating)}
+                      </p>
+                      <p className="text-xs text-text-3">
+                        {pr.gamesPlayed} game{pr.gamesPlayed !== 1 ? "s" : ""}
+                      </p>
                     </div>
-                  </li>
-                );
-              })}
-            </ul>
+                  </div>
+                ))}
+              </div>
+            )}
           </section>
-        )}
 
-        {/* Ratings */}
-        <section>
-          <h2 className="mb-4 text-lg font-medium text-text-1">Ratings</h2>
-          {profile.playerRatings.length === 0 ? (
-            <p className="text-sm text-text-2">
-              No ratings yet. Enter a tournament to get started.
-            </p>
-          ) : (
-            <div className="overflow-hidden rounded-lg border border-border">
-              {profile.playerRatings.map((pr) => (
-                <div
-                  key={pr.id}
-                  className="flex items-center justify-between border-b border-border-subtle bg-surface px-4 py-3 last:border-b-0"
+          {/* Upcoming matches (own profile only) */}
+          {isOwnProfile && (
+            <section>
+              <div className="mb-4 flex items-center justify-between">
+                <h2 className="text-lg font-medium text-text-1">Upcoming matches</h2>
+                <Link
+                  href={`/profile/${profile.id}/tournaments`}
+                  className="text-sm text-accent hover:underline"
                 >
-                  <div>
-                    <p className="text-sm font-medium text-text-1">
-                      {pr.ratingCategory.name}
-                    </p>
-                    <p className="text-xs text-text-3">
-                      {pr.ratingCategory.organization.name}
-                    </p>
-                  </div>
-                  <div className="text-right">
-                    <p className="text-lg font-semibold text-accent">
-                      {Math.round(pr.rating)}
-                    </p>
-                    <p className="text-xs text-text-3">
-                      {pr.gamesPlayed} game{pr.gamesPlayed !== 1 ? "s" : ""}
-                    </p>
-                  </div>
-                </div>
-              ))}
-            </div>
+                  View all →
+                </Link>
+              </div>
+              {top5.length === 0 ? (
+                <p className="text-sm text-text-2">No upcoming matches.</p>
+              ) : (
+                <ul className="overflow-hidden rounded-lg border border-border">
+                  {top5.map((m) => {
+                    const opponent = m.player1Id === profile.id ? m.player2 : m.player1;
+                    return (
+                      <li
+                        key={m.id}
+                        className="flex items-center justify-between border-b border-border-subtle bg-surface px-4 py-3 last:border-b-0"
+                      >
+                        <div>
+                          <p className="text-sm font-medium text-text-1">
+                            vs {opponent?.displayName ?? "TBD"}
+                          </p>
+                          <p className="text-xs text-text-3">
+                            {m.event.tournament.name} · {m.event.name}
+                          </p>
+                        </div>
+                        <div className="flex items-center gap-3">
+                          <span className="text-xs text-text-3">
+                            {statusLabel[m.status] ?? m.status}
+                          </span>
+                          <Link
+                            href={
+                              m.status === "AWAITING_CONFIRMATION"
+                                ? `/matches/${m.id}/confirm`
+                                : `/matches/${m.id}/submit`
+                            }
+                            className="rounded-md bg-accent px-3 py-1 text-xs font-medium text-background transition-colors hover:bg-accent-dim"
+                          >
+                            {m.status === "AWAITING_CONFIRMATION" ? "Confirm" : "Submit"}
+                          </Link>
+                        </div>
+                      </li>
+                    );
+                  })}
+                </ul>
+              )}
+            </section>
           )}
-        </section>
+        </div>
 
-        {/* Match History */}
-        <section>
-          <h2 className="mb-4 text-lg font-medium text-text-1">Match history</h2>
-          <MatchHistoryList matches={matchHistory} playerProfileId={profile.id} />
-        </section>
+        {/* Right column */}
+        <div className="space-y-8">
+          {/* Rating History */}
+          <section>
+            <h2 className="mb-4 text-lg font-medium text-text-1">Rating history</h2>
+            <RatingGraph transactions={ratingHistories} />
+          </section>
 
-        {/* Rating History */}
-        <section>
-          <h2 className="mb-4 text-lg font-medium text-text-1">Rating history</h2>
-          <RatingGraph transactions={ratingHistories} />
-        </section>
+          {/* Match History */}
+          <section>
+            <div className="mb-4 flex items-center justify-between">
+              <h2 className="text-lg font-medium text-text-1">Match history</h2>
+              <Link
+                href={`/profile/${profile.id}/history`}
+                className="text-sm text-accent hover:underline"
+              >
+                View full history →
+              </Link>
+            </div>
+            <MatchHistoryList
+              matches={matchHistory}
+              playerProfileId={profile.id}
+              limit={5}
+            />
+          </section>
+        </div>
+      </div>
 
+      <div className="mt-8">
         <Link
           href="/players"
           className="text-sm text-text-2 transition-colors hover:text-text-1"

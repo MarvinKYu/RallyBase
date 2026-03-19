@@ -6,10 +6,12 @@ type Match = Awaited<ReturnType<typeof findCompletedMatchesByPlayerId>>[number];
 interface Props {
   matches: Match[];
   playerProfileId: string;
+  limit?: number;
 }
 
-export default function MatchHistoryList({ matches, playerProfileId }: Props) {
-  if (matches.length === 0) {
+export default function MatchHistoryList({ matches, playerProfileId, limit }: Props) {
+  const displayMatches = limit !== undefined ? matches.slice(0, limit) : matches;
+  if (displayMatches.length === 0) {
     return (
       <p className="text-sm text-text-2">No match history yet.</p>
     );
@@ -27,7 +29,7 @@ export default function MatchHistoryList({ matches, playerProfileId }: Props) {
           </tr>
         </thead>
         <tbody>
-          {matches.map((m) => {
+          {displayMatches.map((m) => {
             const won = m.winnerId === playerProfileId;
             const opponent = m.player1Id === playerProfileId ? m.player2 : m.player1;
 
@@ -81,8 +83,7 @@ export default function MatchHistoryList({ matches, playerProfileId }: Props) {
                     <span
                       className={`font-medium ${delta >= 0 ? "text-green-600 dark:text-green-400" : "text-red-500 dark:text-red-400"}`}
                     >
-                      {delta >= 0 ? "+" : ""}
-                      {delta}
+                      {(delta >= 0 ? "+" : "") + Number(delta).toFixed(2)}
                     </span>
                   )}
                 </td>

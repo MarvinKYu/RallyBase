@@ -46,8 +46,7 @@ function CustomTooltip({
       <p className="font-medium text-text-1">{label}</p>
       <p className="text-text-2">Rating: {Math.round(rating)}</p>
       <p className={delta >= 0 ? "text-green-600 dark:text-green-400" : "text-red-500 dark:text-red-400"}>
-        {delta >= 0 ? "+" : ""}
-        {delta}
+        {(delta >= 0 ? "+" : "") + Number(delta).toFixed(2)}
       </p>
     </div>
   );
