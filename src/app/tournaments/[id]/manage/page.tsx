@@ -200,10 +200,10 @@ export default async function ManageTournamentPage({ params }: Props) {
         </section>
 
         <Link
-          href={`/tournaments/${id}`}
+          href="/tournament-directors"
           className="text-sm text-text-2 transition-colors hover:text-text-1"
         >
-          ← Back to tournament
+          ← Back to Tournament Directors
         </Link>
       </div>
     </main>

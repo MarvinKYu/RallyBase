@@ -1,18 +1,10 @@
-import { Suspense } from "react";
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { auth } from "@clerk/nextjs/server";
 import { getEventDetail } from "@/server/services/tournament.service";
 import { bracketExists } from "@/server/services/bracket.service";
-import { searchPlayers, getMyProfile } from "@/server/services/player.service";
-import { addEntrantAction } from "@/server/actions/tournament.actions";
-import { generateBracketAction } from "@/server/actions/bracket.actions";
-import { EntrantSearchForm } from "@/components/tournaments/EntrantSearchForm";
-import { DeleteEventButton } from "@/components/tournaments/DeleteEventButton";
 
 type Props = {
   params: Promise<{ id: string; eventId: string }>;
-  searchParams: Promise<{ q?: string }>;
 };
 
 export async function generateMetadata({
@@ -38,24 +30,17 @@ const statusBadgeClass: Record<string, string> = {
   COMPLETED: "text-text-3",
 };
 
-export default async function EventDetailPage({ params, searchParams }: Props) {
+export default async function EventDetailPage({ params }: Props) {
   const { id, eventId } = await params;
-  const { q = "" } = await searchParams;
-  const { userId } = await auth();
 
-  const [event, hasBracket, profile] = await Promise.all([
+  const [event, hasBracket] = await Promise.all([
     getEventDetail(eventId),
     bracketExists(eventId),
-    userId ? getMyProfile() : null,
   ]);
   if (!event) notFound();
 
-  const isTD = !!userId && event.tournament.createdByClerkId === userId;
-  const enteredIds = new Set(event.eventEntries.map((e) => e.playerProfileId));
   const isRoundRobin = event.eventFormat === "ROUND_ROBIN";
-  const searchResults = q ? await searchPlayers(q) : [];
 
-  // Eligibility summary for display
   const eligibilityLines: string[] = [];
   if (event.maxParticipants) eligibilityLines.push(`Max ${event.maxParticipants} players`);
   if (event.minRating) eligibilityLines.push(`Min rating: ${Math.round(event.minRating)}`);
@@ -73,20 +58,7 @@ export default async function EventDetailPage({ params, searchParams }: Props) {
               {event.tournament.name}
             </Link>
           </p>
-          <div className="flex items-start justify-between gap-4">
-            <h1 className="text-3xl font-semibold text-text-1">{event.name}</h1>
-            {isTD && (
-            <div className="flex shrink-0 items-center gap-2">
-              <Link
-                href={`/tournaments/${id}/events/${eventId}/edit`}
-                className="rounded-md border border-border px-3 py-1.5 text-xs font-medium text-text-2 transition-colors hover:border-accent hover:text-text-1"
-              >
-                Edit event
-              </Link>
-              <DeleteEventButton eventId={eventId} tournamentId={id} />
-            </div>
-          )}
-          </div>
+          <h1 className="text-3xl font-semibold text-text-1">{event.name}</h1>
           <p className="mt-1 text-sm text-text-2">
             {event.ratingCategory.name} ·{" "}
             {isRoundRobin ? "Round Robin" : "Single Elimination"} ·{" "}
@@ -126,16 +98,6 @@ export default async function EventDetailPage({ params, searchParams }: Props) {
                 {isRoundRobin ? "View standings" : "Standings"}
               </Link>
             )}
-            {!hasBracket && isTD && event.eventEntries.length >= (isRoundRobin ? 3 : 2) && (
-              <form action={generateBracketAction.bind(null, eventId, id)}>
-                <button
-                  type="submit"
-                  className="rounded-md bg-accent px-4 py-2 text-sm font-medium text-background transition-colors hover:bg-accent-dim"
-                >
-                  {isRoundRobin ? "Generate schedule" : "Generate bracket"}
-                </button>
-              </form>
-            )}
           </div>
         </div>
 
@@ -174,85 +136,11 @@ export default async function EventDetailPage({ params, searchParams }: Props) {
           )}
         </section>
 
-        {/* TD: Add entrant */}
-        {isTD && (
-          <section>
-            <h2 className="mb-4 text-lg font-medium text-text-1">Add entrant</h2>
-            <div className="space-y-4">
-              <Suspense>
-                <EntrantSearchForm />
-              </Suspense>
-
-              {q && searchResults.length === 0 && (
-                <p className="text-sm text-text-2">
-                  No players found for &ldquo;{q}&rdquo;.
-                </p>
-              )}
-
-              {searchResults.length > 0 && (
-                <ul className="overflow-hidden rounded-lg border border-border">
-                  {searchResults.map((player) => {
-                    const alreadyIn = enteredIds.has(player.id);
-                    const playerRating = player.playerRatings.find(
-                      (r) => r.ratingCategoryId === event.ratingCategoryId,
-                    );
-                    return (
-                      <li
-                        key={player.id}
-                        className="flex items-center justify-between border-b border-border-subtle bg-surface px-4 py-3 last:border-b-0"
-                      >
-                        <div className="flex items-center gap-2">
-                          <span className="text-sm text-text-1">{player.displayName}</span>
-                          <span className="text-xs text-text-3">
-                            {playerRating ? Math.round(playerRating.rating) : "Unrated"}
-                          </span>
-                        </div>
-                        {alreadyIn ? (
-                          <span className="text-xs text-text-3">Already entered</span>
-                        ) : (
-                          <form action={addEntrantAction.bind(null, eventId, id)}>
-                            <input type="hidden" name="playerProfileId" value={player.id} />
-                            <button
-                              type="submit"
-                              className="rounded-md bg-accent px-3 py-1 text-xs font-medium text-background transition-colors hover:bg-accent-dim"
-                            >
-                              Add
-                            </button>
-                          </form>
-                        )}
-                      </li>
-                    );
-                  })}
-                </ul>
-              )}
-            </div>
-          </section>
-        )}
-
-        {/* TD: Quick match entry for bracket matches */}
-        {isTD && hasBracket && (
-          <section>
-            <h2 className="mb-3 text-lg font-medium text-text-1">TD actions</h2>
-            <p className="text-sm text-text-2">
-              As tournament director, you can{" "}
-              <Link
-                href={isRoundRobin
-                  ? `/tournaments/${id}/events/${eventId}/standings`
-                  : `/tournaments/${id}/events/${eventId}/bracket`}
-                className="text-accent hover:underline"
-              >
-                view the {isRoundRobin ? "standings" : "bracket"}
-              </Link>{" "}
-              and submit or void match results from there.
-            </p>
-          </section>
-        )}
-
         <Link
-          href={isTD ? `/tournaments/${id}/manage` : `/tournaments/${id}`}
+          href={`/tournaments/${id}`}
           className="text-sm text-text-2 transition-colors hover:text-text-1"
         >
-          {isTD ? "← Back to manage" : "← Back to tournament"}
+          ← Back to tournament
         </Link>
       </div>
     </main>

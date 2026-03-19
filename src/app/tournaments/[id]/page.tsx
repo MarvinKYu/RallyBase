@@ -6,7 +6,6 @@ import {
   getMyProfile,
   getPlayerMatchesForTournament,
 } from "@/server/services/player.service";
-import { DeleteTournamentButton } from "@/components/tournaments/DeleteTournamentButton";
 import { findMatchesByPlayerAndTournament } from "@/server/repositories/match.repository";
 
 type Props = { params: Promise<{ id: string }> };
@@ -113,10 +112,8 @@ export default async function TournamentDetailPage({ params }: Props) {
   const tournament = await getTournamentDetail(id);
   if (!tournament) notFound();
 
-  const isTD = userId !== null && tournament.createdByClerkId === userId;
-
-  // Guard: DRAFT tournaments are only visible to their creator
-  if (tournament.status === "DRAFT" && !isTD) {
+  // Draft guard: only the creator can view a draft
+  if (tournament.status === "DRAFT" && tournament.createdByClerkId !== userId) {
     redirect("/tournaments");
   }
 
@@ -129,23 +126,8 @@ export default async function TournamentDetailPage({ params }: Props) {
     <main className="mx-auto max-w-2xl px-4 py-12">
       <div className="space-y-8">
         <div>
-          <div className="flex items-start justify-between gap-4">
-            <div>
-              <p className="text-sm text-text-3">{tournament.organization.name}</p>
-              <h1 className="text-3xl font-semibold text-text-1">{tournament.name}</h1>
-            </div>
-            {isTD && (
-              <div className="flex shrink-0 items-center gap-2">
-                <Link
-                  href={`/tournaments/${id}/manage`}
-                  className="rounded-md bg-accent px-3 py-1.5 text-xs font-medium text-background transition-colors hover:bg-accent-dim"
-                >
-                  Manage
-                </Link>
-                <DeleteTournamentButton tournamentId={tournament.id} />
-              </div>
-            )}
-          </div>
+          <p className="text-sm text-text-3">{tournament.organization.name}</p>
+          <h1 className="text-3xl font-semibold text-text-1">{tournament.name}</h1>
           {tournament.location && (
             <p className="mt-1 text-text-2">{tournament.location}</p>
           )}
@@ -169,16 +151,14 @@ export default async function TournamentDetailPage({ params }: Props) {
         <section>
           <div className="mb-4 flex items-center justify-between">
             <h2 className="text-lg font-medium text-text-1">Events</h2>
-            <div className="flex items-center gap-2">
-              {tournament.events.length > 0 && (
-                <Link
-                  href={`/tournaments/${id}/register`}
-                  className="rounded-md bg-accent px-3 py-1.5 text-xs font-medium text-background transition-colors hover:bg-accent-dim"
-                >
-                  Register for Events
-                </Link>
-              )}
-            </div>
+            {tournament.events.length > 0 && (
+              <Link
+                href={`/tournaments/${id}/register`}
+                className="rounded-md bg-accent px-3 py-1.5 text-xs font-medium text-background transition-colors hover:bg-accent-dim"
+              >
+                Register for Events
+              </Link>
+            )}
           </div>
 
           {tournament.events.length === 0 ? (

@@ -57,10 +57,10 @@ export default async function EditEventPage({ params }: Props) {
       />
       <div className="mt-6 flex items-center justify-between">
         <Link
-          href={`/tournaments/${id}/events/${eventId}`}
+          href={`/tournaments/${id}/manage`}
           className="text-sm text-text-2 transition-colors hover:text-text-1"
         >
-          ← Back to event
+          ← Back to manage
         </Link>
         <DeleteEventButton eventId={eventId} tournamentId={id} />
       </div>

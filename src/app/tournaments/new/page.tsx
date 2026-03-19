@@ -21,10 +21,10 @@ export default async function NewTournamentPage() {
       <TournamentForm organizations={organizations} />
       <div className="mt-6">
         <Link
-          href="/tournaments"
+          href="/tournament-directors"
           className="text-sm text-text-2 transition-colors hover:text-text-1"
         >
-          ← Back to tournaments
+          ← Back to Tournament Directors
         </Link>
       </div>
     </main>
