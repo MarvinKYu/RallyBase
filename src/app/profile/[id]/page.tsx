@@ -77,7 +77,7 @@ export default async function ProfilePage({ params }: Props) {
   };
 
   return (
-    <main className="mx-auto max-w-4xl px-4 py-12">
+    <main className="mx-auto max-w-6xl px-4 py-12">
       <div className="grid grid-cols-1 gap-8 md:grid-cols-2 md:items-start">
         {/* Left column */}
         <div className="space-y-8">
