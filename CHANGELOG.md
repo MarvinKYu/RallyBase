@@ -10,6 +10,15 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 ---
 
+## [0.8.2] - 2026-03-19
+
+### Changed
+- **Bracket card W/L badges** — game win counts are now displayed as `W 3` / `L 1` (letter first, no dot separator). Winner's count is bold white; loser's count is `text-text-3`. Loser gets a bold red `L` mirroring the winner's bold green `W`. Right-side score column uses a fixed `w-10` container so both rows align vertically.
+- **Bracket card TBD** — TBD placeholder text is no longer bold (`text-text-2` weight).
+- **Bracket card pending matches** — W and L markers only appear on `COMPLETED` matches; pending/in-progress matches show no letter badges.
+
+---
+
 ## [0.8.1] - 2026-03-19
 
 ### Added
