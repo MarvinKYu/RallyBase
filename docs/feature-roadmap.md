@@ -1,28 +1,5 @@
 # Planned Features Roadmap
 
-## v0.8.1 — UI Polish
-
-Small visual and UX improvements that don't require schema changes.
-
-### Manage event page
-- **Single-line match rows**: Keep match status label and TD action buttons (Enter result / Void) on one line — no wrapping.
-
-### Bracket & standings pages
-- **Game score in bracket cards**: Show game count score next to each player (e.g. "Player A · 3" / "Player B · 1").
-- **Per-game expand toggle on bracket and standings**: Down-arrow (▾) on completed match rows to expand per-game score breakdown (consistent with manage event page behavior added in v0.7.9).
-
-### Status tags
-- **Restyle "Pending" match status**: Give PENDING a styled badge (e.g. neutral border + text-text-2) consistent with the IN_PROGRESS amber tag, rather than plain unstyled text.
-
-### Tournament search
-- **Date filter labels**: Add visible "From" / "To" labels to the start date range inputs in the tournament search bar.
-
-### Manage entrants page
-- **Remove entrant**: TD can remove a player from the entrant list (with confirmation prompt).
-- **Clear search bar after adding**: After a player is added via the entrant search form, clear the search input so the TD can search for the next player without manually clearing.
-
----
-
 ## v0.9.0 — Player Search Overhaul
 
 ### Paginated results

@@ -10,6 +10,23 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 ---
 
+## [0.8.1] - 2026-03-19
+
+### Added
+- **Match result page** (`/matches/[matchId]`) — read-only result view for completed matches showing per-game score table, winner callout, and breadcrumb linking back to the bracket.
+- **Bracket game win counts** — completed bracket match cards now show game win counts next to each player name (e.g. "Player A · 2 W / Player B · 1").
+- **Bracket "View" link** — completed non-bye bracket match cards now show a "View" link to the match result page.
+- **Per-game expand on standings schedule** — completed match rows in the standings schedule now have a ▾ toggle to expand per-game score breakdown. `StandingsSchedule` extracted as a `"use client"` component.
+- **Per-game expand on "Your Matches"** — completed match rows in the tournament detail "Your Matches" section now have a ▾ toggle to expand per-game score breakdown. `YourMatchesList` extracted as a `"use client"` component.
+- **Remove entrant** — TDs can remove a player from an event's entrant list via a "Remove" button (with confirmation dialog). Blocked server-side if any match has progressed past PENDING.
+
+### Changed
+- **Single-line match rows** — status label and TD action buttons (Enter result / Void / expand toggle) in ManageEventMatchList are now on a single line.
+- **PENDING match status badge** — PENDING status in ManageEventMatchList is now displayed as a styled neutral badge (border + bg-surface) instead of plain unstyled text.
+- **Date filter labels** — "From" and "To" labels added above the date range inputs in the tournament search bar.
+
+---
+
 ## [0.8.0] - 2026-03-19
 
 ### Fixed
