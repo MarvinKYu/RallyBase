@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeAll, afterAll } from "vitest";
 import { PrismaClient, MatchStatus } from "@prisma/client";
-import { getPlayerMatchHistory } from "@/server/services/player.service";
+import { getPlayerMatchHistory, getPlayerMatchesForTournament } from "@/server/services/player.service";
 import { getPlayerRatingHistories } from "@/server/services/rating.service";
 
 const prisma = new PrismaClient();
@@ -163,6 +163,61 @@ describe("getPlayerMatchHistory", () => {
     expect(history.find((m) => m.id === pendingMatch.id)).toBeUndefined();
 
     await prisma.match.delete({ where: { id: pendingMatch.id } });
+  });
+});
+
+describe("getPlayerMatchesForTournament", () => {
+  it("returns matches for the queried player in the tournament", async () => {
+    const matches = await getPlayerMatchesForTournament(profileIds[0], tournamentId);
+    expect(matches.length).toBeGreaterThanOrEqual(1);
+    const m = matches.find((x) => x.id === matchId);
+    expect(m).toBeDefined();
+  });
+
+  it("does not return matches from a different tournament", async () => {
+    // Create a second tournament + event + match to verify isolation
+    const org = await prisma.organization.findFirst();
+    const category = await prisma.ratingCategory.findFirst({ where: { organizationId: org!.id } });
+    const otherTournament = await prisma.tournament.create({
+      data: { organizationId: org!.id, name: "PH Other Tournament", startDate: new Date("2026-12-01") },
+    });
+    const otherEvent = await prisma.event.create({
+      data: {
+        tournamentId: otherTournament.id,
+        name: "PH Other Event",
+        format: "BEST_OF_3",
+        eventFormat: "SINGLE_ELIMINATION",
+        gamePointTarget: 11,
+        ratingCategoryId: category!.id,
+      },
+    });
+    const otherMatch = await prisma.match.create({
+      data: {
+        eventId: otherEvent.id,
+        round: 1,
+        position: 1,
+        player1Id: profileIds[0],
+        player2Id: profileIds[1],
+        status: MatchStatus.COMPLETED,
+        winnerId: profileIds[0],
+      },
+    });
+
+    // Should not appear in the original tournament query
+    const matches = await getPlayerMatchesForTournament(profileIds[0], tournamentId);
+    expect(matches.find((x) => x.id === otherMatch.id)).toBeUndefined();
+
+    // Cleanup
+    await prisma.match.delete({ where: { id: otherMatch.id } });
+    await prisma.event.delete({ where: { id: otherEvent.id } });
+    await prisma.tournament.delete({ where: { id: otherTournament.id } });
+  });
+
+  it("returns the match from both player1 and player2 perspectives", async () => {
+    const p1Matches = await getPlayerMatchesForTournament(profileIds[0], tournamentId);
+    const p2Matches = await getPlayerMatchesForTournament(profileIds[1], tournamentId);
+    expect(p1Matches.find((x) => x.id === matchId)).toBeDefined();
+    expect(p2Matches.find((x) => x.id === matchId)).toBeDefined();
   });
 });
 

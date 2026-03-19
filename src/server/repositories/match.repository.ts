@@ -215,6 +215,24 @@ export async function findCompletedMatchesByPlayerId(playerProfileId: string) {
   });
 }
 
+export async function findMatchesByPlayerAndTournament(
+  playerProfileId: string,
+  tournamentId: string,
+) {
+  return prisma.match.findMany({
+    where: {
+      OR: [{ player1Id: playerProfileId }, { player2Id: playerProfileId }],
+      event: { tournamentId },
+    },
+    include: {
+      player1: playerSelect,
+      player2: playerSelect,
+      event: { select: { id: true, name: true } },
+    },
+    orderBy: [{ round: "asc" }, { position: "asc" }],
+  });
+}
+
 export async function findMatchesByPlayerId(playerProfileId: string) {
   return prisma.match.findMany({
     where: {

@@ -9,7 +9,10 @@ import {
   searchProfiles,
   type ProfileFilters,
 } from "@/server/repositories/player.repository";
-import { findCompletedMatchesByPlayerId } from "@/server/repositories/match.repository";
+import {
+  findCompletedMatchesByPlayerId,
+  findMatchesByPlayerAndTournament,
+} from "@/server/repositories/match.repository";
 
 /**
  * Syncs the signed-in Clerk user to the database (lazy upsert).
@@ -92,6 +95,13 @@ export async function getMyProfile() {
 
 export async function getPlayerMatchHistory(playerProfileId: string) {
   return findCompletedMatchesByPlayerId(playerProfileId);
+}
+
+export async function getPlayerMatchesForTournament(
+  playerProfileId: string,
+  tournamentId: string,
+) {
+  return findMatchesByPlayerAndTournament(playerProfileId, tournamentId);
 }
 
 export async function searchPlayers(
