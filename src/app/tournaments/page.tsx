@@ -2,166 +2,165 @@ import Link from "next/link";
 import { auth } from "@clerk/nextjs/server";
 import {
   getPublicTournaments,
-  getMyTournaments,
-  getTournamentsForPlayer,
+  getOrganizations,
   getPlayerTournamentHistory,
 } from "@/server/services/tournament.service";
 import { getMyProfile } from "@/server/services/player.service";
 import MyTournamentsPreview from "@/components/players/MyTournamentsPreview";
+import TournamentSearchBar from "@/components/tournaments/TournamentSearchBar";
 
 export const metadata = { title: "Tournaments — RallyBase" };
 
 type Tournament = Awaited<ReturnType<typeof getPublicTournaments>>[number];
 
-function TournamentList({ tournaments }: { tournaments: Tournament[] }) {
-  if (tournaments.length === 0) {
-    return <p className="text-sm text-text-2">No tournaments yet.</p>;
-  }
-
+function TournamentPreviewList({
+  tournaments,
+  viewAllHref,
+  viewAllLabel,
+}: {
+  tournaments: Tournament[];
+  viewAllHref: string;
+  viewAllLabel: string;
+}) {
+  const preview = tournaments.slice(0, 5);
   return (
-    <ul className="overflow-hidden rounded-lg border border-border">
-      {tournaments.map((t) => (
-        <li key={t.id}>
-          <Link
-            href={`/tournaments/${t.id}`}
-            className="flex items-center justify-between border-b border-border-subtle bg-surface px-4 py-3 transition-colors last:border-b-0 hover:bg-surface-hover"
-          >
-            <div>
-              <p className="text-sm font-medium text-text-1">{t.name}</p>
-              <p className="text-xs text-text-3">
-                {t.organization.name}
-                {t.location ? ` · ${t.location}` : ""}
-              </p>
-            </div>
-            <div className="text-right">
-              <p className="text-xs text-text-2">
-                {new Date(t.startDate).toLocaleDateString()}
-              </p>
-              <p className="text-xs text-text-3">
-                {t.events.length} event{t.events.length !== 1 ? "s" : ""}
-              </p>
-            </div>
-          </Link>
-        </li>
-      ))}
-    </ul>
+    <>
+      {preview.length === 0 ? (
+        <p className="text-sm text-text-2">None yet.</p>
+      ) : (
+        <>
+          <ul className="overflow-hidden rounded-lg border border-border">
+            {preview.map((t) => (
+              <li key={t.id}>
+                <Link
+                  href={`/tournaments/${t.id}`}
+                  className="flex items-center justify-between border-b border-border-subtle bg-surface px-4 py-3 transition-colors last:border-b-0 hover:bg-surface-hover"
+                >
+                  <div>
+                    <p className="text-sm font-medium text-text-1">{t.name}</p>
+                    <p className="text-xs text-text-3">
+                      {t.organization.name}
+                      {t.location ? ` · ${t.location}` : ""}
+                    </p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-xs text-text-2">
+                      {new Date(t.startDate).toLocaleDateString()}
+                    </p>
+                    <p className="text-xs text-text-3">
+                      {t.events.length} event{t.events.length !== 1 ? "s" : ""}
+                    </p>
+                  </div>
+                </Link>
+              </li>
+            ))}
+          </ul>
+          {tournaments.length > 5 && (
+            <Link
+              href={viewAllHref}
+              className="mt-2 block text-sm text-accent hover:underline"
+            >
+              {viewAllLabel} ({tournaments.length}) →
+            </Link>
+          )}
+        </>
+      )}
+    </>
   );
 }
 
 export default async function TournamentsPage() {
   const { userId } = await auth();
-  const [publicTournaments, profile] = await Promise.all([
+
+  const [publicTournaments, organizations, profile] = await Promise.all([
     getPublicTournaments(),
+    getOrganizations(),
     userId ? getMyProfile() : null,
   ]);
 
-  const [myDraftTournaments, registeredTournaments, myTournamentHistory] = await Promise.all([
-    userId ? getMyTournaments(userId) : Promise.resolve([]),
-    profile ? getTournamentsForPlayer(profile.id) : Promise.resolve([]),
-    profile ? getPlayerTournamentHistory(profile.id) : Promise.resolve([]),
-  ]);
+  const myTournamentHistory = profile
+    ? await getPlayerTournamentHistory(profile.id)
+    : [];
 
-  // Draft tournaments created by me (not yet published)
-  const myDrafts = myDraftTournaments.filter((t) => t.status === "DRAFT");
-
-  // Split public tournaments into upcoming and past
   const today = new Date();
   today.setHours(0, 0, 0, 0);
   const upcoming = publicTournaments.filter((t) => new Date(t.startDate) >= today);
   const past = publicTournaments.filter((t) => new Date(t.startDate) < today);
 
-  // My registered tournaments (from public list)
-  const registeredIds = new Set(registeredTournaments.map((t) => t.id));
-  const myRegistered = publicTournaments.filter((t) => registeredIds.has(t.id));
-  const otherUpcoming = upcoming.filter((t) => !registeredIds.has(t.id));
-
   return (
-    <main className="mx-auto max-w-2xl px-4 py-12">
-      <div className="space-y-8">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-semibold text-text-1">Tournaments</h1>
-            <p className="mt-1 text-sm text-text-2">Browse all tournaments.</p>
+    <main className="mx-auto max-w-7xl px-4 py-12">
+      <div className="grid grid-cols-1 gap-10 lg:grid-cols-[420px_1fr]">
+
+        {/* Left column */}
+        <div className="space-y-8">
+          {/* Header */}
+          <div className="flex items-start justify-between gap-4">
+            <div>
+              <h1 className="text-2xl font-semibold text-text-1">Tournaments</h1>
+              <p className="mt-1 text-sm text-text-2">Browse all public tournaments.</p>
+            </div>
+            {userId && (
+              <Link
+                href="/tournaments/new"
+                className="shrink-0 rounded-md bg-accent px-4 py-2 text-sm font-medium text-background transition-colors hover:bg-accent-dim"
+              >
+                New tournament
+              </Link>
+            )}
           </div>
-          {userId && (
-            <Link
-              href="/tournaments/new"
-              className="rounded-md bg-accent px-4 py-2 text-sm font-medium text-background transition-colors hover:bg-accent-dim"
-            >
-              New tournament
-            </Link>
+
+          {/* My Tournaments preview (logged-in players) */}
+          {profile && (
+            <MyTournamentsPreview tournaments={myTournamentHistory} profileId={profile.id} />
+          )}
+
+          {/* Tournament search */}
+          <section>
+            <h2 className="mb-3 text-lg font-medium text-text-1">Search</h2>
+            <TournamentSearchBar
+              tournaments={publicTournaments}
+              organizations={organizations}
+            />
+          </section>
+        </div>
+
+        {/* Right column */}
+        <div className="space-y-8">
+          <section>
+            <div className="mb-3 flex items-center justify-between">
+              <h2 className="text-lg font-medium text-text-1">Upcoming</h2>
+              {upcoming.length > 5 && (
+                <Link href="/tournaments/upcoming" className="text-sm text-accent hover:underline">
+                  View all →
+                </Link>
+              )}
+            </div>
+            <TournamentPreviewList
+              tournaments={upcoming}
+              viewAllHref="/tournaments/upcoming"
+              viewAllLabel="View all upcoming"
+            />
+          </section>
+
+          {past.length > 0 && (
+            <section>
+              <div className="mb-3 flex items-center justify-between">
+                <h2 className="text-lg font-medium text-text-1">Past</h2>
+                {past.length > 5 && (
+                  <Link href="/tournaments/past" className="text-sm text-accent hover:underline">
+                    View all →
+                  </Link>
+                )}
+              </div>
+              <TournamentPreviewList
+                tournaments={past}
+                viewAllHref="/tournaments/past"
+                viewAllLabel="View all past"
+              />
+            </section>
           )}
         </div>
 
-        {/* My Tournaments preview — logged-in players */}
-        {profile && (
-          <MyTournamentsPreview tournaments={myTournamentHistory} profileId={profile.id} />
-        )}
-
-        {/* My Draft Tournaments — TD only */}
-        {myDrafts.length > 0 && (
-          <section>
-            <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-text-3">
-              My drafts
-            </h2>
-            <ul className="overflow-hidden rounded-lg border border-border">
-              {myDrafts.map((t) => (
-                <li key={t.id}>
-                  <Link
-                    href={`/tournaments/${t.id}/manage`}
-                    className="flex items-center justify-between border-b border-border-subtle bg-surface px-4 py-3 transition-colors last:border-b-0 hover:bg-surface-hover"
-                  >
-                    <div>
-                      <p className="text-sm font-medium text-text-1">{t.name}</p>
-                      <p className="text-xs text-text-3">
-                        {t.organization.name}
-                        {t.location ? ` · ${t.location}` : ""}
-                        {" · "}
-                        <span className="text-amber-400">Draft</span>
-                      </p>
-                    </div>
-                    <div className="text-right">
-                      <p className="text-xs text-text-2">
-                        {new Date(t.startDate).toLocaleDateString()}
-                      </p>
-                      <p className="text-xs text-text-3">
-                        {t.events.length} event{t.events.length !== 1 ? "s" : ""}
-                      </p>
-                    </div>
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </section>
-        )}
-
-        {/* My registered tournaments */}
-        {myRegistered.length > 0 && (
-          <section>
-            <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-text-3">
-              My tournaments
-            </h2>
-            <TournamentList tournaments={myRegistered} />
-          </section>
-        )}
-
-        {/* Upcoming tournaments */}
-        <section>
-          <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-text-3">
-            Upcoming
-          </h2>
-          <TournamentList tournaments={otherUpcoming} />
-        </section>
-
-        {/* Past tournaments */}
-        {past.length > 0 && (
-          <section>
-            <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-text-3">
-              Past
-            </h2>
-            <TournamentList tournaments={past} />
-          </section>
-        )}
       </div>
     </main>
   );
