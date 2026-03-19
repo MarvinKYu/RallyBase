@@ -1,18 +1,5 @@
 # Planned Features Roadmap
 
-## ~~v0.7.0 — Player History~~ ✅ Shipped 2026-03-18
-## ~~v0.7.1 — Test isolation fix~~ ✅ Shipped 2026-03-18
-## ~~v0.7.2 — Profile UI Restructure~~ ✅ Shipped 2026-03-18
-## ~~v0.7.3 — My Tournaments~~ ✅ Shipped 2026-03-18
-## ~~v0.7.4 — Your Matches on Tournament Detail~~ ✅ Shipped 2026-03-18
-## ~~v0.7.5 — Tournament Directors page + nav + profile wider~~ ✅ Shipped 2026-03-18
-## ~~v0.7.6 — Player/TD navigation decoupling~~ ✅ Shipped 2026-03-18
-## ~~v0.7.7 — Tournaments page overhaul + search bar~~ ✅ Shipped 2026-03-18
-## ~~v0.7.8 — Manage Event page + Manage Entrants page~~ ✅ Shipped 2026-03-18
-## ~~v0.7.9 — Nav fixes + TD match actions on manage event page~~ ✅ Shipped 2026-03-18
-
----
-
 ## v0.8.0 — Bug Fixes & Rule Enforcement
 
 Addresses all open bugs and closes loopholes in state transition logic before any new feature work.
