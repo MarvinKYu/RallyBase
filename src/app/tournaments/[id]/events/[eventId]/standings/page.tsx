@@ -7,6 +7,7 @@ import { tdVoidMatchAction } from "@/server/actions/match.actions";
 
 type Props = {
   params: Promise<{ id: string; eventId: string }>;
+  searchParams: Promise<{ from?: string }>;
 };
 
 export async function generateMetadata({ params }: Props) {
@@ -15,8 +16,9 @@ export async function generateMetadata({ params }: Props) {
   return { title: event ? `${event.name} Standings — RallyBase` : "Standings not found" };
 }
 
-export default async function StandingsPage({ params }: Props) {
+export default async function StandingsPage({ params, searchParams }: Props) {
   const { id, eventId } = await params;
+  const { from } = await searchParams;
   const { userId } = await auth();
   const [event, matches, standings] = await Promise.all([
     getEventDetail(eventId),
@@ -199,10 +201,14 @@ export default async function StandingsPage({ params }: Props) {
         )}
 
         <Link
-          href={`/tournaments/${id}/events/${eventId}`}
+          href={
+            from === "manage"
+              ? `/tournaments/${id}/events/${eventId}/manage`
+              : `/tournaments/${id}/events/${eventId}`
+          }
           className="text-sm text-text-2 transition-colors hover:text-text-1"
         >
-          ← Back to event
+          {from === "manage" ? "← Back to manage event" : "← Back to event"}
         </Link>
       </div>
     </main>

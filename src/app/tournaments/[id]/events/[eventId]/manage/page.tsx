@@ -1,12 +1,14 @@
 import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
 import { auth } from "@clerk/nextjs/server";
-import type { EventStatus, MatchStatus } from "@prisma/client";
+import type { EventStatus } from "@prisma/client";
 import { getEventManageDetail } from "@/server/services/tournament.service";
 import { bracketExists } from "@/server/services/bracket.service";
 import { generateBracketAction } from "@/server/actions/bracket.actions";
 import { advanceEventStatusAction } from "@/server/actions/tournament.actions";
 import { DeleteEventButton } from "@/components/tournaments/DeleteEventButton";
+import { ManageEventMatchList } from "@/components/tournaments/ManageEventMatchList";
+import type { MatchRow } from "@/components/tournaments/ManageEventMatchList";
 
 type Props = { params: Promise<{ id: string; eventId: string }> };
 
@@ -37,25 +39,6 @@ const STATUS_BADGE_CLASSES: Record<string, string> = {
   COMPLETED: "bg-surface border border-border text-text-2",
 };
 
-const MATCH_STATUS_LABEL: Record<MatchStatus, string> = {
-  PENDING: "Pending",
-  IN_PROGRESS: "In Progress",
-  AWAITING_CONFIRMATION: "Awaiting Confirmation",
-  COMPLETED: "Completed",
-};
-
-function ScoreSummary({
-  games,
-}: {
-  games: { player1Points: number; player2Points: number }[];
-}) {
-  if (games.length === 0) return null;
-  return (
-    <span className="text-xs text-text-3">
-      {games.map((g) => `${g.player1Points}–${g.player2Points}`).join(", ")}
-    </span>
-  );
-}
 
 export default async function ManageEventPage({ params }: Props) {
   const { id, eventId } = await params;
@@ -73,11 +56,21 @@ export default async function ManageEventPage({ params }: Props) {
   const completedMatches = event.matches.filter((m) => m.status === "COMPLETED").length;
   const progressPct = totalMatches > 0 ? Math.round((completedMatches / totalMatches) * 100) : 0;
 
-  const matchesByRound = event.matches.reduce<Record<number, typeof event.matches>>((acc, m) => {
-    (acc[m.round] ??= []).push(m);
-    return acc;
-  }, {});
-  const rounds = Object.keys(matchesByRound).map(Number).sort((a, b) => a - b);
+  const serializedMatches: MatchRow[] = event.matches.map((m) => ({
+    id: m.id,
+    round: m.round,
+    status: m.status,
+    player1Id: m.player1Id,
+    player2Id: m.player2Id,
+    winnerId: m.winnerId,
+    player1: m.player1 ? { id: m.player1.id, displayName: m.player1.displayName } : null,
+    player2: m.player2 ? { id: m.player2.id, displayName: m.player2.displayName } : null,
+    matchGames: m.matchGames.map((g) => ({
+      gameNumber: g.gameNumber,
+      player1Points: g.player1Points,
+      player2Points: g.player2Points,
+    })),
+  }));
 
   const statusBadgeClass = STATUS_BADGE_CLASSES[event.status] ?? "bg-surface border border-border text-text-3";
   const statusLabel = event.status.replace(/_/g, " ");
@@ -226,60 +219,23 @@ export default async function ManageEventPage({ params }: Props) {
             Matches ({totalMatches})
           </h2>
 
-          {/* Scrollable match list — 80% of viewport height */}
+          {/* Scrollable match list */}
           <div
-            className="overflow-y-auto rounded-lg border border-border"
+            className="overflow-y-auto overflow-x-hidden rounded-lg border border-border"
             style={{ maxHeight: "70vh" }}
           >
-            {event.matches.length === 0 ? (
-              <p className="px-4 py-6 text-sm text-text-2">
-                No bracket generated yet.
-              </p>
-            ) : (
-              <div className="divide-y divide-border-subtle">
-                {rounds.map((round) => (
-                  <div key={round}>
-                    <p className="sticky top-0 bg-elevated px-4 py-1.5 text-xs font-semibold uppercase tracking-wide text-text-3">
-                      Round {round}
-                    </p>
-                    {matchesByRound[round].map((match) => (
-                      <div
-                        key={match.id}
-                        className="flex items-start justify-between gap-4 px-4 py-3"
-                      >
-                        <div className="space-y-1">
-                          <p className="text-sm text-text-1">
-                            {match.player1?.displayName ?? "TBD"} vs.{" "}
-                            {match.player2?.displayName ?? "TBD"}
-                          </p>
-                          <ScoreSummary games={match.matchGames} />
-                        </div>
-                        <div className="flex shrink-0 flex-col items-end gap-1">
-                          <span
-                            className={`text-xs ${
-                              match.status === "COMPLETED"
-                                ? "text-text-3"
-                                : match.status === "IN_PROGRESS" || match.status === "AWAITING_CONFIRMATION"
-                                  ? "text-amber-400"
-                                  : "text-text-2"
-                            }`}
-                          >
-                            {MATCH_STATUS_LABEL[match.status]}
-                          </span>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                ))}
-              </div>
-            )}
+            <ManageEventMatchList
+              matches={serializedMatches}
+              tournamentId={id}
+              eventId={eventId}
+            />
           </div>
 
           {/* Bracket / standings links */}
           <div className="flex items-center gap-3">
             {hasBracket && !isRoundRobin && (
               <Link
-                href={`/tournaments/${id}/events/${eventId}/bracket`}
+                href={`/tournaments/${id}/events/${eventId}/bracket?from=manage`}
                 className="rounded-md bg-accent px-4 py-2 text-sm font-medium text-background transition-colors hover:bg-accent-dim"
               >
                 View bracket
@@ -287,7 +243,7 @@ export default async function ManageEventPage({ params }: Props) {
             )}
             {(hasBracket || isRoundRobin) && (
               <Link
-                href={`/tournaments/${id}/events/${eventId}/standings`}
+                href={`/tournaments/${id}/events/${eventId}/standings?from=manage`}
                 className={`rounded-md px-4 py-2 text-sm font-medium transition-colors ${
                   isRoundRobin
                     ? "bg-accent text-background hover:bg-accent-dim"
@@ -300,6 +256,15 @@ export default async function ManageEventPage({ params }: Props) {
           </div>
         </div>
 
+      </div>
+
+      <div className="mt-8">
+        <Link
+          href={`/tournaments/${id}/manage`}
+          className="text-sm text-text-2 transition-colors hover:text-text-1"
+        >
+          ← Back to manage tournament
+        </Link>
       </div>
     </main>
   );

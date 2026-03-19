@@ -162,14 +162,14 @@ export default async function ManageTournamentPage({ params }: Props) {
                         <span className="text-text-3">·</span>
                         {event.eventFormat === "ROUND_ROBIN" ? (
                           <Link
-                            href={`/tournaments/${id}/events/${event.id}/standings`}
+                            href={`/tournaments/${id}/events/${event.id}/standings?from=manage`}
                             className="text-xs text-text-3 transition-colors hover:text-text-1"
                           >
                             Standings
                           </Link>
                         ) : (
                           <Link
-                            href={`/tournaments/${id}/events/${event.id}/bracket`}
+                            href={`/tournaments/${id}/events/${event.id}/bracket?from=manage`}
                             className="text-xs text-text-3 transition-colors hover:text-text-1"
                           >
                             Bracket

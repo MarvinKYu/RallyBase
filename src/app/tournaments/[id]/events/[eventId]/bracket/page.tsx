@@ -7,6 +7,7 @@ import { tdVoidMatchAction } from "@/server/actions/match.actions";
 
 type Props = {
   params: Promise<{ id: string; eventId: string }>;
+  searchParams: Promise<{ from?: string }>;
 };
 
 export async function generateMetadata({ params }: Props) {
@@ -116,8 +117,9 @@ function MatchCard({
   );
 }
 
-export default async function BracketPage({ params }: Props) {
+export default async function BracketPage({ params, searchParams }: Props) {
   const { id, eventId } = await params;
+  const { from } = await searchParams;
   const { userId } = await auth();
   const [event, matches] = await Promise.all([
     getEventDetail(eventId),
@@ -126,7 +128,7 @@ export default async function BracketPage({ params }: Props) {
 
   if (!event) notFound();
   if (event.eventFormat === "ROUND_ROBIN") {
-    redirect(`/tournaments/${id}/events/${eventId}/standings`);
+    redirect(`/tournaments/${id}/events/${eventId}/standings${from ? `?from=${from}` : ""}`);
   }
 
   const isTD = !!userId && event.tournament.createdByClerkId === userId;
@@ -136,10 +138,14 @@ export default async function BracketPage({ params }: Props) {
       <main className="mx-auto max-w-2xl px-4 py-12">
         <p className="text-sm text-text-2">No bracket generated yet.</p>
         <Link
-          href={`/tournaments/${id}/events/${eventId}`}
+          href={
+            from === "manage"
+              ? `/tournaments/${id}/events/${eventId}/manage`
+              : `/tournaments/${id}/events/${eventId}`
+          }
           className="mt-4 inline-block text-sm text-text-2 hover:text-text-1"
         >
-          ← Back to event
+          {from === "manage" ? "← Back to manage event" : "← Back to event"}
         </Link>
       </main>
     );
@@ -222,10 +228,14 @@ export default async function BracketPage({ params }: Props) {
       </div>
 
       <Link
-        href={`/tournaments/${id}/events/${eventId}`}
+        href={
+          from === "manage"
+            ? `/tournaments/${id}/events/${eventId}/manage`
+            : `/tournaments/${id}/events/${eventId}`
+        }
         className="text-sm text-text-2 transition-colors hover:text-text-1"
       >
-        ← Back to event
+        {from === "manage" ? "← Back to manage event" : "← Back to event"}
       </Link>
     </main>
   );

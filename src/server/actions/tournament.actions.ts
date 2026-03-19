@@ -123,7 +123,7 @@ export async function advanceEventStatusAction(eventId: string, tournamentId: st
   const result = await advanceEventStatus(eventId, userId);
   if ("error" in result) throw new Error(result.error);
 
-  redirect(`/tournaments/${tournamentId}/manage`);
+  redirect(`/tournaments/${tournamentId}/events/${eventId}/manage`);
 }
 
 // tournamentId is pre-bound via .bind(null, tournamentId) in the client component
@@ -157,7 +157,7 @@ export async function createEventAction(
   if ("fieldErrors" in result) return { fieldErrors: result.fieldErrors };
   if ("error" in result) return { error: result.error };
 
-  redirect(`/tournaments/${tournamentId}/events/${result.event.id}`);
+  redirect(`/tournaments/${tournamentId}/events/${result.event.id}/manage`);
 }
 
 // tournamentId is pre-bound via .bind(null, tournamentId)
@@ -178,7 +178,7 @@ export async function deleteEventAction(eventId: string, tournamentId: string): 
   const result = await deleteEvent(eventId, userId);
   if ("error" in result) throw new Error(result.error);
 
-  redirect(`/tournaments/${tournamentId}`);
+  redirect(`/tournaments/${tournamentId}/manage`);
 }
 
 // eventId and tournamentId are pre-bound via .bind(null, eventId, tournamentId)
@@ -193,7 +193,7 @@ export async function addEntrantAction(
 
   const tournament = await getTournamentDetail(tournamentId);
   if (!tournament || tournament.createdByClerkId !== userId) {
-    redirect(`/tournaments/${tournamentId}/events/${eventId}`);
+    redirect(`/tournaments/${tournamentId}/events/${eventId}/manage/entrants`);
   }
 
   const playerProfileId = formData.get("playerProfileId") as string;
@@ -201,7 +201,7 @@ export async function addEntrantAction(
     await addEntrant(eventId, { playerProfileId });
   }
 
-  redirect(`/tournaments/${tournamentId}/events/${eventId}`);
+  redirect(`/tournaments/${tournamentId}/events/${eventId}/manage/entrants`);
 }
 
 // eventId and tournamentId are pre-bound via .bind(null, eventId, tournamentId)
