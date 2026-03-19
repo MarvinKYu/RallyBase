@@ -52,6 +52,35 @@ export async function findTournamentsByCreator(creatorClerkId: string) {
   });
 }
 
+export async function findEventManageDetail(id: string) {
+  return prisma.event.findUnique({
+    where: { id },
+    include: {
+      tournament: { include: { organization: true } },
+      ratingCategory: { include: { organization: true, discipline: true } },
+      eventEntries: {
+        include: {
+          playerProfile: {
+            include: {
+              playerRatings: { include: { ratingCategory: true } },
+            },
+          },
+        },
+        orderBy: { createdAt: "asc" },
+      },
+      matches: {
+        include: {
+          player1: { select: { id: true, displayName: true } },
+          player2: { select: { id: true, displayName: true } },
+          winner: { select: { id: true, displayName: true } },
+          matchGames: { orderBy: { gameNumber: "asc" } },
+        },
+        orderBy: [{ round: "asc" }, { position: "asc" }],
+      },
+    },
+  });
+}
+
 export async function findTournamentManageDetail(id: string) {
   return prisma.tournament.findUnique({
     where: { id },

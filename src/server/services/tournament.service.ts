@@ -12,6 +12,7 @@ import {
   findAllTournaments,
   findPublicTournaments,
   findTournamentsByCreator,
+  findEventManageDetail,
   findTournamentManageDetail,
   findTournamentById,
   findTournamentsWithEntriesByProfile,
@@ -87,6 +88,13 @@ export async function getPublicTournaments() {
 
 export async function getMyTournaments(clerkId: string) {
   return findTournamentsByCreator(clerkId);
+}
+
+export async function getEventManageDetail(eventId: string, clerkId: string) {
+  const event = await findEventManageDetail(eventId);
+  if (!event) return null;
+  if (event.tournament.createdByClerkId !== clerkId) return null;
+  return event;
 }
 
 export async function getTournamentManageDetail(tournamentId: string, clerkId: string) {

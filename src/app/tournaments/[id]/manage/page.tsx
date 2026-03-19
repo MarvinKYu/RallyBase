@@ -138,7 +138,7 @@ export default async function ManageTournamentPage({ params }: Props) {
                   <div className="flex items-start justify-between gap-4 border-b border-border bg-elevated px-4 py-3">
                     <div className="space-y-1">
                       <Link
-                        href={`/tournaments/${id}/events/${event.id}`}
+                        href={`/tournaments/${id}/events/${event.id}/manage`}
                         className="font-medium text-text-1 hover:underline"
                       >
                         {event.name}
@@ -154,10 +154,10 @@ export default async function ManageTournamentPage({ params }: Props) {
                     <div className="flex shrink-0 flex-col items-end gap-1.5">
                       <div className="flex items-center gap-2">
                         <Link
-                          href={`/tournaments/${id}/events/${event.id}/edit`}
+                          href={`/tournaments/${id}/events/${event.id}/manage`}
                           className="text-xs text-text-3 transition-colors hover:text-text-1"
                         >
-                          Edit
+                          Manage
                         </Link>
                         <span className="text-text-3">·</span>
                         {event.eventFormat === "ROUND_ROBIN" ? (
