@@ -37,21 +37,18 @@ function MatchCard({
 }) {
   const isBye = match.player2Id === null && match.status === "COMPLETED";
 
-  const rowClass = (isWinner: boolean) =>
-    [
-      "flex items-center justify-between px-3 py-1.5 text-sm",
-      isWinner ? "font-semibold text-text-1" : "text-text-2",
-    ].join(" ");
-
   const p1 = match.player1?.displayName ?? "TBD";
   const p2 = match.player2?.displayName ?? (isBye ? "BYE" : "TBD");
-  const p1Wins = match.winnerId === match.player1Id;
-  const p2Wins = match.winnerId === match.player2Id;
+  const isCompleted = match.status === "COMPLETED";
+  const p1Wins = isCompleted && match.winnerId === match.player1Id;
+  const p2Wins = isCompleted && match.winnerId === match.player2Id;
+  const p1IsTBD = !match.player1;
+  const p2IsTBD = !match.player2 && !isBye;
 
-  const p1GameWins = match.status === "COMPLETED"
+  const p1GameWins = isCompleted
     ? match.matchGames.filter((g) => g.player1Points > g.player2Points).length
     : null;
-  const p2GameWins = match.status === "COMPLETED"
+  const p2GameWins = isCompleted
     ? match.matchGames.filter((g) => g.player2Points > g.player1Points).length
     : null;
 
@@ -60,20 +57,34 @@ function MatchCard({
       className="w-44 overflow-hidden rounded-md border border-border bg-surface shadow-sm"
       style={{ height: CARD_H }}
     >
-      <div className={rowClass(p1Wins)}>
-        <span className="truncate">{p1}</span>
-        <span className="ml-1 shrink-0 text-xs">
-          {p1GameWins !== null && <span className="text-text-3">· {p1GameWins}</span>}
-          {p1Wins && <span className="ml-1 text-accent">W</span>}
+      {/* Player 1 row */}
+      <div className="flex items-center justify-between px-3 py-1.5 text-sm">
+        <span className={`truncate ${p1Wins ? "font-semibold text-text-1" : p1IsTBD ? "text-text-2" : "text-text-2"}`}>
+          {p1}
         </span>
+        {isCompleted && p1GameWins !== null && (
+          <span className="ml-2 flex w-10 shrink-0 items-center justify-end gap-1 text-xs">
+            {p1Wins
+              ? <><span className="font-bold text-accent">W</span><span className="font-bold text-text-1">{p1GameWins}</span></>
+              : <><span className="font-bold text-red-400">L</span><span className="text-text-3">{p1GameWins}</span></>
+            }
+          </span>
+        )}
       </div>
       <div className="border-t border-border-subtle" />
-      <div className={rowClass(p2Wins)}>
-        <span className={`truncate ${isBye ? "italic text-text-3" : ""}`}>{p2}</span>
-        <span className="ml-1 shrink-0 text-xs">
-          {p2GameWins !== null && <span className="text-text-3">· {p2GameWins}</span>}
-          {p2Wins && <span className="ml-1 text-accent">W</span>}
+      {/* Player 2 row */}
+      <div className="flex items-center justify-between px-3 py-1.5 text-sm">
+        <span className={`truncate ${p2Wins ? "font-semibold text-text-1" : isBye ? "italic text-text-3" : p2IsTBD ? "text-text-2" : "text-text-2"}`}>
+          {p2}
         </span>
+        {isCompleted && p2GameWins !== null && (
+          <span className="ml-2 flex w-10 shrink-0 items-center justify-end gap-1 text-xs">
+            {p2Wins
+              ? <><span className="font-bold text-accent">W</span><span className="font-bold text-text-1">{p2GameWins}</span></>
+              : <><span className="font-bold text-red-400">L</span><span className="text-text-3">{p2GameWins}</span></>
+            }
+          </span>
+        )}
       </div>
       <div className="flex items-center justify-between border-t border-border-subtle bg-elevated px-3 py-1">
         <span className="text-[10px] uppercase tracking-wide text-text-3">
