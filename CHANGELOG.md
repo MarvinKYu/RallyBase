@@ -10,6 +10,24 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 ---
 
+## [0.7.9] - 2026-03-18
+
+### Added
+- **Manage event match list** — TD actions (Enter result / Void) on each match row; completed matches are expandable in-place to show per-game score breakdown.
+- `ManageEventMatchList` client component handles grouping by round, TD actions, and expand/collapse state.
+
+### Fixed
+- Manage event page now has a "← Back to manage tournament" link at the bottom.
+- Creating a new event redirects to the manage event page (not player-facing event detail).
+- Deleting an event redirects to the manage tournament page (not tournament detail).
+- Adding an entrant from manage entrants page stays on manage entrants (no redirect away).
+- Advancing event status from manage event page stays on manage event page (no redirect away).
+- New event page back link now points to manage tournament, not tournament detail.
+- Bracket and standings pages back link is context-aware: `?from=manage` sends TDs back to manage event; players go back to event detail.
+- Manage tournament and manage event bracket/standings links now pass `?from=manage`.
+
+---
+
 ## [0.7.8] - 2026-03-18
 
 ### Added
