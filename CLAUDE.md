@@ -21,10 +21,10 @@ Do this automatically for every shipped change — no need to ask.
 
 ## Project Status
 
-**Current version: v0.7.9.** The app is live on Vercel. Next target is v0.8.0 (Tournament Templates).
+**Current version: v0.8.0.** The app is live on Vercel. Next target is v0.8.1 (UI Polish).
 
 ### Upcoming
-- v0.8.0 — Tournament Templates (save/load tournament templates)
+- v0.8.1 — UI Polish (match row, bracket scores, status badges, date filter labels, manage entrants improvements)
 
 ## Tech Stack
 
