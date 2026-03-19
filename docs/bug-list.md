@@ -1,5 +1,20 @@
 # Current bugs
 
+## Remove "back to player search" from player dashboard
+
+## Remove register for events button on all completed tournaments
+
+## Hard-lock event and tournament state
+- Prohibit event open to register, event start before tournament publish
+
+## Nav fix: after entering match results as TD, redirect back to manage event page 
+
+## Don't allow entrant addition after event has been started 
+
+## Mobile UI fix (ongoing list, needs comprehensive review)
+- Clicking into player search bar forces zoom in 
+- Many other small issues currently undocumented
+
 ## Tournaments and events should automatically start at their set startTime
 - Cron-based time-triggered auto-start requires Vercel Pro for sub-daily scheduling. Deferred until plan upgrade.
 
