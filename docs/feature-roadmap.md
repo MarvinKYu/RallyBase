@@ -1,20 +1,5 @@
 # Planned Features Roadmap
 
-## v0.8.0 — Bug Fixes & Rule Enforcement
-
-Addresses all open bugs and closes loopholes in state transition logic before any new feature work.
-
-### Bug fixes
-- **TD result redirect**: After entering or voiding a match result as TD, redirect back to the manage event page instead of the bracket/standings page.
-- **Remove "Back to player search" link** from the player dashboard (profile page). No longer relevant given the nav structure.
-- **Remove "Register for events" button** on tournament detail pages when the tournament is COMPLETED.
-
-### Rule guards
-- **Block entrant addition after event starts**: `addEntrantAction` should reject if the event status is IN_PROGRESS or COMPLETED.
-- **Hard-lock state transitions**: Prevent advancing an event to REGISTRATION_OPEN or IN_PROGRESS if the parent tournament has not yet been published. Prevent advancing tournament to IN_PROGRESS if it has no events. Surface a clear error message for invalid advances.
-
----
-
 ## v0.8.1 — UI Polish
 
 Small visual and UX improvements that don't require schema changes.

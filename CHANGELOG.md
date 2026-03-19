@@ -10,6 +10,21 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 ---
 
+## [0.8.0] - 2026-03-19
+
+### Fixed
+- **TD result redirect** — After TD submits or voids a match result, redirect to manage event page instead of bracket/standings.
+- **Profile page** — Removed stale "Back to player search" link.
+- **Tournament detail** — "Register for Events" button is now hidden on COMPLETED tournaments.
+
+### Added
+- **Entrant guard** — `addEntrantAction` rejects with inline error when event is IN_PROGRESS or COMPLETED; action refactored to Pattern A (`useActionState`).
+- **Tournament advance guard** — Attempting to start a tournament with no events now returns an inline error via `AdvanceTournamentStatusButton`.
+- **Event advance guard** — Advancing an event to REGISTRATION_OPEN or IN_PROGRESS when the parent tournament is not PUBLISHED now returns an inline error via `AdvanceEventStatusButton`.
+- `AddEntrantForm`, `AdvanceTournamentStatusButton`, `AdvanceEventStatusButton` client components for inline error display.
+
+---
+
 ## [0.7.9] - 2026-03-18
 
 ### Added
