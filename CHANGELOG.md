@@ -10,6 +10,41 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 ---
 
+## [0.7.7] - 2026-03-18
+
+### Added
+- **2-column tournaments page** — left column has header + "New tournament" button + `MyTournamentsPreview` (logged-in players) + `TournamentSearchBar`; right column has Upcoming (top 5 + "View all →") and Past (top 5 + "View all →") preview lists.
+- **`TournamentSearchBar`** client component — filters by name text, org dropdown, location text, and date range entirely client-side. Reusable across sub-pages.
+- **`/tournaments/upcoming`** and **`/tournaments/past`** pages — each loads the scoped subset and embeds `TournamentSearchBar`.
+- **Removed** from `/tournaments`: old "My registered tournaments" section, "My drafts" section, and associated data fetches.
+
+---
+
+## [0.7.6] - 2026-03-18
+
+### Changed
+- **Tournament detail page** — removed Manage button and Delete tournament button entirely. Draft visibility guard remains (non-creator redirected to `/tournaments`).
+- **Event detail page** — removed all TD controls (Edit event, Delete event, Add entrant section, Generate bracket button, TD actions section). Back link always goes to tournament detail. Page now serves purely as a player-facing view.
+- **Manage tournament page** — back link changed from `/tournaments/[id]` to `/tournament-directors`.
+- **Edit event page** — back link changed from event detail to `/tournaments/[id]/manage`.
+- **New tournament page** — back link changed from `/tournaments` to `/tournament-directors`.
+- Navigation contract: player flow = Tournaments → Tournament detail → Event detail. TD flow = Tournament Directors → Manage tournament → Edit/manage events.
+
+---
+
+## [0.7.5] - 2026-03-18
+
+### Added
+- **Tournament Directors nav link** — added between Tournaments and Players in the global nav (desktop + mobile).
+- **Tournament Directors page** (`/tournament-directors`) — shows all of the logged-in user's tournaments grouped into 4 status columns (Drafts, Published, In Progress, Completed), each preview showing 5 most recent with "View all →" links to sub-pages. Auth-gated; redirects to sign-in if not logged in.
+- **Empty state** on Tournament Directors — step-by-step onboarding for users with no tournaments.
+- **Templates placeholder** — "Coming soon" card at the bottom of the Tournament Directors page (v0.8.0 will fill this).
+- **Tournament Directors sub-pages** — `/tournament-directors/drafts`, `/published`, `/in-progress`, `/completed`.
+- **`TDTournamentGroup`** shared component for each status column.
+- **Profile page** — container widened from `max-w-4xl` to `max-w-6xl`.
+
+---
+
 ## [0.7.4] - 2026-03-18
 
 ### Added
