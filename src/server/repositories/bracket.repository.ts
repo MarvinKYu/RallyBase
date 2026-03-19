@@ -10,6 +10,7 @@ export async function findMatchesByEventId(eventId: string) {
       player1: playerSelect,
       player2: playerSelect,
       winner: playerSelect,
+      matchGames: { orderBy: { gameNumber: "asc" } },
     },
     orderBy: [{ round: "asc" }, { position: "asc" }],
   });

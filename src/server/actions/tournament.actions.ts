@@ -17,6 +17,7 @@ import {
   registerForEvents,
   getEventDetail,
   getTournamentDetail,
+  tdRemoveEntrant,
 } from "@/server/services/tournament.service";
 import { getMyProfile } from "@/server/services/player.service";
 import { findPlayerRatingByCategory } from "@/server/repositories/rating.repository";
@@ -276,6 +277,21 @@ export async function registerForEventsAction(
   }
 
   return { errors };
+}
+
+// eventId, tournamentId, playerProfileId are pre-bound via .bind(null, eventId, tournamentId, playerProfileId)
+export async function removeEntrantAction(
+  eventId: string,
+  tournamentId: string,
+  playerProfileId: string,
+): Promise<void> {
+  const { userId } = await auth();
+  if (!userId) redirect("/sign-in");
+
+  const result = await tdRemoveEntrant(eventId, playerProfileId, userId);
+  if ("error" in result) throw new Error(result.error);
+
+  redirect(`/tournaments/${tournamentId}/events/${eventId}/manage/entrants`);
 }
 
 // eventId and tournamentId are pre-bound via .bind(null, eventId, tournamentId)

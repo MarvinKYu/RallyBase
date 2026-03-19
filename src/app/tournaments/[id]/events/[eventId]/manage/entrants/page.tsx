@@ -6,6 +6,7 @@ import { getEventManageDetail } from "@/server/services/tournament.service";
 import { searchPlayers } from "@/server/services/player.service";
 import { EntrantSearchForm } from "@/components/tournaments/EntrantSearchForm";
 import { AddEntrantForm } from "@/components/tournaments/AddEntrantForm";
+import { RemoveEntrantButton } from "@/components/tournaments/RemoveEntrantButton";
 
 type Props = {
   params: Promise<{ id: string; eventId: string }>;
@@ -88,9 +89,17 @@ export default async function ManageEntrantsPage({ params, searchParams }: Props
                     >
                       {entry.playerProfile.displayName}
                     </Link>
-                    <span className="text-sm text-text-2">
-                      {rating ? Math.round(rating.rating) : "Unrated"}
-                    </span>
+                    <div className="flex items-center gap-3">
+                      <span className="text-sm text-text-2">
+                        {rating ? Math.round(rating.rating) : "Unrated"}
+                      </span>
+                      <RemoveEntrantButton
+                        eventId={eventId}
+                        tournamentId={id}
+                        playerProfileId={entry.playerProfileId}
+                        playerName={entry.playerProfile.displayName}
+                      />
+                    </div>
                   </li>
                 );
               })}

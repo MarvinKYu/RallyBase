@@ -35,6 +35,7 @@ import {
   countNonCompletedEvents,
   countMatchesByEventId,
   findEventSummariesByTournament,
+  countProgressedMatches,
 } from "@/server/repositories/tournament.repository";
 import { generateBracket } from "@/server/services/bracket.service";
 import { findPlayerRatingByCategory } from "@/server/repositories/rating.repository";
@@ -647,4 +648,27 @@ export async function getRegisteredEventIds(
   eventIds: string[],
 ): Promise<string[]> {
   return findEventEntriesForPlayer(playerProfileId, eventIds);
+}
+
+export type TdRemoveEntrantResult = { success: true } | { error: string };
+
+export async function tdRemoveEntrant(
+  eventId: string,
+  playerProfileId: string,
+  clerkId: string,
+): Promise<TdRemoveEntrantResult> {
+  const event = await findEventById(eventId);
+  if (!event) return { error: "Event not found." };
+  if (event.tournament.createdByClerkId !== clerkId) return { error: "Not authorized." };
+
+  const progressed = await countProgressedMatches(eventId);
+  if (progressed > 0) {
+    return { error: "Cannot remove an entrant after matches have started." };
+  }
+
+  const existing = await findEventEntry(eventId, playerProfileId);
+  if (!existing) return { error: "Player is not entered in this event." };
+
+  await deleteEventEntry(eventId, playerProfileId);
+  return { success: true };
 }

@@ -228,6 +228,7 @@ export async function findMatchesByPlayerAndTournament(
       player1: playerSelect,
       player2: playerSelect,
       event: { select: { id: true, name: true } },
+      matchGames: { orderBy: { gameNumber: "asc" } },
     },
     orderBy: [{ round: "asc" }, { position: "asc" }],
   });

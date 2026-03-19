@@ -3,7 +3,7 @@ import Link from "next/link";
 import { auth } from "@clerk/nextjs/server";
 import { getEventDetail } from "@/server/services/tournament.service";
 import { getEventBracket, getRoundRobinStandings } from "@/server/services/bracket.service";
-import { tdVoidMatchAction } from "@/server/actions/match.actions";
+import { StandingsSchedule, type SerializedMatch } from "@/components/tournaments/StandingsSchedule";
 
 type Props = {
   params: Promise<{ id: string; eventId: string }>;
@@ -30,20 +30,32 @@ export default async function StandingsPage({ params, searchParams }: Props) {
 
   const isTD = !!userId && event.tournament.createdByClerkId === userId;
 
-  // Group matches by round
-  const roundMap = new Map<number, typeof matches>();
+  // Group matches by round and serialize
+  const roundMap = new Map<number, SerializedMatch[]>();
   for (const m of matches) {
+    const serialized: SerializedMatch = {
+      id: m.id,
+      round: m.round,
+      status: m.status,
+      player1Id: m.player1Id,
+      player2Id: m.player2Id,
+      winnerId: m.winnerId,
+      player1: m.player1 ? { id: m.player1.id, displayName: m.player1.displayName } : null,
+      player2: m.player2 ? { id: m.player2.id, displayName: m.player2.displayName } : null,
+      matchGames: m.matchGames.map((g) => ({
+        gameNumber: g.gameNumber,
+        player1Points: g.player1Points,
+        player2Points: g.player2Points,
+      })),
+    };
     if (!roundMap.has(m.round)) roundMap.set(m.round, []);
-    roundMap.get(m.round)!.push(m);
+    roundMap.get(m.round)!.push(serialized);
   }
   const roundNumbers = [...roundMap.keys()].sort((a, b) => a - b);
-
-  const statusLabel: Record<string, string> = {
-    PENDING: "Pending",
-    IN_PROGRESS: "In progress",
-    AWAITING_CONFIRMATION: "Awaiting confirmation",
-    COMPLETED: "Completed",
-  };
+  const scheduleRounds = roundNumbers.map((round) => ({
+    round,
+    matches: roundMap.get(round)!,
+  }));
 
   return (
     <main className="mx-auto max-w-2xl px-4 py-12">
@@ -117,86 +129,12 @@ export default async function StandingsPage({ params, searchParams }: Props) {
         ) : (
           <section>
             <h2 className="mb-3 text-lg font-medium text-text-1">Schedule</h2>
-            <div className="space-y-6">
-              {roundNumbers.map((round) => (
-                <div key={round}>
-                  <p className="mb-2 text-xs font-medium uppercase tracking-wide text-text-3">
-                    Round {round}
-                  </p>
-                  <ul className="overflow-hidden rounded-lg border border-border">
-                    {roundMap.get(round)!.map((match) => (
-                      <li
-                        key={match.id}
-                        className="flex items-center justify-between border-b border-border-subtle bg-surface px-4 py-3 last:border-b-0"
-                      >
-                        <div className="flex items-center gap-3">
-                          <span
-                            className={`text-sm ${
-                              match.winnerId === match.player1Id
-                                ? "font-semibold text-text-1"
-                                : "text-text-2"
-                            }`}
-                          >
-                            {match.player1?.displayName ?? "TBD"}
-                          </span>
-                          <span className="text-xs text-text-3">vs</span>
-                          <span
-                            className={`text-sm ${
-                              match.winnerId === match.player2Id
-                                ? "font-semibold text-text-1"
-                                : "text-text-2"
-                            }`}
-                          >
-                            {match.player2?.displayName ?? "TBD"}
-                          </span>
-                        </div>
-                        <div className="flex items-center gap-3">
-                          <span className="text-xs text-text-3">
-                            {statusLabel[match.status] ?? match.status}
-                          </span>
-                          {/* Player actions */}
-                          {!isTD && match.status === "PENDING" && match.player1Id && match.player2Id && (
-                            <Link
-                              href={`/matches/${match.id}/submit`}
-                              className="text-xs font-medium text-accent hover:underline"
-                            >
-                              Submit
-                            </Link>
-                          )}
-                          {!isTD && match.status === "AWAITING_CONFIRMATION" && (
-                            <Link
-                              href={`/matches/${match.id}/confirm`}
-                              className="text-xs font-medium text-accent hover:underline"
-                            >
-                              Confirm
-                            </Link>
-                          )}
-                          {/* TD actions */}
-                          {isTD && (match.status === "PENDING" || match.status === "AWAITING_CONFIRMATION") && match.player1Id && match.player2Id && (
-                            <Link
-                              href={`/matches/${match.id}/td-submit`}
-                              className="text-xs font-medium text-accent hover:underline"
-                            >
-                              Enter result
-                            </Link>
-                          )}
-                          {isTD && (match.status === "COMPLETED" || match.status === "AWAITING_CONFIRMATION") && (
-                            <form action={tdVoidMatchAction.bind(null, match.id, id, eventId)} className="flex items-center">
-                              <button
-                                type="submit"
-                                className="text-xs font-medium text-red-400 hover:underline"
-                              >
-                                Void
-                              </button>
-                            </form>
-                          )}
-                        </div>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              ))}
-            </div>
+            <StandingsSchedule
+              rounds={scheduleRounds}
+              isTD={isTD}
+              tournamentId={id}
+              eventId={eventId}
+            />
           </section>
         )}
 

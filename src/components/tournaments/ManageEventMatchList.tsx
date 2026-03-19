@@ -92,59 +92,60 @@ export function ManageEventMatchList({
                     )}
                   </div>
 
-                  <div className="flex shrink-0 flex-col items-end gap-1.5">
-                    <span
-                      className={`text-xs ${
-                        match.status === "COMPLETED"
-                          ? "text-text-3"
-                          : match.status === "IN_PROGRESS" ||
-                              match.status === "AWAITING_CONFIRMATION"
-                            ? "text-amber-400"
-                            : "text-text-2"
-                      }`}
-                    >
-                      {STATUS_LABEL[match.status]}
-                    </span>
+                  <div className="flex shrink-0 items-center gap-2">
+                    {match.status === "PENDING" ? (
+                      <span className="rounded-full border border-border bg-surface px-2 py-0.5 text-xs text-text-3">
+                        {STATUS_LABEL[match.status]}
+                      </span>
+                    ) : (
+                      <span
+                        className={`text-xs ${
+                          match.status === "COMPLETED"
+                            ? "text-text-3"
+                            : "text-amber-400"
+                        }`}
+                      >
+                        {STATUS_LABEL[match.status]}
+                      </span>
+                    )}
 
-                    <div className="flex items-center gap-2">
-                      {/* Enter result */}
-                      {(match.status === "PENDING" || match.status === "AWAITING_CONFIRMATION") &&
-                        match.player1Id &&
-                        match.player2Id && (
-                          <Link
-                            href={`/matches/${match.id}/td-submit`}
-                            className="text-xs font-medium text-accent hover:underline"
-                          >
-                            Enter result
-                          </Link>
-                        )}
-
-                      {/* Void */}
-                      {(match.status === "COMPLETED" || match.status === "AWAITING_CONFIRMATION") &&
-                        !isBye && (
-                          <form
-                            action={tdVoidMatchAction.bind(null, match.id, tournamentId, eventId)}
-                          >
-                            <button
-                              type="submit"
-                              className="text-xs font-medium text-red-400 hover:underline"
-                            >
-                              Void
-                            </button>
-                          </form>
-                        )}
-
-                      {/* Expand/collapse toggle for completed matches with scores */}
-                      {match.status === "COMPLETED" && hasScores && (
-                        <button
-                          onClick={() => toggle(match.id)}
-                          className="text-xs text-text-3 transition-colors hover:text-text-1"
-                          aria-label={isExpanded ? "Collapse scores" : "Expand scores"}
+                    {/* Enter result */}
+                    {(match.status === "PENDING" || match.status === "AWAITING_CONFIRMATION") &&
+                      match.player1Id &&
+                      match.player2Id && (
+                        <Link
+                          href={`/matches/${match.id}/td-submit`}
+                          className="text-xs font-medium text-accent hover:underline"
                         >
-                          {isExpanded ? "▴" : "▾"}
-                        </button>
+                          Enter result
+                        </Link>
                       )}
-                    </div>
+
+                    {/* Void */}
+                    {(match.status === "COMPLETED" || match.status === "AWAITING_CONFIRMATION") &&
+                      !isBye && (
+                        <form
+                          action={tdVoidMatchAction.bind(null, match.id, tournamentId, eventId)}
+                        >
+                          <button
+                            type="submit"
+                            className="text-xs font-medium text-red-400 hover:underline"
+                          >
+                            Void
+                          </button>
+                        </form>
+                      )}
+
+                    {/* Expand/collapse toggle for completed matches with scores */}
+                    {match.status === "COMPLETED" && hasScores && (
+                      <button
+                        onClick={() => toggle(match.id)}
+                        className="text-xs text-text-3 transition-colors hover:text-text-1"
+                        aria-label={isExpanded ? "Collapse scores" : "Expand scores"}
+                      >
+                        {isExpanded ? "▴" : "▾"}
+                      </button>
+                    )}
                   </div>
                 </div>
 

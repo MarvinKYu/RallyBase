@@ -338,6 +338,12 @@ export async function countNonCompletedMatches(eventId: string) {
   return prisma.match.count({ where: { eventId, status: { not: "COMPLETED" } } });
 }
 
+export async function countProgressedMatches(eventId: string) {
+  return prisma.match.count({
+    where: { eventId, status: { not: "PENDING" } },
+  });
+}
+
 export async function findEventSummariesByTournament(
   tournamentId: string,
   status: EventStatus,

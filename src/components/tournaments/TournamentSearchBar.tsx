@@ -80,21 +80,27 @@ export default function TournamentSearchBar({ tournaments, organizations }: Prop
           className="rounded-md border border-border bg-surface px-2 py-1.5 text-sm text-text-1 placeholder:text-text-3 focus:outline-none focus:ring-2 focus:ring-accent"
         />
 
-        <input
-          type="date"
-          title="Start date from"
-          value={startAfter}
-          onChange={(e) => setStartAfter(e.target.value)}
-          className="rounded-md border border-border bg-surface px-2 py-1.5 text-sm text-text-1 focus:outline-none focus:ring-2 focus:ring-accent"
-        />
+        <div>
+          <label className="mb-1 block text-xs text-text-3">From</label>
+          <input
+            type="date"
+            title="Start date from"
+            value={startAfter}
+            onChange={(e) => setStartAfter(e.target.value)}
+            className="w-full rounded-md border border-border bg-surface px-2 py-1.5 text-sm text-text-1 focus:outline-none focus:ring-2 focus:ring-accent"
+          />
+        </div>
 
-        <input
-          type="date"
-          title="Start date to"
-          value={startBefore}
-          onChange={(e) => setStartBefore(e.target.value)}
-          className="rounded-md border border-border bg-surface px-2 py-1.5 text-sm text-text-1 focus:outline-none focus:ring-2 focus:ring-accent"
-        />
+        <div>
+          <label className="mb-1 block text-xs text-text-3">To</label>
+          <input
+            type="date"
+            title="Start date to"
+            value={startBefore}
+            onChange={(e) => setStartBefore(e.target.value)}
+            className="w-full rounded-md border border-border bg-surface px-2 py-1.5 text-sm text-text-1 focus:outline-none focus:ring-2 focus:ring-accent"
+          />
+        </div>
       </div>
 
       {/* Results */}

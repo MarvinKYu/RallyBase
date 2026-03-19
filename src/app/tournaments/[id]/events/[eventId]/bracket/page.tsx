@@ -48,6 +48,13 @@ function MatchCard({
   const p1Wins = match.winnerId === match.player1Id;
   const p2Wins = match.winnerId === match.player2Id;
 
+  const p1GameWins = match.status === "COMPLETED"
+    ? match.matchGames.filter((g) => g.player1Points > g.player2Points).length
+    : null;
+  const p2GameWins = match.status === "COMPLETED"
+    ? match.matchGames.filter((g) => g.player2Points > g.player1Points).length
+    : null;
+
   return (
     <div
       className="w-44 overflow-hidden rounded-md border border-border bg-surface shadow-sm"
@@ -55,12 +62,18 @@ function MatchCard({
     >
       <div className={rowClass(p1Wins)}>
         <span className="truncate">{p1}</span>
-        {p1Wins && <span className="ml-1 text-xs text-accent">W</span>}
+        <span className="ml-1 shrink-0 text-xs">
+          {p1GameWins !== null && <span className="text-text-3">· {p1GameWins}</span>}
+          {p1Wins && <span className="ml-1 text-accent">W</span>}
+        </span>
       </div>
       <div className="border-t border-border-subtle" />
       <div className={rowClass(p2Wins)}>
         <span className={`truncate ${isBye ? "italic text-text-3" : ""}`}>{p2}</span>
-        {p2Wins && <span className="ml-1 text-xs text-accent">W</span>}
+        <span className="ml-1 shrink-0 text-xs">
+          {p2GameWins !== null && <span className="text-text-3">· {p2GameWins}</span>}
+          {p2Wins && <span className="ml-1 text-accent">W</span>}
+        </span>
       </div>
       <div className="flex items-center justify-between border-t border-border-subtle bg-elevated px-3 py-1">
         <span className="text-[10px] uppercase tracking-wide text-text-3">
@@ -110,6 +123,14 @@ function MatchCard({
                 Void
               </button>
             </form>
+          )}
+          {match.status === "COMPLETED" && !isBye && (
+            <Link
+              href={`/matches/${match.id}`}
+              className="text-[10px] font-medium text-text-3 underline-offset-2 hover:text-accent hover:underline"
+            >
+              View
+            </Link>
           )}
         </div>
       </div>
