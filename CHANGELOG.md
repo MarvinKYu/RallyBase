@@ -10,6 +10,21 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 ---
 
+## [0.7.8] - 2026-03-18
+
+### Added
+- **Manage Event page** (`/tournaments/[id]/events/[eventId]/manage`) — TD-only two-column layout:
+  - Left column: breadcrumb → event name + Edit/Delete buttons → org/discipline/format details → status badge + advance button → progress bar (completed/total matches, hover tooltip) → generate bracket button (if applicable) → entrants preview (up to 10) with "Manage →" link.
+  - Right column: always-visible scrollable match list grouped by round (max-height 70vh), with sticky round headers. Bracket/standings links at bottom.
+- **Manage Entrants page** (`/tournaments/[id]/events/[eventId]/manage/entrants`) — full entrant list + player search form to add entrants. Breadcrumb links back through manage event.
+- `findEventManageDetail` repository function — fetches event with tournament, ratingCategory, all eventEntries (with ratings), and all matches (with games).
+- `getEventManageDetail` service function — auth-gates by `createdByClerkId`.
+
+### Changed
+- Manage tournament page: event name links and "Edit" links now point to `/events/[eventId]/manage` instead of the player-facing event detail page.
+
+---
+
 ## [0.7.7] - 2026-03-18
 
 ### Added

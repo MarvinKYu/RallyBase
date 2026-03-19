@@ -8,6 +8,7 @@
 ## ~~v0.7.5 — Tournament Directors page + nav + profile wider~~ ✅ Shipped 2026-03-18
 ## ~~v0.7.6 — Player/TD navigation decoupling~~ ✅ Shipped 2026-03-18
 ## ~~v0.7.7 — Tournaments page overhaul + search bar~~ ✅ Shipped 2026-03-18
+## ~~v0.7.8 — Manage Event page + Manage Entrants page~~ ✅ Shipped 2026-03-18
 
 ---
 
