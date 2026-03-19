@@ -10,6 +10,43 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 ---
 
+## [0.7.4] - 2026-03-18
+
+### Added
+- **Your Matches section** on every tournament detail page — shows only to logged-in players who have at least one match in that tournament. Grouped into In Progress (IN_PROGRESS + AWAITING_CONFIRMATION), Upcoming (PENDING), and Completed. Each row shows event name, round, opponent, status, and an action link (Submit / Confirm / View).
+- `findMatchesByPlayerAndTournament` repository function in `match.repository.ts`.
+- `getPlayerMatchesForTournament` service function in `player.service.ts`.
+- Integration tests for the new repository function appended to `tests/integration/player-history.test.ts`.
+
+---
+
+## [0.7.3] - 2026-03-18
+
+### Added
+- **My Tournaments page** at `/profile/[id]/tournaments` — groups player's tournaments into Ongoing, Upcoming, and Past sections; each row links to the tournament.
+- **My Tournaments preview** on the profile dashboard (left column, own profile only) — shows up to 3 active/upcoming tournaments with inline "View all →" link.
+- **My Tournaments preview** on the tournaments search page (`/tournaments`) — visible to logged-in players with a profile, rendered above the public list.
+- `findTournamentsWithEntriesByProfile` repository function — filters tournaments by player entry, includes only the events the player is entered in.
+- `getPlayerTournamentHistory` service function in `tournament.service.ts`.
+- `MyTournamentsPreview` shared server component in `src/components/players/`.
+- Integration tests for the new service function (`tests/integration/my-tournaments.test.ts`).
+
+---
+
+## [0.7.2] - 2026-03-18
+
+### Added
+- **Two-column profile layout** — profile page widens to `max-w-4xl` with a `grid-cols-1 md:grid-cols-2` layout. Left column: header, ratings, upcoming matches. Right column: rating graph, match history.
+- **Inline "View all →" links** — "Upcoming matches" links to `/profile/[id]/tournaments`; "Match history" links to `/profile/[id]/history`.
+- **Full match history page** at `/profile/[id]/history` — displays all completed matches grouped by tournament with back link to profile.
+- **Top-5 limit** on upcoming matches in dashboard — sorted by status priority (IN_PROGRESS → AWAITING_CONFIRMATION → PENDING), truncated at 5.
+- **`limit` prop on `MatchHistoryList`** — optional, slices display list when provided.
+
+### Changed
+- Rating deltas now display with 2 decimal places (e.g. `+16.00`) in both the match history table and the rating graph tooltip.
+
+---
+
 ## [0.7.1] - 2026-03-18
 
 ### Fixed

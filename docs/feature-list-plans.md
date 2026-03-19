@@ -1,14 +1,10 @@
 # Planned Features Roadmap
 
 ## ~~v0.7.0 — Player History~~ ✅ Shipped 2026-03-18
-
----
-
-## v0.7.1 — My Tournaments
-
-### Separate "My Tournaments" from all-tournaments view
-- Dedicated section or page for tournaments the player has registered for or played in.
-- Organized into three sections: Ongoing, Upcoming, Past.
+## ~~v0.7.1 — Test isolation fix~~ ✅ Shipped 2026-03-18
+## ~~v0.7.2 — Profile UI Restructure~~ ✅ Shipped 2026-03-18
+## ~~v0.7.3 — My Tournaments~~ ✅ Shipped 2026-03-18
+## ~~v0.7.4 — Your Matches on Tournament Detail~~ ✅ Shipped 2026-03-18
 
 ---
 
