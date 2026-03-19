@@ -291,6 +291,11 @@ export async function advanceTournamentStatus(
   }
 
   const nextStatus = TOURNAMENT_STATUS_ORDER[currentIndex + 1];
+
+  if (nextStatus === "IN_PROGRESS" && tournament.events.length === 0) {
+    return { error: "Cannot start a tournament with no events." };
+  }
+
   await setTournamentStatus(tournamentId, nextStatus);
 
   if (nextStatus === "PUBLISHED") {
@@ -325,6 +330,13 @@ export async function advanceEventStatus(
   }
 
   const nextStatus = EVENT_STATUS_ORDER[currentIndex + 1];
+
+  if (nextStatus === "REGISTRATION_OPEN" || nextStatus === "IN_PROGRESS") {
+    if (event.tournament.status !== "PUBLISHED") {
+      return { error: "The parent tournament must be published before advancing this event." };
+    }
+  }
+
   await setEventStatus(eventId, nextStatus);
 
   if (nextStatus === "IN_PROGRESS") {

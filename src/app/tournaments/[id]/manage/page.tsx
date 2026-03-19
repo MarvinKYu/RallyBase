@@ -2,12 +2,10 @@ import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
 import { auth } from "@clerk/nextjs/server";
 import { getTournamentManageDetail } from "@/server/services/tournament.service";
-import {
-  advanceTournamentStatusAction,
-  advanceEventStatusAction,
-} from "@/server/actions/tournament.actions";
 import type { TournamentStatus, EventStatus } from "@prisma/client";
 import { EventMatchList } from "@/components/tournaments/EventMatchList";
+import { AdvanceTournamentStatusButton } from "@/components/tournaments/AdvanceTournamentStatusButton";
+import { AdvanceEventStatusButton } from "@/components/tournaments/AdvanceEventStatusButton";
 
 type Props = { params: Promise<{ id: string }> };
 
@@ -102,14 +100,10 @@ export default async function ManageTournamentPage({ params }: Props) {
           </div>
 
           {TOURNAMENT_ADVANCE_LABELS[tournament.status] && (
-            <form action={advanceTournamentStatusAction.bind(null, id)}>
-              <button
-                type="submit"
-                className="rounded-md bg-accent px-4 py-2 text-sm font-medium text-background transition-colors hover:bg-accent-dim"
-              >
-                {TOURNAMENT_ADVANCE_LABELS[tournament.status]}
-              </button>
-            </form>
+            <AdvanceTournamentStatusButton
+              tournamentId={id}
+              label={TOURNAMENT_ADVANCE_LABELS[tournament.status]!}
+            />
           )}
         </div>
 
@@ -177,16 +171,11 @@ export default async function ManageTournamentPage({ params }: Props) {
                         )}
                       </div>
                       {EVENT_ADVANCE_LABELS[event.status] && (
-                        <form
-                          action={advanceEventStatusAction.bind(null, event.id, id)}
-                        >
-                          <button
-                            type="submit"
-                            className="rounded-md bg-accent px-3 py-1 text-xs font-medium text-background transition-colors hover:bg-accent-dim"
-                          >
-                            {EVENT_ADVANCE_LABELS[event.status]}
-                          </button>
-                        </form>
+                        <AdvanceEventStatusButton
+                          eventId={event.id}
+                          tournamentId={id}
+                          label={EVENT_ADVANCE_LABELS[event.status]!}
+                        />
                       )}
                     </div>
                   </div>

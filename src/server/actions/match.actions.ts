@@ -100,12 +100,7 @@ export async function tdSubmitResultAction(
   const result = await tdSubmitMatch({ matchId, games });
   if ("error" in result) return { error: result.error };
 
-  const redirectTarget =
-    match.event.eventFormat === "ROUND_ROBIN"
-      ? `/tournaments/${tournamentId}/events/${eventId}/standings`
-      : `/tournaments/${tournamentId}/events/${eventId}/bracket`;
-
-  redirect(redirectTarget);
+  redirect(`/tournaments/${tournamentId}/events/${eventId}/manage`);
 }
 
 // matchId, tournamentId, eventId are pre-bound via .bind()
@@ -126,10 +121,5 @@ export async function tdVoidMatchAction(
   const result = await tdVoidMatch(matchId);
   if ("error" in result) throw new Error(result.error);
 
-  const redirectTarget =
-    match.event.eventFormat === "ROUND_ROBIN"
-      ? `/tournaments/${tournamentId}/events/${eventId}/standings`
-      : `/tournaments/${tournamentId}/events/${eventId}/bracket`;
-
-  redirect(redirectTarget);
+  redirect(`/tournaments/${tournamentId}/events/${eventId}/manage`);
 }

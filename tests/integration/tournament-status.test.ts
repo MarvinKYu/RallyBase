@@ -134,7 +134,10 @@ describe("advanceEventStatus", () => {
     // The advanceTournamentStatus cascade (v0.6.2) moves events from DRAFT →
     // REGISTRATION_OPEN → IN_PROGRESS as the tournament advances. Reset to DRAFT
     // so these tests can exercise the full event status progression in isolation.
+    // Also reset the tournament to PUBLISHED so the event-advance guard passes
+    // (guard requires tournament to be published before advancing events).
     await prisma.event.update({ where: { id: eventId }, data: { status: "DRAFT" } });
+    await prisma.tournament.update({ where: { id: tournamentId }, data: { status: "PUBLISHED" } });
   });
 
   it("advances DRAFT → REGISTRATION_OPEN", async () => {

@@ -5,9 +5,9 @@ import type { EventStatus } from "@prisma/client";
 import { getEventManageDetail } from "@/server/services/tournament.service";
 import { bracketExists } from "@/server/services/bracket.service";
 import { generateBracketAction } from "@/server/actions/bracket.actions";
-import { advanceEventStatusAction } from "@/server/actions/tournament.actions";
 import { DeleteEventButton } from "@/components/tournaments/DeleteEventButton";
 import { ManageEventMatchList } from "@/components/tournaments/ManageEventMatchList";
+import { AdvanceEventStatusButton } from "@/components/tournaments/AdvanceEventStatusButton";
 import type { MatchRow } from "@/components/tournaments/ManageEventMatchList";
 
 type Props = { params: Promise<{ id: string; eventId: string }> };
@@ -128,14 +128,11 @@ export default async function ManageEventPage({ params }: Props) {
               {statusLabel}
             </span>
             {EVENT_ADVANCE_LABELS[event.status as EventStatus] && (
-              <form action={advanceEventStatusAction.bind(null, eventId, id)}>
-                <button
-                  type="submit"
-                  className="rounded-md bg-accent px-3 py-1 text-xs font-medium text-background transition-colors hover:bg-accent-dim"
-                >
-                  {EVENT_ADVANCE_LABELS[event.status as EventStatus]}
-                </button>
-              </form>
+              <AdvanceEventStatusButton
+                eventId={eventId}
+                tournamentId={id}
+                label={EVENT_ADVANCE_LABELS[event.status as EventStatus]!}
+              />
             )}
           </div>
 

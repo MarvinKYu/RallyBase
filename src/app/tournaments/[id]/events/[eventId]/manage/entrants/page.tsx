@@ -4,8 +4,8 @@ import Link from "next/link";
 import { auth } from "@clerk/nextjs/server";
 import { getEventManageDetail } from "@/server/services/tournament.service";
 import { searchPlayers } from "@/server/services/player.service";
-import { addEntrantAction } from "@/server/actions/tournament.actions";
 import { EntrantSearchForm } from "@/components/tournaments/EntrantSearchForm";
+import { AddEntrantForm } from "@/components/tournaments/AddEntrantForm";
 
 type Props = {
   params: Promise<{ id: string; eventId: string }>;
@@ -29,8 +29,14 @@ export default async function ManageEntrantsPage({ params, searchParams }: Props
   const event = await getEventManageDetail(eventId, userId);
   if (!event) notFound();
 
-  const enteredIds = new Set(event.eventEntries.map((e) => e.playerProfileId));
+  const enteredIds = event.eventEntries.map((e) => e.playerProfileId);
   const searchResults = q ? await searchPlayers(q) : [];
+  const searchPlayers_ = searchResults.map((p) => ({
+    id: p.id,
+    displayName: p.displayName,
+    rating:
+      p.playerRatings.find((r) => r.ratingCategoryId === event.ratingCategoryId)?.rating ?? null,
+  }));
 
   return (
     <main className="mx-auto max-w-3xl px-4 py-12">
@@ -106,42 +112,12 @@ export default async function ManageEntrantsPage({ params, searchParams }: Props
               </p>
             )}
 
-            {searchResults.length > 0 && (
-              <ul className="overflow-hidden rounded-lg border border-border">
-                {searchResults.map((player) => {
-                  const alreadyIn = enteredIds.has(player.id);
-                  const playerRating = player.playerRatings.find(
-                    (r) => r.ratingCategoryId === event.ratingCategoryId,
-                  );
-                  return (
-                    <li
-                      key={player.id}
-                      className="flex items-center justify-between border-b border-border-subtle bg-surface px-4 py-3 last:border-b-0"
-                    >
-                      <div className="flex items-center gap-2">
-                        <span className="text-sm text-text-1">{player.displayName}</span>
-                        <span className="text-xs text-text-3">
-                          {playerRating ? Math.round(playerRating.rating) : "Unrated"}
-                        </span>
-                      </div>
-                      {alreadyIn ? (
-                        <span className="text-xs text-text-3">Already entered</span>
-                      ) : (
-                        <form action={addEntrantAction.bind(null, eventId, id)}>
-                          <input type="hidden" name="playerProfileId" value={player.id} />
-                          <button
-                            type="submit"
-                            className="rounded-md bg-accent px-3 py-1 text-xs font-medium text-background transition-colors hover:bg-accent-dim"
-                          >
-                            Add
-                          </button>
-                        </form>
-                      )}
-                    </li>
-                  );
-                })}
-              </ul>
-            )}
+            <AddEntrantForm
+              eventId={eventId}
+              tournamentId={id}
+              players={searchPlayers_}
+              enteredIds={enteredIds}
+            />
           </div>
         </section>
 

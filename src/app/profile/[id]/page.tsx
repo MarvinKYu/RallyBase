@@ -218,14 +218,6 @@ export default async function ProfilePage({ params }: Props) {
         </div>
       </div>
 
-      <div className="mt-8">
-        <Link
-          href="/players"
-          className="text-sm text-text-2 transition-colors hover:text-text-1"
-        >
-          ← Back to player search
-        </Link>
-      </div>
     </main>
   );
 }

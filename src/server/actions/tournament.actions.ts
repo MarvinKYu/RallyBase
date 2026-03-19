@@ -105,23 +105,30 @@ export async function updateEventAction(
 }
 
 // tournamentId is pre-bound via .bind(null, tournamentId)
-export async function advanceTournamentStatusAction(tournamentId: string): Promise<void> {
+export async function advanceTournamentStatusAction(
+  tournamentId: string,
+  _prevState: TournamentActionState,
+): Promise<TournamentActionState> {
   const { userId } = await auth();
-  if (!userId) redirect("/sign-in");
+  if (!userId) return { error: "You must be signed in." };
 
   const result = await advanceTournamentStatus(tournamentId, userId);
-  if ("error" in result) throw new Error(result.error);
+  if ("error" in result) return { error: result.error };
 
   redirect(`/tournaments/${tournamentId}/manage`);
 }
 
 // eventId and tournamentId are pre-bound via .bind(null, eventId, tournamentId)
-export async function advanceEventStatusAction(eventId: string, tournamentId: string): Promise<void> {
+export async function advanceEventStatusAction(
+  eventId: string,
+  tournamentId: string,
+  _prevState: TournamentActionState,
+): Promise<TournamentActionState> {
   const { userId } = await auth();
-  if (!userId) redirect("/sign-in");
+  if (!userId) return { error: "You must be signed in." };
 
   const result = await advanceEventStatus(eventId, userId);
-  if ("error" in result) throw new Error(result.error);
+  if ("error" in result) return { error: result.error };
 
   redirect(`/tournaments/${tournamentId}/events/${eventId}/manage`);
 }
@@ -182,23 +189,30 @@ export async function deleteEventAction(eventId: string, tournamentId: string): 
 }
 
 // eventId and tournamentId are pre-bound via .bind(null, eventId, tournamentId)
-// Used as a direct <form action={...}> — no prevState parameter
 export async function addEntrantAction(
   eventId: string,
   tournamentId: string,
+  _prevState: TournamentActionState,
   formData: FormData,
-): Promise<void> {
+): Promise<TournamentActionState> {
   const { userId } = await auth();
-  if (!userId) redirect("/sign-in");
+  if (!userId) return { error: "You must be signed in." };
 
   const tournament = await getTournamentDetail(tournamentId);
   if (!tournament || tournament.createdByClerkId !== userId) {
-    redirect(`/tournaments/${tournamentId}/events/${eventId}/manage/entrants`);
+    return { error: "Not authorized." };
+  }
+
+  const event = await getEventDetail(eventId);
+  if (!event) return { error: "Event not found." };
+  if (event.status === "IN_PROGRESS" || event.status === "COMPLETED") {
+    return { error: "Cannot add entrants after the event has started." };
   }
 
   const playerProfileId = formData.get("playerProfileId") as string;
   if (playerProfileId) {
-    await addEntrant(eventId, { playerProfileId });
+    const result = await addEntrant(eventId, { playerProfileId });
+    if ("error" in result) return { error: result.error };
   }
 
   redirect(`/tournaments/${tournamentId}/events/${eventId}/manage/entrants`);
