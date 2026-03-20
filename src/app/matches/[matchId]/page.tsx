@@ -2,7 +2,10 @@ import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
 import { getMatchWithSubmission } from "@/server/services/match.service";
 
-type Props = { params: Promise<{ matchId: string }> };
+type Props = {
+  params: Promise<{ matchId: string }>;
+  searchParams: Promise<{ from?: string }>;
+};
 
 export async function generateMetadata({ params }: Props) {
   const { matchId } = await params;
@@ -13,8 +16,9 @@ export async function generateMetadata({ params }: Props) {
   return { title: `${p1} vs ${p2} — RallyBase` };
 }
 
-export default async function MatchResultPage({ params }: Props) {
+export default async function MatchResultPage({ params, searchParams }: Props) {
   const { matchId } = await params;
+  const { from } = await searchParams;
   const match = await getMatchWithSubmission(matchId);
   if (!match) notFound();
 
@@ -102,10 +106,20 @@ export default async function MatchResultPage({ params }: Props) {
       )}
 
       <Link
-        href={`/tournaments/${tournamentId}/events/${eventId}/bracket`}
+        href={
+          from === "tournament"
+            ? `/tournaments/${tournamentId}`
+            : from === "event"
+              ? `/tournaments/${tournamentId}/events/${eventId}`
+              : `/tournaments/${tournamentId}/events/${eventId}/bracket`
+        }
         className="text-sm text-text-2 transition-colors hover:text-text-1"
       >
-        ← Back to bracket
+        {from === "tournament"
+          ? "← Back to tournament"
+          : from === "event"
+            ? "← Back to event"
+            : "← Back to bracket"}
       </Link>
     </main>
   );

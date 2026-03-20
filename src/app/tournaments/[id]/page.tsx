@@ -22,6 +22,13 @@ const formatLabel: Record<string, string> = {
   BEST_OF_7: "Best of 7",
 };
 
+const eventStatusBadge: Record<string, string> = {
+  DRAFT: "bg-surface border border-border text-text-3",
+  REGISTRATION_OPEN: "bg-green-950/60 border border-green-800 text-green-300",
+  IN_PROGRESS: "bg-amber-950/60 border border-amber-800 text-amber-300",
+  COMPLETED: "bg-surface border border-border text-text-2",
+};
+
 export default async function TournamentDetailPage({ params }: Props) {
   const { id } = await params;
   const { userId } = await auth();
@@ -103,16 +110,23 @@ export default async function TournamentDetailPage({ params }: Props) {
                     href={`/tournaments/${id}/events/${event.id}`}
                     className="flex items-center justify-between border-b border-border-subtle bg-surface px-4 py-3 transition-colors last:border-b-0 hover:bg-surface-hover"
                   >
-                    <div>
+                    <div className="min-w-0">
                       <p className="text-sm font-medium text-text-1">{event.name}</p>
                       <p className="text-xs text-text-3">
                         {event.ratingCategory.name} · {formatLabel[event.format] ?? event.format}
                       </p>
                     </div>
-                    <p className="text-xs text-text-2">
-                      {event._count.eventEntries} entrant
-                      {event._count.eventEntries !== 1 ? "s" : ""}
-                    </p>
+                    <div className="ml-3 flex shrink-0 items-center gap-3">
+                      <span
+                        className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${eventStatusBadge[event.status] ?? "bg-surface border border-border text-text-3"}`}
+                      >
+                        {event.status.replace(/_/g, " ")}
+                      </span>
+                      <span className="text-xs text-text-2">
+                        {event._count.eventEntries} entrant
+                        {event._count.eventEntries !== 1 ? "s" : ""}
+                      </span>
+                    </div>
                   </Link>
                 </li>
               ))}

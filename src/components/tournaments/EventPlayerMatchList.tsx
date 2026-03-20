@@ -75,7 +75,7 @@ export function EventPlayerMatchList({
                   m.status === "AWAITING_CONFIRMATION"
                     ? `/matches/${m.id}/confirm`
                     : m.status === "COMPLETED"
-                      ? `/matches/${m.id}`
+                      ? `/matches/${m.id}?from=event`
                       : `/matches/${m.id}/submit`;
                 const actionLabel =
                   m.status === "PENDING"

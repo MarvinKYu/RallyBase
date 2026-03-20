@@ -1,4 +1,4 @@
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
 import { auth } from "@clerk/nextjs/server";
 import { getEventDetail } from "@/server/services/tournament.service";
@@ -27,6 +27,7 @@ export default async function StandingsPage({ params, searchParams }: Props) {
   ]);
 
   if (!event) notFound();
+  if (event.eventFormat !== "ROUND_ROBIN") redirect(`/tournaments/${id}/events/${eventId}`);
 
   const isTD = !!userId && event.tournament.createdByClerkId === userId;
 

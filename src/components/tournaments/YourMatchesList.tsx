@@ -75,7 +75,7 @@ export function YourMatchesList({
                   m.status === "AWAITING_CONFIRMATION"
                     ? `/matches/${m.id}/confirm`
                     : m.status === "COMPLETED"
-                      ? `/matches/${m.id}`
+                      ? `/matches/${m.id}?from=tournament`
                       : m.status === "IN_PROGRESS"
                         ? `/matches/${m.id}/submit`
                         : `/matches/${m.id}/submit`;

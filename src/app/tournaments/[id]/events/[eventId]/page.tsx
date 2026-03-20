@@ -284,16 +284,12 @@ export default async function EventDetailPage({ params }: Props) {
                   View bracket
                 </Link>
               )}
-              {(hasBracket || isRoundRobin) && (
+              {isRoundRobin && (
                 <Link
                   href={`/tournaments/${id}/events/${eventId}/standings`}
-                  className={`rounded-md px-4 py-2 text-sm font-medium transition-colors ${
-                    isRoundRobin
-                      ? "bg-accent text-background hover:bg-accent-dim"
-                      : "border border-border text-text-2 hover:bg-surface-hover"
-                  }`}
+                  className="rounded-md bg-accent px-4 py-2 text-sm font-medium text-background transition-colors hover:bg-accent-dim"
                 >
-                  {isRoundRobin ? "View standings" : "Standings"}
+                  View standings
                 </Link>
               )}
             </div>
