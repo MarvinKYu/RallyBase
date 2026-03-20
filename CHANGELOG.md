@@ -10,6 +10,15 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 ---
 
+## [0.9.5] - 2026-03-19
+
+### Changed
+- **Manage event page** — "View bracket" / "View standings" button moved from the bottom of the right column to the left column, below the format details line (mirrors the v0.9.2 layout of the public event detail page).
+- **Manage event page** — "Results" section added to the left column for completed events, showing 1st and 2nd place with profile links (mirrors the v0.9.3 layout of the public event detail page).
+- **Manage tournament page** — Completed event cards now show a podium row (lighter `bg-elevated` background) directly below the event header, displaying 1st and 2nd place with profile links (mirrors the v0.9.3 layout of the public tournament detail page).
+
+---
+
 ## [0.9.4] - 2026-03-19
 
 ### Added
@@ -23,6 +32,50 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 ### Schema
 - Added `isDefault Boolean @default(false)` to the `Match` model. Migration applied.
+
+---
+
+## [0.9.3] - 2026-03-19
+
+### Added
+- **Event podium** — `getEventPodium(eventId, eventFormat)` added to `bracket.service.ts`. Returns `{ first, second }` player objects. SE: winner/loser of the highest-round completed match. RR: top 2 from standings.
+- **Tournament detail — podium row** — Completed events in the tournament detail events list now show an extra `bg-elevated` row directly beneath the event row, displaying 1st and 2nd place with profile links.
+- **Event detail — Results section** — Completed event detail page (left column) now shows a "Results" section between the bracket/standings button row and Entrants, with 1st and 2nd place on separate rows with profile links.
+
+---
+
+## [0.9.2] - 2026-03-19
+
+### Changed
+- **Event detail left column layout** — Event status pill moved to sit right-justified next to the event name (flex row, `items-start justify-between`).
+- **Event detail left column layout** — "View bracket" / "View standings" button moved below the format details line, left-justified. Registration status indicator (REGISTERED / EVENT FULL / INELIGIBLE pill, or Sign up button) placed right-justified on the same row.
+- **Event detail right column** — Bracket/standings links removed from the right column; now exclusively in the left column.
+
+---
+
+## [0.9.1] - 2026-03-19
+
+### Added
+- **Tournament detail events list** — Each event row now shows a status badge (DRAFT, REGISTRATION OPEN, IN PROGRESS, COMPLETED pill).
+- **Back nav from match result page** — `/matches/[matchId]` reads a `?from=` search param (`tournament` or `event`) and renders a contextual back link ("← Back to tournament" or "← Back to event"). Defaults to "← Back to bracket".
+
+### Changed
+- **Standings page** — Server-side redirect guard added: non-round-robin events now redirect to the event detail page instead of showing standings.
+- **Manage event page** — Standings link now only renders for round-robin events.
+- **YourMatchesList** — COMPLETED match "View" link now appends `?from=tournament` so the back nav on the match page returns to the tournament.
+- **EventPlayerMatchList** — COMPLETED match "View" link now appends `?from=event` so the back nav returns to the event detail page.
+
+---
+
+## [0.9.0] - 2026-03-19
+
+### Added
+- **Event detail page overhaul** — Two-column layout (`max-w-7xl`, `lg:grid-cols-[380px_1fr]`).
+- **Auth-aware registration status** — Left column shows REGISTERED pill, EVENT FULL pill, INELIGIBLE pill, or Sign up button depending on player state. Eligibility rules hidden for unauthenticated users.
+- **EventPlayerMatchList** — New client component scoped to one event. Shown in the right column for registered players. Inline Submit / Continue / Confirm / View actions; expandable per-game scores; grouped by status (In progress → Upcoming → Completed); "No matches yet" if empty.
+- **EventMatchesPreview** — New server component shown in the right column for non-registered / signed-out users. Renders up to 5 `EventMatchRow`s and a "View all N matches →" link.
+- **EventMatchRow** — New client component. Expandable row with bold winner name, status pill, round label, per-game scores on expand.
+- **Full match list page** — New `/tournaments/[id]/events/[eventId]/matches` page: read-only full match list using `EventMatchRow`, with breadcrumb back to the event.
 
 ---
 
