@@ -10,6 +10,16 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 ---
 
+## [0.9.6] - 2026-03-19
+
+### Changed
+- **README** — replaced `create-next-app` boilerplate with a full project README: description, feature list, tech stack, local setup steps, commands reference, and architecture overview.
+- **Landing page hero** — description updated to mention both single-elimination brackets and round-robin schedules.
+- **Landing page step 02** — broadened from seeding-only to cover self-registration with eligibility rules and direct TD entry.
+- **Landing page step 03** — renamed to "Generate bracket or schedule" and updated description to cover both SE and RR formats.
+
+---
+
 ## [0.9.5] - 2026-03-19
 
 ### Changed
