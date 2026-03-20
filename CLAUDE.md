@@ -21,7 +21,7 @@ Do this automatically for every shipped change — no need to ask.
 
 ## Project Status
 
-**Current version: v0.9.3.** The app is live on Vercel. Next target is v0.10.0 (Player Profile: Gender & Age).
+**Current version: v0.9.6.** The app is live on Vercel at https://rally-base.vercel.app. Next target is v0.10.0 (Player Profile: Gender & Age).
 
 ### Upcoming
 - v0.10.0 — Player Profile: Gender & Age
@@ -94,6 +94,7 @@ export async function addEntrantAction(eventId, tournamentId, formData): Promise
 - **Two bracket formats**: `SINGLE_ELIMINATION` (seeded, advancement chain) and `ROUND_ROBIN` (circle-method, no advancement chain, 3–6 players)
 - **Ratings update automatically** when `confirmMatchResult` is called — `applyRatingResult` runs in the same flow
 - **TDs can bypass confirmation**: `tdSubmitMatch` records result directly and runs Elo immediately (no code required); `tdVoidMatch` reverses rating transactions and resets match to `PENDING`
+- **Default match**: `tdDefaultMatch` marks a match COMPLETED with `isDefault=true`, no `MatchGame` records, no rating transactions. Winner advances in bracket normally. Displayed as "Winner: X by default" on match result page and "W/L by default" in match history.
 - **Event eligibility**: `checkEligibility()` validates maxParticipants, minRating/maxRating, minAge/maxAge before self-signup
 
 ## Database Schema Groups
