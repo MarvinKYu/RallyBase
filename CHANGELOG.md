@@ -10,6 +10,22 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 ---
 
+## [0.9.4] - 2026-03-19
+
+### Added
+- **Default match** — TDs can now record a match result by default (winner advances, no scores recorded, ratings unaffected). TD submit page shows a "Record by default" section with one button per player.
+- **Default match display** — `/matches/[matchId]` shows "Winner: PlayerName by default" instead of a score table when `isDefault` is true.
+- **Match history default indicator** — `MatchHistoryList` shows "W by default" / "L by default" in the Result column for default matches.
+
+### Fixed
+- **Match history column widths** — `MatchHistoryList` table now uses `table-fixed` with explicit column width classes, preventing variable-width column layout shifts.
+- **Past/upcoming tournament filter** — COMPLETED tournaments now always appear in "Past" regardless of `startDate`; COMPLETED tournaments are excluded from "Upcoming". Fixes the case where a tournament that completed before its scheduled end date stayed in the upcoming list.
+
+### Schema
+- Added `isDefault Boolean @default(false)` to the `Match` model. Migration applied.
+
+---
+
 ## [0.8.4] - 2026-03-19
 
 ### Added
