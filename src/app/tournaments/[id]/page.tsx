@@ -6,6 +6,7 @@ import {
   getMyProfile,
   getPlayerMatchesForTournament,
 } from "@/server/services/player.service";
+import { getEventPodium, type EventPodium } from "@/server/services/bracket.service";
 import { YourMatchesList, type SerializedPlayerMatch } from "@/components/tournaments/YourMatchesList";
 
 type Props = { params: Promise<{ id: string }> };
@@ -39,6 +40,15 @@ export default async function TournamentDetailPage({ params }: Props) {
   if (tournament.status === "DRAFT" && tournament.createdByClerkId !== userId) {
     redirect("/tournaments");
   }
+
+  // Fetch podiums for completed events
+  const completedEvents = tournament.events.filter((e) => e.status === "COMPLETED");
+  const podiumResults = await Promise.all(
+    completedEvents.map((e) => getEventPodium(e.id, e.eventFormat)),
+  );
+  const podiumMap = new Map<string, EventPodium>(
+    completedEvents.map((e, i) => [e.id, podiumResults[i]]),
+  );
 
   const viewerProfile = userId ? await getMyProfile() : null;
   const rawMatches = viewerProfile
@@ -104,32 +114,52 @@ export default async function TournamentDetailPage({ params }: Props) {
             <p className="text-sm text-text-2">No events yet.</p>
           ) : (
             <ul className="overflow-hidden rounded-lg border border-border">
-              {tournament.events.map((event) => (
-                <li key={event.id}>
-                  <Link
-                    href={`/tournaments/${id}/events/${event.id}`}
-                    className="flex items-center justify-between border-b border-border-subtle bg-surface px-4 py-3 transition-colors last:border-b-0 hover:bg-surface-hover"
+              {tournament.events.map((event) => {
+                const podium = podiumMap.get(event.id);
+                return (
+                  <li
+                    key={event.id}
+                    className="border-b border-border-subtle last:border-b-0"
                   >
-                    <div className="min-w-0">
-                      <p className="text-sm font-medium text-text-1">{event.name}</p>
-                      <p className="text-xs text-text-3">
-                        {event.ratingCategory.name} · {formatLabel[event.format] ?? event.format}
-                      </p>
-                    </div>
-                    <div className="ml-3 flex shrink-0 items-center gap-3">
-                      <span
-                        className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${eventStatusBadge[event.status] ?? "bg-surface border border-border text-text-3"}`}
-                      >
-                        {event.status.replace(/_/g, " ")}
-                      </span>
-                      <span className="text-xs text-text-2">
-                        {event._count.eventEntries} entrant
-                        {event._count.eventEntries !== 1 ? "s" : ""}
-                      </span>
-                    </div>
-                  </Link>
-                </li>
-              ))}
+                    <Link
+                      href={`/tournaments/${id}/events/${event.id}`}
+                      className="flex items-center justify-between bg-surface px-4 py-3 transition-colors hover:bg-surface-hover"
+                    >
+                      <div className="min-w-0">
+                        <p className="text-sm font-medium text-text-1">{event.name}</p>
+                        <p className="text-xs text-text-3">
+                          {event.ratingCategory.name} · {formatLabel[event.format] ?? event.format}
+                        </p>
+                      </div>
+                      <div className="ml-3 flex shrink-0 items-center gap-3">
+                        <span
+                          className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${eventStatusBadge[event.status] ?? "bg-surface border border-border text-text-3"}`}
+                        >
+                          {event.status.replace(/_/g, " ")}
+                        </span>
+                        <span className="text-xs text-text-2">
+                          {event._count.eventEntries} entrant
+                          {event._count.eventEntries !== 1 ? "s" : ""}
+                        </span>
+                      </div>
+                    </Link>
+                    {podium?.first && (
+                      <div className="flex gap-6 bg-elevated px-4 py-2 text-xs text-text-2">
+                        <span>
+                          <span className="mr-1 text-text-3">1st</span>
+                          {podium.first.displayName}
+                        </span>
+                        {podium.second && (
+                          <span>
+                            <span className="mr-1 text-text-3">2nd</span>
+                            {podium.second.displayName}
+                          </span>
+                        )}
+                      </div>
+                    )}
+                  </li>
+                );
+              })}
             </ul>
           )}
         </section>

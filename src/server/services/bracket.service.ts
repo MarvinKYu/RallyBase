@@ -24,6 +24,50 @@ export async function bracketExists(eventId: string) {
   return count > 0;
 }
 
+// ── Podium ────────────────────────────────────────────────────────────────────
+
+export interface EventPodium {
+  first: { id: string; displayName: string } | null;
+  second: { id: string; displayName: string } | null;
+}
+
+export async function getEventPodium(
+  eventId: string,
+  eventFormat: string,
+): Promise<EventPodium> {
+  if (eventFormat === "ROUND_ROBIN") {
+    const standings = await getRoundRobinStandings(eventId);
+    return {
+      first: standings[0]
+        ? { id: standings[0].playerProfileId, displayName: standings[0].displayName }
+        : null,
+      second: standings[1]
+        ? { id: standings[1].playerProfileId, displayName: standings[1].displayName }
+        : null,
+    };
+  }
+
+  // Single elimination: final = highest-round completed match
+  const finalMatch = await prisma.match.findFirst({
+    where: { eventId, winnerId: { not: null } },
+    include: {
+      player1: { select: { id: true, displayName: true } },
+      player2: { select: { id: true, displayName: true } },
+      winner: { select: { id: true, displayName: true } },
+    },
+    orderBy: { round: "desc" },
+  });
+
+  if (!finalMatch?.winner) return { first: null, second: null };
+
+  const loser =
+    finalMatch.player1Id === finalMatch.winnerId
+      ? finalMatch.player2
+      : finalMatch.player1;
+
+  return { first: finalMatch.winner, second: loser };
+}
+
 // ── Standings ─────────────────────────────────────────────────────────────────
 
 export interface RoundRobinStanding {

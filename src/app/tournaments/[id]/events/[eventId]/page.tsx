@@ -2,7 +2,7 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { auth } from "@clerk/nextjs/server";
 import { getEventDetail, checkEligibility } from "@/server/services/tournament.service";
-import { getEventBracket, bracketExists } from "@/server/services/bracket.service";
+import { getEventBracket, bracketExists, getEventPodium } from "@/server/services/bracket.service";
 import { getMyProfile } from "@/server/services/player.service";
 import { EventPlayerMatchList, type SerializedPlayerEventMatch } from "@/components/tournaments/EventPlayerMatchList";
 import { EventMatchesPreview } from "@/components/tournaments/EventMatchesPreview";
@@ -55,6 +55,9 @@ export default async function EventDetailPage({ params }: Props) {
   if (!event) notFound();
 
   const isRoundRobin = event.eventFormat === "ROUND_ROBIN";
+  const podium = event.status === "COMPLETED"
+    ? await getEventPodium(eventId, event.eventFormat)
+    : null;
 
   // Eligibility display lines (left column)
   const eligibilityLines: string[] = [];
@@ -215,6 +218,35 @@ export default async function EventDetailPage({ params }: Props) {
               </div>
             </div>
           </div>
+
+          {/* Results (completed events only) */}
+          {podium?.first && (
+            <section>
+              <h2 className="mb-3 text-base font-medium text-text-1">Results</h2>
+              <div className="space-y-2">
+                <div className="flex items-center gap-3 text-sm">
+                  <span className="w-6 shrink-0 text-xs text-text-3">1st</span>
+                  <Link
+                    href={`/profile/${podium.first.id}`}
+                    className="font-medium text-text-1 transition-colors hover:underline"
+                  >
+                    {podium.first.displayName}
+                  </Link>
+                </div>
+                {podium.second && (
+                  <div className="flex items-center gap-3 text-sm">
+                    <span className="w-6 shrink-0 text-xs text-text-3">2nd</span>
+                    <Link
+                      href={`/profile/${podium.second.id}`}
+                      className="text-text-2 transition-colors hover:underline"
+                    >
+                      {podium.second.displayName}
+                    </Link>
+                  </div>
+                )}
+              </div>
+            </section>
+          )}
 
           {/* Entrants */}
           <section>
