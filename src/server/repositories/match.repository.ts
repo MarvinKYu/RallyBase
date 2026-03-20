@@ -85,6 +85,24 @@ export async function createSubmission(data: {
   });
 }
 
+export async function saveMatchProgressScores(
+  matchId: string,
+  games: Array<{ gameNumber: number; player1Points: number; player2Points: number }>,
+) {
+  return prisma.$transaction(async (tx) => {
+    await tx.matchGame.deleteMany({ where: { matchId } });
+    if (games.length > 0) {
+      await tx.matchGame.createMany({
+        data: games.map((g) => ({ matchId, ...g })),
+      });
+    }
+    await tx.match.update({
+      where: { id: matchId },
+      data: { status: MatchStatus.IN_PROGRESS },
+    });
+  });
+}
+
 export async function confirmSubmission(data: {
   submissionId: string;
   matchId: string;
@@ -99,6 +117,9 @@ export async function confirmSubmission(data: {
       where: { id: data.submissionId },
       data: { status: SubmissionStatus.CONFIRMED, confirmedAt: new Date() },
     });
+
+    // Clear any in-progress saves before writing official scores
+    await tx.matchGame.deleteMany({ where: { matchId: data.matchId } });
 
     // Write official per-game scores
     await tx.matchGame.createMany({

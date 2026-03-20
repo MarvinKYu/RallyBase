@@ -3,12 +3,13 @@
 import { redirect } from "next/navigation";
 import { auth } from "@clerk/nextjs/server";
 import { getMyProfile } from "@/server/services/player.service";
-import { submitMatchResult, confirmMatchResult, tdSubmitMatch, tdVoidMatch } from "@/server/services/match.service";
+import { submitMatchResult, confirmMatchResult, tdSubmitMatch, tdVoidMatch, saveMatchProgress } from "@/server/services/match.service";
 import { getMatchWithSubmission } from "@/server/services/match.service";
 import { MAX_GAMES } from "@/server/algorithms/match-validation";
 
 export type MatchActionState = {
   error?: string;
+  success?: boolean;
   fieldErrors?: Record<string, string[]>;
 } | null;
 
@@ -41,6 +42,34 @@ export async function submitResultAction(
   if ("error" in result) return { error: result.error };
 
   redirect(`/matches/${matchId}/pending`);
+}
+
+// matchId, maxGames are pre-bound via .bind()
+export async function saveMatchProgressAction(
+  matchId: string,
+  maxGames: number,
+  _prevState: MatchActionState,
+  formData: FormData,
+): Promise<MatchActionState> {
+  const profile = await getMyProfile();
+  if (!profile) return { error: "You need a player profile to save progress" };
+
+  const games = Array.from({ length: maxGames }, (_, i) => ({
+    gameNumber: i + 1,
+    player1Points:
+      parseInt((formData.get(`games.${i}.player1Points`) as string) ?? "0", 10) || 0,
+    player2Points:
+      parseInt((formData.get(`games.${i}.player2Points`) as string) ?? "0", 10) || 0,
+  }));
+
+  const result = await saveMatchProgress({
+    matchId,
+    savedByProfileId: profile.id,
+    games,
+  });
+
+  if ("error" in result) return { error: result.error };
+  return { success: true };
 }
 
 // matchId, tournamentId, eventId are pre-bound via .bind()

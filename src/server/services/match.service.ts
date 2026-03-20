@@ -7,6 +7,7 @@ import {
   confirmSubmission,
   directCompleteMatch,
   voidMatch,
+  saveMatchProgressScores,
 } from "@/server/repositories/match.repository";
 import { applyRatingResult } from "@/server/services/rating.service";
 import {
@@ -21,6 +22,34 @@ import { prisma } from "@/lib/prisma";
 
 export async function getMatchWithSubmission(matchId: string) {
   return findMatchById(matchId);
+}
+
+// ── Save progress ─────────────────────────────────────────────────────────────
+
+export type SaveMatchProgressResult = { success: true } | { error: string };
+
+export async function saveMatchProgress(params: {
+  matchId: string;
+  savedByProfileId: string;
+  games: Array<{ gameNumber: number; player1Points: number; player2Points: number }>;
+}): Promise<SaveMatchProgressResult> {
+  const { matchId, savedByProfileId, games } = params;
+
+  const match = await findMatchById(matchId);
+  if (!match) return { error: "Match not found" };
+
+  if (match.status !== "PENDING" && match.status !== "IN_PROGRESS") {
+    return { error: "Cannot save progress for this match" };
+  }
+  if (match.player1Id !== savedByProfileId && match.player2Id !== savedByProfileId) {
+    return { error: "You are not a player in this match" };
+  }
+
+  const filtered = games.filter((g) => g.player1Points !== 0 || g.player2Points !== 0);
+  if (filtered.length === 0) return { error: "No scores to save" };
+
+  await saveMatchProgressScores(matchId, filtered);
+  return { success: true };
 }
 
 // ── Submit result ─────────────────────────────────────────────────────────────

@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { tdVoidMatchAction } from "@/server/actions/match.actions";
 
 type GameScore = {
@@ -39,6 +40,7 @@ export function ManageEventMatchList({
   eventId: string;
 }) {
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
+  const router = useRouter();
 
   const toggle = (id: string) =>
     setExpanded((prev) => {
@@ -73,6 +75,7 @@ export function ManageEventMatchList({
             const isExpanded = expanded.has(match.id);
             const hasScores = match.matchGames.length > 0;
             const isCompletedWithScores = match.status === "COMPLETED" && hasScores;
+            const isInProgress = match.status === "IN_PROGRESS";
             const isWinner1 = match.status === "COMPLETED" && match.winnerId === match.player1Id;
             const isWinner2 = match.status === "COMPLETED" && match.winnerId === match.player2Id;
 
@@ -80,8 +83,14 @@ export function ManageEventMatchList({
               <div key={match.id} className="border-t border-border-subtle first:border-t-0">
                 {/* Match row */}
                 <div
-                  className={`flex items-center justify-between gap-4 px-4 py-3${isCompletedWithScores ? " cursor-pointer" : ""}`}
-                  onClick={isCompletedWithScores ? () => toggle(match.id) : undefined}
+                  className={`flex items-center justify-between gap-4 px-4 py-3${isCompletedWithScores || isInProgress ? " cursor-pointer" : ""}`}
+                  onClick={
+                    isCompletedWithScores
+                      ? () => toggle(match.id)
+                      : isInProgress
+                        ? () => router.push(`/matches/${match.id}`)
+                        : undefined
+                  }
                 >
                   <div className="flex min-w-0 flex-1 items-center gap-2">
                     {/* Chevron on the left for completed matches with scores */}
@@ -113,7 +122,7 @@ export function ManageEventMatchList({
                     )}
 
                     {/* Enter result */}
-                    {(match.status === "PENDING" || match.status === "AWAITING_CONFIRMATION") &&
+                    {(match.status === "PENDING" || match.status === "IN_PROGRESS" || match.status === "AWAITING_CONFIRMATION") &&
                       match.player1Id &&
                       match.player2Id && (
                         <Link

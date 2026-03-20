@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useActionState } from "react";
-import { submitResultAction, type MatchActionState } from "@/server/actions/match.actions";
+import { submitResultAction, saveMatchProgressAction, type MatchActionState } from "@/server/actions/match.actions";
 
 interface Props {
   matchId: string;
@@ -12,6 +12,7 @@ interface Props {
   maxGames: number;
   player1Name: string;
   player2Name: string;
+  savedScores?: { gameNumber: number; player1Points: number; player2Points: number }[];
 }
 
 function parseInvalidGameIndex(error: string | undefined): number | null {
@@ -28,6 +29,7 @@ export function SubmitResultForm({
   maxGames,
   player1Name,
   player2Name,
+  savedScores,
 }: Props) {
   const boundAction = submitResultAction.bind(null, matchId, tournamentId, eventId, format);
   const [state, dispatch, isPending] = useActionState<MatchActionState, FormData>(
@@ -35,9 +37,24 @@ export function SubmitResultForm({
     null,
   );
 
-  const [scores, setScores] = useState<Array<{ p1: string; p2: string }>>(
-    Array.from({ length: maxGames }, () => ({ p1: "0", p2: "0" })),
+  const boundSaveAction = saveMatchProgressAction.bind(null, matchId, maxGames);
+  const [saveState, saveDispatch, isSaving] = useActionState<MatchActionState, FormData>(
+    boundSaveAction,
+    null,
   );
+
+  const [scores, setScores] = useState<Array<{ p1: string; p2: string }>>(() => {
+    const initial = Array.from({ length: maxGames }, () => ({ p1: "0", p2: "0" }));
+    if (savedScores) {
+      for (const g of savedScores) {
+        const idx = g.gameNumber - 1;
+        if (idx >= 0 && idx < maxGames) {
+          initial[idx] = { p1: String(g.player1Points), p2: String(g.player2Points) };
+        }
+      }
+    }
+    return initial;
+  });
 
   const invalidIndex = parseInvalidGameIndex(state?.error);
 
@@ -64,6 +81,7 @@ export function SubmitResultForm({
   }
 
   return (
+    <>
     <form action={dispatch} className="space-y-6">
       {state?.error && (
         <p className="rounded-md border border-red-900 bg-red-950/50 px-4 py-3 text-sm text-red-400">
@@ -135,5 +153,28 @@ export function SubmitResultForm({
         {isPending ? "Submitting…" : "Submit result"}
       </button>
     </form>
+
+    <form action={saveDispatch} className="mt-3">
+      {scores.map((s, i) => (
+        <span key={i}>
+          <input type="hidden" name={`games.${i}.player1Points`} value={s.p1} />
+          <input type="hidden" name={`games.${i}.player2Points`} value={s.p2} />
+        </span>
+      ))}
+      <button
+        type="submit"
+        disabled={isSaving}
+        className="w-full rounded-md border border-border bg-surface px-4 py-2 text-sm font-medium text-text-1 transition-colors hover:bg-elevated focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-2 focus:ring-offset-background disabled:cursor-not-allowed disabled:opacity-50"
+      >
+        {isSaving ? "Saving…" : "Save progress"}
+      </button>
+      {saveState?.success && (
+        <p className="mt-2 text-xs text-green-400">Scores saved!</p>
+      )}
+      {saveState?.error && (
+        <p className="mt-2 text-xs text-red-400">{saveState.error}</p>
+      )}
+    </form>
+    </>
   );
 }

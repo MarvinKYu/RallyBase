@@ -59,6 +59,7 @@ export default async function SubmitResultPage({ params }: Props) {
         maxGames={maxGames}
         player1Name={match.player1?.displayName ?? "Player 1"}
         player2Name={match.player2?.displayName ?? "Player 2"}
+        savedScores={match.matchGames}
       />
 
       <div className="mt-6">

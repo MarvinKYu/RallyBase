@@ -77,14 +77,16 @@ export function YourMatchesList({
                     : m.status === "COMPLETED"
                       ? `/matches/${m.id}`
                       : m.status === "IN_PROGRESS"
-                        ? `/matches/${m.id}/pending`
+                        ? `/matches/${m.id}/submit`
                         : `/matches/${m.id}/submit`;
                 const actionLabel =
                   m.status === "PENDING"
                     ? "Submit"
                     : m.status === "AWAITING_CONFIRMATION"
                       ? "Confirm"
-                      : "View";
+                      : m.status === "IN_PROGRESS"
+                        ? "Continue"
+                        : "View";
 
                 const isCompleted = m.status === "COMPLETED";
                 const handleRowClick = () => {
