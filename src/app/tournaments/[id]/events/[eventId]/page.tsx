@@ -28,11 +28,11 @@ const FORMAT_LABEL: Record<string, string> = {
   BEST_OF_7: "Best of 7",
 };
 
-const STATUS_BADGE_CLASS: Record<string, string> = {
-  DRAFT: "text-text-3",
-  REGISTRATION_OPEN: "text-accent",
-  IN_PROGRESS: "text-yellow-400",
-  COMPLETED: "text-text-3",
+const STATUS_PILL_CLASS: Record<string, string> = {
+  DRAFT: "bg-surface border border-border text-text-3",
+  REGISTRATION_OPEN: "bg-green-950/60 border border-green-800 text-green-300",
+  IN_PROGRESS: "bg-amber-950/60 border border-amber-800 text-amber-300",
+  COMPLETED: "bg-surface border border-border text-text-2",
 };
 
 type PlayerEventStatus =
@@ -141,9 +141,16 @@ export default async function EventDetailPage({ params }: Props) {
             </Link>
           </p>
 
-          {/* Event name */}
+          {/* Event name + status pill */}
           <div>
-            <h1 className="text-2xl font-semibold leading-tight text-text-1">{event.name}</h1>
+            <div className="flex items-start justify-between gap-3">
+              <h1 className="text-2xl font-semibold leading-tight text-text-1">{event.name}</h1>
+              <span
+                className={`mt-0.5 inline-flex shrink-0 items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${STATUS_PILL_CLASS[event.status] ?? "bg-surface border border-border text-text-3"}`}
+              >
+                {event.status.replace(/_/g, " ")}
+              </span>
+            </div>
             <p className="mt-1 text-sm text-text-2">
               {event.ratingCategory.name} ·{" "}
               {isRoundRobin ? "Round Robin" : "Single Elimination"} ·{" "}
@@ -161,47 +168,52 @@ export default async function EventDetailPage({ params }: Props) {
               <p className="mt-1 text-xs text-text-3">{eligibilityLines.join(" · ")}</p>
             )}
 
-            {/* Status badge */}
-            <div className="mt-2">
-              <span
-                className={`text-xs font-medium ${STATUS_BADGE_CLASS[event.status] ?? "text-text-3"}`}
-              >
-                {event.status.replace(/_/g, " ")}
-              </span>
+            {/* Bracket/standings + eligibility status row */}
+            <div className="mt-3 flex items-center justify-between gap-4">
+              <div>
+                {hasBracket && !isRoundRobin && (
+                  <Link
+                    href={`/tournaments/${id}/events/${eventId}/bracket`}
+                    className="rounded-md bg-accent px-4 py-2 text-sm font-medium text-background transition-colors hover:bg-accent-dim"
+                  >
+                    View bracket
+                  </Link>
+                )}
+                {isRoundRobin && (
+                  <Link
+                    href={`/tournaments/${id}/events/${eventId}/standings`}
+                    className="rounded-md bg-accent px-4 py-2 text-sm font-medium text-background transition-colors hover:bg-accent-dim"
+                  >
+                    View standings
+                  </Link>
+                )}
+              </div>
+              <div>
+                {playerStatus === "registered" && (
+                  <span className="inline-flex items-center rounded-full border border-green-800 bg-green-950/60 px-2.5 py-0.5 text-xs font-medium text-green-300">
+                    REGISTERED
+                  </span>
+                )}
+                {playerStatus === "event_full" && (
+                  <span className="inline-flex items-center rounded-full border border-red-800 bg-red-950/60 px-2.5 py-0.5 text-xs font-medium text-red-300">
+                    EVENT FULL
+                  </span>
+                )}
+                {playerStatus === "ineligible" && (
+                  <span className="inline-flex items-center rounded-full border border-red-800 bg-red-950/60 px-2.5 py-0.5 text-xs font-medium text-red-300">
+                    INELIGIBLE
+                  </span>
+                )}
+                {playerStatus === "eligible" && (
+                  <Link
+                    href={`/tournaments/${id}/register`}
+                    className="inline-flex items-center rounded-md bg-accent px-4 py-2 text-sm font-medium text-background transition-colors hover:bg-accent-dim"
+                  >
+                    Sign up
+                  </Link>
+                )}
+              </div>
             </div>
-
-            {/* Registration status block */}
-            {playerStatus === "registered" && (
-              <div className="mt-3">
-                <span className="inline-flex items-center rounded-full bg-green-950/60 border border-green-800 px-2.5 py-0.5 text-xs font-medium text-green-300">
-                  REGISTERED
-                </span>
-              </div>
-            )}
-            {playerStatus === "event_full" && (
-              <div className="mt-3">
-                <span className="inline-flex items-center rounded-full bg-red-950/60 border border-red-800 px-2.5 py-0.5 text-xs font-medium text-red-300">
-                  EVENT FULL
-                </span>
-              </div>
-            )}
-            {playerStatus === "ineligible" && (
-              <div className="mt-3">
-                <span className="inline-flex items-center rounded-full bg-red-950/60 border border-red-800 px-2.5 py-0.5 text-xs font-medium text-red-300">
-                  INELIGIBLE
-                </span>
-              </div>
-            )}
-            {playerStatus === "eligible" && (
-              <div className="mt-3">
-                <Link
-                  href={`/tournaments/${id}/register`}
-                  className="inline-flex items-center rounded-md bg-accent px-4 py-2 text-sm font-medium text-background transition-colors hover:bg-accent-dim"
-                >
-                  Sign up
-                </Link>
-              </div>
-            )}
           </div>
 
           {/* Entrants */}
@@ -273,27 +285,6 @@ export default async function EventDetailPage({ params }: Props) {
             </>
           )}
 
-          {/* Bracket / standings links */}
-          {(hasBracket || isRoundRobin) && (
-            <div className="flex items-center gap-3">
-              {hasBracket && !isRoundRobin && (
-                <Link
-                  href={`/tournaments/${id}/events/${eventId}/bracket`}
-                  className="rounded-md bg-accent px-4 py-2 text-sm font-medium text-background transition-colors hover:bg-accent-dim"
-                >
-                  View bracket
-                </Link>
-              )}
-              {isRoundRobin && (
-                <Link
-                  href={`/tournaments/${id}/events/${eventId}/standings`}
-                  className="rounded-md bg-accent px-4 py-2 text-sm font-medium text-background transition-colors hover:bg-accent-dim"
-                >
-                  View standings
-                </Link>
-              )}
-            </div>
-          )}
         </div>
       </div>
     </main>
