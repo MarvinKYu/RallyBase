@@ -7,6 +7,7 @@ import type { TournamentStatus, EventStatus } from "@prisma/client";
 import { EventMatchList } from "@/components/tournaments/EventMatchList";
 import { AdvanceTournamentStatusButton } from "@/components/tournaments/AdvanceTournamentStatusButton";
 import { AdvanceEventStatusButton } from "@/components/tournaments/AdvanceEventStatusButton";
+import { DeleteTournamentButton } from "@/components/tournaments/DeleteTournamentButton";
 
 type Props = { params: Promise<{ id: string }> };
 
@@ -100,12 +101,15 @@ export default async function ManageTournamentPage({ params }: Props) {
                 </span>
               </div>
             </div>
-            <Link
-              href={`/tournaments/${id}/edit`}
-              className="shrink-0 rounded-md border border-border px-3 py-1.5 text-xs font-medium text-text-2 transition-colors hover:border-accent hover:text-text-1"
-            >
-              Edit tournament
-            </Link>
+            <div className="flex shrink-0 items-center gap-2">
+              <Link
+                href={`/tournaments/${id}/edit`}
+                className="rounded-md border border-border px-3 py-1.5 text-xs font-medium text-text-2 transition-colors hover:border-accent hover:text-text-1"
+              >
+                Edit tournament
+              </Link>
+              <DeleteTournamentButton tournamentId={id} />
+            </div>
           </div>
 
           {TOURNAMENT_ADVANCE_LABELS[tournament.status] && (

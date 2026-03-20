@@ -102,7 +102,7 @@ export async function updateEventAction(
   if ("fieldErrors" in result) return { fieldErrors: result.fieldErrors };
   if ("error" in result) return { error: result.error };
 
-  redirect(`/tournaments/${tournamentId}/events/${eventId}`);
+  redirect(`/tournaments/${tournamentId}/manage`);
 }
 
 // tournamentId is pre-bound via .bind(null, tournamentId)
@@ -176,7 +176,7 @@ export async function deleteTournamentAction(tournamentId: string): Promise<void
   const result = await deleteTournament(tournamentId, userId);
   if ("error" in result) throw new Error(result.error);
 
-  redirect("/tournaments");
+  redirect("/tournament-directors");
 }
 
 export async function deleteEventAction(eventId: string, tournamentId: string): Promise<void> {

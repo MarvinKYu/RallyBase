@@ -78,10 +78,17 @@ export default function RatingGraph({ transactions }: Props) {
     (t) => t.ratingCategory.id === selectedCategoryId,
   );
 
-  const data: DataPoint[] = filtered.map((t) => ({
-    date: new Date(t.createdAt).toLocaleDateString(),
-    rating: t.ratingAfter,
-    delta: t.delta,
+  // Group by calendar date, keep end-of-day rating and accumulate net delta (filtered is sorted ASC)
+  const byDate = new Map<string, { last: typeof filtered[0]; netDelta: number }>();
+  for (const t of filtered) {
+    const key = new Date(t.createdAt).toLocaleDateString();
+    const existing = byDate.get(key);
+    byDate.set(key, { last: t, netDelta: (existing?.netDelta ?? 0) + t.delta });
+  }
+  const data: DataPoint[] = Array.from(byDate.values()).map(({ last, netDelta }) => ({
+    date: new Date(last.createdAt).toLocaleDateString(),
+    rating: last.ratingAfter,
+    delta: netDelta,
   }));
 
   return (

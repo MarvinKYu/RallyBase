@@ -83,7 +83,7 @@ export default async function TournamentsPage() {
     : [];
 
   const today = new Date();
-  today.setHours(0, 0, 0, 0);
+  today.setUTCHours(0, 0, 0, 0);
   const upcoming = publicTournaments.filter(
     (t) => new Date(t.startDate) >= today && t.status !== "COMPLETED",
   );

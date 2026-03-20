@@ -33,6 +33,8 @@ export function TournamentForm({
   const [showScheduling, setShowScheduling] = useState(
     !!(defaultValues?.startTime || defaultValues?.withdrawDeadline),
   );
+  const [startDate, setStartDate] = useState(defaultValues?.startDate ?? "");
+  const [endDate, setEndDate] = useState(defaultValues?.endDate ?? "");
 
   return (
     <form action={dispatch} className="space-y-6">
@@ -109,7 +111,11 @@ export function TournamentForm({
             id="startDate"
             name="startDate"
             type="date"
-            defaultValue={defaultValues?.startDate}
+            value={startDate}
+            onChange={(e) => {
+              setStartDate(e.target.value);
+              if (!endDate) setEndDate(e.target.value);
+            }}
             className="w-full rounded-md border border-border bg-elevated px-3 py-2 text-sm text-text-1 shadow-sm focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
           />
           {state?.fieldErrors?.startDate && (
@@ -125,7 +131,8 @@ export function TournamentForm({
             id="endDate"
             name="endDate"
             type="date"
-            defaultValue={defaultValues?.endDate}
+            value={endDate}
+            onChange={(e) => setEndDate(e.target.value)}
             className="w-full rounded-md border border-border bg-elevated px-3 py-2 text-sm text-text-1 shadow-sm focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
           />
         </div>
