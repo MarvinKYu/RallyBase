@@ -21,10 +21,11 @@ Do this automatically for every shipped change — no need to ask.
 
 ## Project Status
 
-**Current version: v0.8.4.** The app is live on Vercel. Next target is v0.9.0 (Player Search Overhaul).
+**Current version: v0.9.0.** The app is live on Vercel. Next target is v0.10.0 (Player Profile: Gender & Age).
 
 ### Upcoming
-- v0.9.0 — Player Search Overhaul (pagination, sort controls)
+- v0.10.0 — Player Profile: Gender & Age
+- v0.11.0 — Player Search Overhaul (pagination, sort controls)
 
 ## Tech Stack
 

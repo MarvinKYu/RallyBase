@@ -1,6 +1,25 @@
 # Planned Features Roadmap
 
-## v0.9.0 — Player Search Overhaul
+## v0.10.0 — Player Profile: Gender & Age
+
+### Schema additions
+- Add optional `gender` and `dateOfBirth` fields to `player_profiles`.
+
+### Player search filters
+- Filter player search by gender and/or age range.
+
+### Event eligibility restrictions
+- Event creation: TD can restrict by gender and/or age range (min/max age).
+- `checkEligibility()` enforces these restrictions on self-signup.
+
+### Current DB backfill
+- Backfill test gender and age data for 8 seeded demo users in DB (match gender to name)
+- For testuser_1 and testuser_2, set gender = Male and age = 23
+- For testuser_boo, set gender = Female and age = 24
+
+---
+
+## v0.11.0 — Player Search Overhaul
 
 ### Paginated results
 - Default view: all players shown 10 at a time, navigable with previous/next arrows.
@@ -12,17 +31,7 @@
 
 ---
 
-## v0.10.0 — Event Detail Page (Player)
-
-### Overhaul player-facing event detail page
-- Redesign similar in spirit to the manage event two-column layout, but scoped to what a player needs:
-  - Left column: event info (org, format, rating category, status), registration status / sign-up action, entrant list.
-  - Right column: match schedule or bracket preview with player-relevant actions (Submit, Confirm).
-- Detailed planning required before implementation.
-
----
-
-## v0.11.0 — Tournament Templates
+## v0.12.0 — Tournament Templates
 
 ### Save tournament as template
 - TDs can save a tournament's settings as a reusable template (tournament settings + full events list with per-event settings).
@@ -30,20 +39,6 @@
 
 ### Load template when creating a tournament
 - When creating a new tournament, TD can optionally select a saved template to pre-fill all fields and events.
-
----
-
-## v0.12.0 — Player Profile: Gender & Age
-
-### Schema additions
-- Add optional `gender` and `dateOfBirth` fields to `player_profiles`.
-
-### Player search filters
-- Filter player search by gender and/or age range.
-
-### Event eligibility restrictions
-- Event creation: TD can restrict by gender and/or age range (min/max age).
-- `checkEligibility()` enforces these restrictions on self-signup.
 
 ---
 
