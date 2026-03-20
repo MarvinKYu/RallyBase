@@ -2,6 +2,7 @@ import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
 import { auth } from "@clerk/nextjs/server";
 import { getTournamentManageDetail } from "@/server/services/tournament.service";
+import { getEventPodium, type EventPodium } from "@/server/services/bracket.service";
 import type { TournamentStatus, EventStatus } from "@prisma/client";
 import { EventMatchList } from "@/components/tournaments/EventMatchList";
 import { AdvanceTournamentStatusButton } from "@/components/tournaments/AdvanceTournamentStatusButton";
@@ -72,6 +73,14 @@ export default async function ManageTournamentPage({ params }: Props) {
   const tournament = await getTournamentManageDetail(id, userId);
   if (!tournament) notFound();
 
+  const completedEvents = tournament.events.filter((e) => e.status === "COMPLETED");
+  const podiumResults = await Promise.all(
+    completedEvents.map((e) => getEventPodium(e.id, e.eventFormat)),
+  );
+  const podiumMap = new Map<string, EventPodium>(
+    completedEvents.map((e, i) => [e.id, podiumResults[i]]),
+  );
+
   const today = new Date();
   today.setHours(0, 0, 0, 0);
 
@@ -123,6 +132,7 @@ export default async function ManageTournamentPage({ params }: Props) {
             <p className="text-sm text-text-2">No events yet.</p>
           ) : (
             tournament.events.map((event) => {
+              const podium = podiumMap.get(event.id);
               return (
                 <div
                   key={event.id}
@@ -179,6 +189,26 @@ export default async function ManageTournamentPage({ params }: Props) {
                       )}
                     </div>
                   </div>
+
+                  {/* Podium row (completed events) */}
+                  {podium?.first && (
+                    <div className="flex items-center gap-4 border-b border-border-subtle bg-elevated px-4 py-2 text-xs text-text-2">
+                      <span>
+                        <span className="mr-1.5 text-text-3">1st</span>
+                        <Link href={`/profile/${podium.first.id}`} className="text-text-1 hover:underline">
+                          {podium.first.displayName}
+                        </Link>
+                      </span>
+                      {podium.second && (
+                        <span>
+                          <span className="mr-1.5 text-text-3">2nd</span>
+                          <Link href={`/profile/${podium.second.id}`} className="hover:underline">
+                            {podium.second.displayName}
+                          </Link>
+                        </span>
+                      )}
+                    </div>
+                  )}
 
                   {/* Match list */}
                   <EventMatchList matches={event.matches} />

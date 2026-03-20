@@ -3,7 +3,7 @@ import Link from "next/link";
 import { auth } from "@clerk/nextjs/server";
 import type { EventStatus } from "@prisma/client";
 import { getEventManageDetail } from "@/server/services/tournament.service";
-import { bracketExists } from "@/server/services/bracket.service";
+import { bracketExists, getEventPodium } from "@/server/services/bracket.service";
 import { generateBracketAction } from "@/server/actions/bracket.actions";
 import { DeleteEventButton } from "@/components/tournaments/DeleteEventButton";
 import { ManageEventMatchList } from "@/components/tournaments/ManageEventMatchList";
@@ -52,6 +52,9 @@ export default async function ManageEventPage({ params }: Props) {
   if (!event) notFound();
 
   const isRoundRobin = event.eventFormat === "ROUND_ROBIN";
+  const podium = event.status === "COMPLETED"
+    ? await getEventPodium(eventId, event.eventFormat)
+    : null;
   const totalMatches = event.matches.length;
   const completedMatches = event.matches.filter((m) => m.status === "COMPLETED").length;
   const progressPct = totalMatches > 0 ? Math.round((completedMatches / totalMatches) * 100) : 0;
@@ -119,6 +122,55 @@ export default async function ManageEventPage({ params }: Props) {
               {event.gamePointTarget}
             </p>
           </div>
+
+          {/* Bracket / standings link */}
+          <div className="flex items-center gap-4">
+            {hasBracket && !isRoundRobin && (
+              <Link
+                href={`/tournaments/${id}/events/${eventId}/bracket?from=manage`}
+                className="rounded-md bg-accent px-4 py-2 text-sm font-medium text-background transition-colors hover:bg-accent-dim"
+              >
+                View bracket
+              </Link>
+            )}
+            {isRoundRobin && (
+              <Link
+                href={`/tournaments/${id}/events/${eventId}/standings?from=manage`}
+                className="rounded-md bg-accent px-4 py-2 text-sm font-medium text-background transition-colors hover:bg-accent-dim"
+              >
+                View standings
+              </Link>
+            )}
+          </div>
+
+          {/* Results (completed events only) */}
+          {podium?.first && (
+            <section>
+              <h2 className="mb-3 text-base font-medium text-text-1">Results</h2>
+              <div className="space-y-2">
+                <div className="flex items-center gap-3 text-sm">
+                  <span className="w-6 shrink-0 text-xs text-text-3">1st</span>
+                  <Link
+                    href={`/profile/${podium.first.id}`}
+                    className="font-medium text-text-1 transition-colors hover:underline"
+                  >
+                    {podium.first.displayName}
+                  </Link>
+                </div>
+                {podium.second && (
+                  <div className="flex items-center gap-3 text-sm">
+                    <span className="w-6 shrink-0 text-xs text-text-3">2nd</span>
+                    <Link
+                      href={`/profile/${podium.second.id}`}
+                      className="text-text-2 transition-colors hover:underline"
+                    >
+                      {podium.second.displayName}
+                    </Link>
+                  </div>
+                )}
+              </div>
+            </section>
+          )}
 
           {/* Status + advance button */}
           <div className="flex flex-wrap items-center gap-3">
@@ -228,25 +280,6 @@ export default async function ManageEventPage({ params }: Props) {
             />
           </div>
 
-          {/* Bracket / standings links */}
-          <div className="flex items-center gap-3">
-            {hasBracket && !isRoundRobin && (
-              <Link
-                href={`/tournaments/${id}/events/${eventId}/bracket?from=manage`}
-                className="rounded-md bg-accent px-4 py-2 text-sm font-medium text-background transition-colors hover:bg-accent-dim"
-              >
-                View bracket
-              </Link>
-            )}
-            {isRoundRobin && (
-              <Link
-                href={`/tournaments/${id}/events/${eventId}/standings?from=manage`}
-                className="rounded-md bg-accent px-4 py-2 text-sm font-medium text-background transition-colors hover:bg-accent-dim"
-              >
-                View standings
-              </Link>
-            )}
-          </div>
         </div>
 
       </div>
