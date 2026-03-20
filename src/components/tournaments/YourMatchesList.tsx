@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 export type SerializedPlayerMatch = {
   id: string;
@@ -31,6 +32,7 @@ export function YourMatchesList({
   viewerProfileId: string;
 }) {
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
+  const router = useRouter();
 
   const toggle = (id: string) =>
     setExpanded((prev) => {
@@ -39,11 +41,14 @@ export function YourMatchesList({
       return next;
     });
 
-  const inProgress = matches.filter(
-    (m) => m.status === "IN_PROGRESS" || m.status === "AWAITING_CONFIRMATION",
-  );
-  const upcoming = matches.filter((m) => m.status === "PENDING");
-  const completed = matches.filter((m) => m.status === "COMPLETED");
+  const byEventName = (a: SerializedPlayerMatch, b: SerializedPlayerMatch) =>
+    a.event.name.localeCompare(b.event.name);
+
+  const inProgress = matches
+    .filter((m) => m.status === "IN_PROGRESS" || m.status === "AWAITING_CONFIRMATION")
+    .sort(byEventName);
+  const upcoming = matches.filter((m) => m.status === "PENDING").sort(byEventName);
+  const completed = matches.filter((m) => m.status === "COMPLETED").sort(byEventName);
 
   const groups = [
     { label: "In progress", items: inProgress },
@@ -81,34 +86,46 @@ export function YourMatchesList({
                       ? "Confirm"
                       : "View";
 
+                const isCompleted = m.status === "COMPLETED";
+                const handleRowClick = () => {
+                  if (hasScores) {
+                    toggle(m.id);
+                  } else if (!isCompleted) {
+                    router.push(actionHref);
+                  }
+                };
+                const isClickable = hasScores || !isCompleted;
+
                 return (
                   <li key={m.id} className="border-b border-border-subtle last:border-b-0">
-                    <div className="flex items-center justify-between bg-surface px-4 py-3">
-                      <div>
-                        <p className="text-sm font-medium text-text-1">
-                          {m.event.name} · Round {m.round} vs{" "}
-                          {opponent?.displayName ?? "TBD"}
-                        </p>
-                        <p className="text-xs text-text-3">
-                          {MATCH_STATUS_LABEL[m.status] ?? m.status}
-                        </p>
+                    <div
+                      className={`flex items-center justify-between bg-surface px-4 py-3${isClickable ? " cursor-pointer" : ""}`}
+                      onClick={isClickable ? handleRowClick : undefined}
+                    >
+                      <div className="flex min-w-0 flex-1 items-center gap-2">
+                        {/* Chevron on the left for completed matches with scores */}
+                        {hasScores && (
+                          <span className="shrink-0 text-xs text-text-3">
+                            {isExpanded ? "▴" : "▾"}
+                          </span>
+                        )}
+                        <div className="flex flex-wrap items-center gap-2">
+                          <span className="text-sm font-medium text-text-1">
+                            {m.event.name} · Round {m.round} vs{" "}
+                            {opponent?.displayName ?? "TBD"}
+                          </span>
+                          <span className="rounded-full border border-border bg-surface px-2 py-0.5 text-xs text-text-3">
+                            {MATCH_STATUS_LABEL[m.status] ?? m.status}
+                          </span>
+                        </div>
                       </div>
-                      <div className="flex items-center gap-2">
+                      <div className="ml-3 shrink-0" onClick={(e) => e.stopPropagation()}>
                         <Link
                           href={actionHref}
                           className="rounded-md bg-accent px-3 py-1 text-xs font-medium text-background transition-colors hover:bg-accent-dim"
                         >
                           {actionLabel}
                         </Link>
-                        {hasScores && (
-                          <button
-                            onClick={() => toggle(m.id)}
-                            className="text-xs text-text-3 transition-colors hover:text-text-1"
-                            aria-label={isExpanded ? "Collapse scores" : "Expand scores"}
-                          >
-                            {isExpanded ? "▴" : "▾"}
-                          </button>
-                        )}
                       </div>
                     </div>
 

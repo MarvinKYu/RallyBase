@@ -72,39 +72,42 @@ export function ManageEventMatchList({
             const isBye = match.player2Id === null && match.status === "COMPLETED";
             const isExpanded = expanded.has(match.id);
             const hasScores = match.matchGames.length > 0;
+            const isCompletedWithScores = match.status === "COMPLETED" && hasScores;
+            const isWinner1 = match.status === "COMPLETED" && match.winnerId === match.player1Id;
+            const isWinner2 = match.status === "COMPLETED" && match.winnerId === match.player2Id;
 
             return (
               <div key={match.id} className="border-t border-border-subtle first:border-t-0">
                 {/* Match row */}
-                <div className="flex items-start justify-between gap-4 px-4 py-3">
-                  <div className="min-w-0 flex-1 space-y-1">
-                    <p className="text-sm text-text-1">
-                      {match.player1?.displayName ?? "TBD"} vs.{" "}
-                      {match.player2?.displayName ?? (isBye ? "BYE" : "TBD")}
-                    </p>
-                    {/* Inline score summary when collapsed */}
-                    {!isExpanded && hasScores && (
-                      <p className="text-xs text-text-3">
-                        {match.matchGames
-                          .map((g) => `${g.player1Points}–${g.player2Points}`)
-                          .join(", ")}
-                      </p>
+                <div
+                  className={`flex items-center justify-between gap-4 px-4 py-3${isCompletedWithScores ? " cursor-pointer" : ""}`}
+                  onClick={isCompletedWithScores ? () => toggle(match.id) : undefined}
+                >
+                  <div className="flex min-w-0 flex-1 items-center gap-2">
+                    {/* Chevron on the left for completed matches with scores */}
+                    {isCompletedWithScores && (
+                      <span className="shrink-0 text-xs text-text-3">
+                        {isExpanded ? "▴" : "▾"}
+                      </span>
                     )}
+                    <p className="text-sm text-text-1">
+                      <span className={isWinner1 ? "font-semibold text-text-1" : ""}>
+                        {match.player1?.displayName ?? "TBD"}
+                      </span>
+                      {" vs. "}
+                      <span className={isWinner2 ? "font-semibold text-text-1" : ""}>
+                        {match.player2?.displayName ?? (isBye ? "BYE" : "TBD")}
+                      </span>
+                    </p>
                   </div>
 
                   <div className="flex shrink-0 items-center gap-2">
-                    {match.status === "PENDING" ? (
+                    {match.status === "PENDING" || match.status === "COMPLETED" ? (
                       <span className="rounded-full border border-border bg-surface px-2 py-0.5 text-xs text-text-3">
                         {STATUS_LABEL[match.status]}
                       </span>
                     ) : (
-                      <span
-                        className={`text-xs ${
-                          match.status === "COMPLETED"
-                            ? "text-text-3"
-                            : "text-amber-400"
-                        }`}
-                      >
+                      <span className="text-xs text-amber-400">
                         {STATUS_LABEL[match.status]}
                       </span>
                     )}
@@ -116,6 +119,7 @@ export function ManageEventMatchList({
                         <Link
                           href={`/matches/${match.id}/td-submit`}
                           className="text-xs font-medium text-accent hover:underline"
+                          onClick={(e) => e.stopPropagation()}
                         >
                           Enter result
                         </Link>
@@ -126,6 +130,7 @@ export function ManageEventMatchList({
                       !isBye && (
                         <form
                           action={tdVoidMatchAction.bind(null, match.id, tournamentId, eventId)}
+                          onClick={(e) => e.stopPropagation()}
                         >
                           <button
                             type="submit"
@@ -135,17 +140,6 @@ export function ManageEventMatchList({
                           </button>
                         </form>
                       )}
-
-                    {/* Expand/collapse toggle for completed matches with scores */}
-                    {match.status === "COMPLETED" && hasScores && (
-                      <button
-                        onClick={() => toggle(match.id)}
-                        className="text-xs text-text-3 transition-colors hover:text-text-1"
-                        aria-label={isExpanded ? "Collapse scores" : "Expand scores"}
-                      >
-                        {isExpanded ? "▴" : "▾"}
-                      </button>
-                    )}
                   </div>
                 </div>
 
