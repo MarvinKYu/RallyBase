@@ -1,36 +1,78 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# RallyBase
 
-## Getting Started
+Tournament management and Elo rating tracking for competitive table tennis.
 
-First, run the development server:
+Live: [rally-base.vercel.app](https://rally-base.vercel.app)
+
+## What it does
+
+- **Tournaments & events** — create tournaments with multiple events, each tied to a rating category
+- **Two bracket formats** — single-elimination (seeded bracket) and round-robin (circle-method schedule, standings)
+- **Player registration** — self-signup with eligibility rules (min/max rating, min/max age, participant cap); TDs can also add players directly
+- **Score submission** — player submits result, opponent confirms with a 4-digit code; no referee needed
+- **TD controls** — direct result entry, void & re-record, default wins (no scores, no rating impact)
+- **Elo ratings** — update automatically on confirmation, scoped per organization and discipline
+- **Player profiles** — rating history chart, match history with per-game scores, tournament participation log
+
+## Tech stack
+
+| Layer | Tech |
+|---|---|
+| Framework | Next.js 16 (App Router) + TypeScript |
+| UI | Tailwind CSS v4 |
+| Database | PostgreSQL via Prisma v5 (hosted on Neon) |
+| Auth | Clerk |
+| Testing | Vitest (unit + integration against real DB) |
+| Hosting | Vercel |
+
+## Local setup
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+git clone https://github.com/MarvinKYu/RallyBase.git
+cd RallyBase
+npm install
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Create `.env.local` with:
+```
+DATABASE_URL=...
+NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=...
+CLERK_SECRET_KEY=...
+```
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+npm run db:migrate   # apply Prisma migrations
+npm run db:seed      # seed roles, orgs, and demo data
+npm run dev          # start dev server at localhost:3000
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Commands
 
-## Learn More
+```bash
+npm run dev                # dev server
+npm run build              # production build
+npm run lint               # lint
+npm run test               # all tests
+npm run test:unit          # unit tests only
+npm run test:integration   # integration tests (requires live DB)
+npm run db:migrate         # run Prisma migrations
+npm run db:seed            # seed database
+npm run db:studio          # browse DB in Prisma Studio
+```
 
-To learn more about Next.js, take a look at the following resources:
+## Architecture
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Modular monolith using Next.js App Router.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+```
+src/
+  app/          # routes and pages
+  components/   # React UI components
+  server/
+    actions/    # server actions (form handlers)
+    services/   # domain logic
+    repositories/ # data access (Prisma)
+    algorithms/ # pure functions: Elo, bracket, round-robin, match validation
+```
 
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Business logic lives in services. Algorithms are stateless pure functions with no DB access.

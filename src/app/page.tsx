@@ -12,13 +12,15 @@ const WORKFLOW_STEPS = [
   },
   {
     step: "02",
-    title: "Add entrants & seed",
-    description: "Search for players, add them as entrants, and assign seed numbers.",
+    title: "Register players",
+    description:
+      "Players self-register within eligibility rules you set — rating range, age range, participant cap. Or add them directly.",
   },
   {
     step: "03",
-    title: "Generate the bracket",
-    description: "Single-elimination brackets are generated automatically from the seed list.",
+    title: "Generate bracket or schedule",
+    description:
+      "Single-elimination brackets and round-robin schedules are generated automatically once registration closes.",
   },
   {
     step: "04",
@@ -53,8 +55,8 @@ export default async function Home() {
           Tournaments & ratings,<br className="hidden sm:block" /> handled.
         </h1>
         <p className="mx-auto mb-10 max-w-md text-base text-text-2">
-          RallyBase runs your single-elimination brackets and keeps Elo ratings up to date —
-          automatically, after every confirmed match result.
+          RallyBase runs your single-elimination brackets and round-robin schedules, and keeps
+          Elo ratings up to date automatically after every confirmed match result.
         </p>
         <div className="flex flex-wrap justify-center gap-3">
           <SignUpButton>
