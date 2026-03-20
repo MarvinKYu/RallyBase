@@ -10,6 +10,20 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 ---
 
+## [0.8.4] - 2026-03-19
+
+### Added
+- **Save progress button** on the submit result form — players can save partial game scores at any point during a match. Scores are persisted to `MatchGame` records and the match status transitions to `IN_PROGRESS`.
+- **Pre-populated form** — when a match is `IN_PROGRESS`, the submit form initializes score inputs from the saved `MatchGame` records.
+- **IN_PROGRESS match view** (`/matches/[matchId]`) — saved scores displayed read-only with "Match in progress" header; no redirect to submit for `IN_PROGRESS` matches.
+- **ManageEventMatchList** — `IN_PROGRESS` rows are clickable (navigates to `/matches/[id]`); "Enter result" button shown for `IN_PROGRESS` matches.
+- **YourMatchesList** — `IN_PROGRESS` action href changed to `/matches/[id]/submit`; action label is now "Continue" for `IN_PROGRESS` matches.
+
+### Changed
+- `confirmSubmission` repository function now deletes existing `MatchGame` records before writing official scores, handling the case where `IN_PROGRESS` saves wrote records prior to final submission.
+
+---
+
 ## [0.8.3] - 2026-03-19
 
 ### Changed
