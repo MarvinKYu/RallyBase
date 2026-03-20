@@ -1,13 +1,36 @@
 # Current bugs
 
 ## Mobile UI fix (ongoing list, needs comprehensive review)
-- Clicking into player search bar forces zoom in 
+- Clicking into player search bar forces zoom in
 - Many other small issues currently undocumented
 
 ## Tournaments and events should automatically start at their set startTime
 - Cron-based time-triggered auto-start requires Vercel Pro for sub-daily scheduling. Deferred until plan upgrade.
 
+## Auto-complete tournament if not yet completed and move into "PAST" on day after end date
+- Requires scheduled job. Deferred.
+
 # Fixed
+
+## Version 0.9.7
+
+### Rating chart: multiple matches per day caused multiple data points
+- Chart now collapses same-day transactions into one point using end-of-day rating; tooltip shows net daily delta.
+
+### Edit event submission redirected to event detail page instead of manage page
+- `updateEventAction` now redirects to `/tournaments/${tournamentId}/manage` after a successful edit.
+
+### Delete tournament button missing from manage tournament page
+- `DeleteTournamentButton` added to the manage page header alongside "Edit tournament".
+
+### Delete tournament redirected to /tournaments instead of /tournament-directors
+- `deleteTournamentAction` now redirects to `/tournament-directors` on success.
+
+### Tournaments with today's start date placed in "past" in non-UTC environments
+- Tournament date filters now use `setUTCHours(0, 0, 0, 0)` to match UTC-stored dates. Affects all three filter locations: `/tournaments`, `/tournaments/upcoming`, `/tournaments/past`.
+
+### Tournament end date did not default to start date
+- `TournamentForm` now auto-populates `endDate` with the chosen `startDate` when `endDate` is empty.
 
 ## Version 0.7.1
 

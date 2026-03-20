@@ -25,7 +25,7 @@
 
 ## Platform admin and org admin roles + dashboards + permissions
 
-## Develop custom algorithm for rating 
+## Develop custom algorithm for rating in separate org (RB rating)
 - Factor in age of player/number of years active
 
 ## Add doubles, hardbat
