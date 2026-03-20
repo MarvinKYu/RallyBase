@@ -6,6 +6,7 @@ import {
   createSubmission,
   confirmSubmission,
   directCompleteMatch,
+  directDefaultMatch,
   voidMatch,
   saveMatchProgressScores,
 } from "@/server/repositories/match.repository";
@@ -272,6 +273,59 @@ export async function tdSubmitMatch(params: TdSubmitParams): Promise<TdSubmitRes
   });
 
   // Auto-complete event if all matches are now done
+  if (match.event.status === "IN_PROGRESS") {
+    const remainingMatches = await countNonCompletedMatches(match.eventId);
+    if (remainingMatches === 0) {
+      await setEventStatus(match.eventId, "COMPLETED");
+      const remainingEvents = await countNonCompletedEvents(match.event.tournament.id);
+      if (remainingEvents === 0) {
+        await setTournamentStatus(match.event.tournament.id, "COMPLETED");
+      }
+    }
+  }
+
+  return {
+    success: true,
+    tournamentId: match.event.tournament.id,
+    eventId: match.eventId,
+  };
+}
+
+export type TdDefaultResult =
+  | { success: true; tournamentId: string; eventId: string }
+  | { error: string };
+
+/**
+ * TD records a default win — no scores, no ratings, winner advances.
+ */
+export async function tdDefaultMatch(params: {
+  matchId: string;
+  winnerId: string;
+}): Promise<TdDefaultResult> {
+  const { matchId, winnerId } = params;
+
+  const match = await findMatchById(matchId);
+  if (!match) return { error: "Match not found" };
+
+  if (match.status === "COMPLETED") {
+    return { error: "This match is already completed" };
+  }
+  if (!match.player1Id || !match.player2Id) {
+    return { error: "Both players must be set before recording a default" };
+  }
+  if (winnerId !== match.player1Id && winnerId !== match.player2Id) {
+    return { error: "Winner must be one of the match players" };
+  }
+
+  const nextMatchSlot = match.nextMatchId ? winnerSlotInNextMatch(match.position) : null;
+
+  await directDefaultMatch({
+    matchId,
+    winnerId,
+    nextMatchId: match.nextMatchId,
+    nextMatchSlot,
+  });
+
   if (match.event.status === "IN_PROGRESS") {
     const remainingMatches = await countNonCompletedMatches(match.eventId);
     if (remainingMatches === 0) {

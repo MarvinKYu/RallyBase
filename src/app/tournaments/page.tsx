@@ -84,8 +84,12 @@ export default async function TournamentsPage() {
 
   const today = new Date();
   today.setHours(0, 0, 0, 0);
-  const upcoming = publicTournaments.filter((t) => new Date(t.startDate) >= today);
-  const past = publicTournaments.filter((t) => new Date(t.startDate) < today);
+  const upcoming = publicTournaments.filter(
+    (t) => new Date(t.startDate) >= today && t.status !== "COMPLETED",
+  );
+  const past = publicTournaments.filter(
+    (t) => new Date(t.startDate) < today || t.status === "COMPLETED",
+  );
 
   return (
     <main className="mx-auto max-w-7xl px-4 py-12">

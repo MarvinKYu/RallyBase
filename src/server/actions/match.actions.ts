@@ -3,7 +3,7 @@
 import { redirect } from "next/navigation";
 import { auth } from "@clerk/nextjs/server";
 import { getMyProfile } from "@/server/services/player.service";
-import { submitMatchResult, confirmMatchResult, tdSubmitMatch, tdVoidMatch, saveMatchProgress } from "@/server/services/match.service";
+import { submitMatchResult, confirmMatchResult, tdSubmitMatch, tdVoidMatch, tdDefaultMatch, saveMatchProgress } from "@/server/services/match.service";
 import { getMatchWithSubmission } from "@/server/services/match.service";
 import { MAX_GAMES } from "@/server/algorithms/match-validation";
 
@@ -128,6 +128,28 @@ export async function tdSubmitResultAction(
 
   const result = await tdSubmitMatch({ matchId, games });
   if ("error" in result) return { error: result.error };
+
+  redirect(`/tournaments/${tournamentId}/events/${eventId}/manage`);
+}
+
+// matchId, tournamentId, eventId, winnerId are pre-bound via .bind()
+export async function tdDefaultMatchAction(
+  matchId: string,
+  tournamentId: string,
+  eventId: string,
+  winnerId: string,
+): Promise<void> {
+  const { userId } = await auth();
+  if (!userId) redirect("/sign-in");
+
+  const match = await getMatchWithSubmission(matchId);
+  if (!match) throw new Error("Match not found");
+  if (match.event.tournament.createdByClerkId !== userId) {
+    throw new Error("Not authorized");
+  }
+
+  const result = await tdDefaultMatch({ matchId, winnerId });
+  if ("error" in result) throw new Error(result.error);
 
   redirect(`/tournaments/${tournamentId}/events/${eventId}/manage`);
 }

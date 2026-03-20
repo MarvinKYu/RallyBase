@@ -19,7 +19,13 @@ export default function MatchHistoryList({ matches, playerProfileId, limit }: Pr
 
   return (
     <div className="overflow-x-auto">
-      <table className="w-full text-sm">
+      <table className="w-full table-fixed text-sm">
+        <colgroup>
+          <col className="w-[45%]" />
+          <col className="w-[25%]" />
+          <col className="w-[18%]" />
+          <col className="w-[12%]" />
+        </colgroup>
         <thead>
           <tr className="border-b border-border text-left text-xs text-text-3">
             <th className="pb-2 pr-4 font-medium">Tournament · Event</th>
@@ -32,6 +38,7 @@ export default function MatchHistoryList({ matches, playerProfileId, limit }: Pr
           {displayMatches.map((m) => {
             const won = m.winnerId === playerProfileId;
             const opponent = m.player1Id === playerProfileId ? m.player2 : m.player1;
+            const isDefault = m.isDefault;
 
             // Count game wins from official matchGames
             let p1Wins = 0;
@@ -72,9 +79,11 @@ export default function MatchHistoryList({ matches, playerProfileId, limit }: Pr
                   >
                     {won ? "W" : "L"}
                   </span>
-                  <span className="ml-1 text-text-2">
-                    {myWins}–{oppWins}
-                  </span>
+                  {isDefault ? (
+                    <span className="ml-1 text-text-3">by default</span>
+                  ) : (
+                    <span className="ml-1 text-text-2">{myWins}–{oppWins}</span>
+                  )}
                 </td>
                 <td className="py-3">
                   {delta === null ? (

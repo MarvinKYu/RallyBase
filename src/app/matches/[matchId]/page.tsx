@@ -39,6 +39,7 @@ export default async function MatchResultPage({ params, searchParams }: Props) {
   const p2 = match.player2?.displayName ?? "Player 2";
   const winner = match.winner?.displayName ?? null;
   const isInProgress = match.status === "IN_PROGRESS";
+  const isDefault = match.isDefault;
 
   return (
     <main className="mx-auto max-w-lg px-4 py-16">
@@ -58,13 +59,17 @@ export default async function MatchResultPage({ params, searchParams }: Props) {
         <h1 className="text-2xl font-semibold text-text-1">{p1} vs {p2}</h1>
         {isInProgress ? (
           <p className="text-base font-medium text-amber-400">Match in progress</p>
+        ) : isDefault ? (
+          <p className="text-base font-medium text-text-2">
+            Winner: {winner} <span className="font-normal text-text-3">by default</span>
+          </p>
         ) : (
           winner && <p className="text-base font-medium text-accent">{winner} won</p>
         )}
       </div>
 
       {/* Per-game score table */}
-      {match.matchGames.length > 0 && (
+      {!isDefault && match.matchGames.length > 0 && (
         <section className="mb-8">
           <h2 className="mb-3 text-sm font-medium text-text-2">
             {isInProgress ? "Saved scores" : "Game scores"}

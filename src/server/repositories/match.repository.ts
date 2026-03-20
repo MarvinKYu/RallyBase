@@ -142,6 +142,30 @@ export async function confirmSubmission(data: {
   });
 }
 
+export async function directDefaultMatch(data: {
+  matchId: string;
+  winnerId: string;
+  nextMatchId: string | null;
+  nextMatchSlot: "player1Id" | "player2Id" | null;
+}) {
+  return prisma.$transaction(async (tx) => {
+    await tx.matchResultSubmission.deleteMany({ where: { matchId: data.matchId } });
+    await tx.matchGame.deleteMany({ where: { matchId: data.matchId } });
+
+    await tx.match.update({
+      where: { id: data.matchId },
+      data: { status: MatchStatus.COMPLETED, winnerId: data.winnerId, isDefault: true },
+    });
+
+    if (data.nextMatchId && data.nextMatchSlot) {
+      await tx.match.update({
+        where: { id: data.nextMatchId },
+        data: { [data.nextMatchSlot]: data.winnerId },
+      });
+    }
+  });
+}
+
 export async function directCompleteMatch(data: {
   matchId: string;
   winnerId: string;

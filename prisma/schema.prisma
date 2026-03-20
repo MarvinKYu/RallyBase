@@ -208,6 +208,7 @@ model Match {
   winnerId    String?
   nextMatchId String?
   status      MatchStatus @default(PENDING)
+  isDefault   Boolean     @default(false)
   createdAt   DateTime    @default(now())
 
   event           Event                   @relation(fields: [eventId], references: [id], onDelete: Cascade)

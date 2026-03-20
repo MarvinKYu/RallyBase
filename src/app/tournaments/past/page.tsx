@@ -12,7 +12,9 @@ export default async function PastTournamentsPage() {
 
   const today = new Date();
   today.setHours(0, 0, 0, 0);
-  const past = allPublic.filter((t) => new Date(t.startDate) < today);
+  const past = allPublic.filter(
+    (t) => new Date(t.startDate) < today || t.status === "COMPLETED",
+  );
 
   return (
     <main className="mx-auto max-w-3xl px-4 py-12">

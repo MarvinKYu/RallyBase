@@ -4,6 +4,7 @@ import { auth } from "@clerk/nextjs/server";
 import { getMatchWithSubmission } from "@/server/services/match.service";
 import { MAX_GAMES } from "@/server/algorithms/match-validation";
 import { TdSubmitResultForm } from "@/components/matches/TdSubmitResultForm";
+import { tdDefaultMatchAction } from "@/server/actions/match.actions";
 
 type Props = { params: Promise<{ matchId: string }> };
 
@@ -31,6 +32,11 @@ export default async function TdSubmitResultPage({ params }: Props) {
   const tournamentId = match.event.tournament.id;
   const eventId = match.event.id;
   const maxGames = MAX_GAMES[match.event.format] ?? 5;
+  const player1Id = match.player1Id!;
+  const player2Id = match.player2Id!;
+
+  const defaultWinP1 = tdDefaultMatchAction.bind(null, matchId, tournamentId, eventId, player1Id);
+  const defaultWinP2 = tdDefaultMatchAction.bind(null, matchId, tournamentId, eventId, player2Id);
 
   const backHref =
     match.event.eventFormat === "ROUND_ROBIN"
@@ -63,6 +69,32 @@ export default async function TdSubmitResultPage({ params }: Props) {
         player1Name={match.player1?.displayName ?? "Player 1"}
         player2Name={match.player2?.displayName ?? "Player 2"}
       />
+
+      {/* Record by default */}
+      <div className="mt-8 rounded-lg border border-border bg-surface p-4">
+        <h2 className="mb-1 text-sm font-medium text-text-1">Record by default</h2>
+        <p className="mb-4 text-xs text-text-3">
+          No scores recorded. Ratings are not affected.
+        </p>
+        <div className="flex gap-3">
+          <form action={defaultWinP1}>
+            <button
+              type="submit"
+              className="rounded-md border border-border bg-elevated px-3 py-1.5 text-sm text-text-1 transition-colors hover:border-accent hover:text-accent"
+            >
+              {match.player1?.displayName ?? "Player 1"} wins by default
+            </button>
+          </form>
+          <form action={defaultWinP2}>
+            <button
+              type="submit"
+              className="rounded-md border border-border bg-elevated px-3 py-1.5 text-sm text-text-1 transition-colors hover:border-accent hover:text-accent"
+            >
+              {match.player2?.displayName ?? "Player 2"} wins by default
+            </button>
+          </form>
+        </div>
+      </div>
 
       <div className="mt-6">
         <Link
