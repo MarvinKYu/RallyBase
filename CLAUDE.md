@@ -21,10 +21,10 @@ Do this automatically for every shipped change — no need to ask.
 
 ## Project Status
 
-**Current version: v0.8.2.** The app is live on Vercel. Next target is v0.8.3 (Completed matches polish).
+**Current version: v0.8.3.** The app is live on Vercel. Next target is v0.9.0 (Player Search Overhaul).
 
 ### Upcoming
-- v0.8.3 — Completed matches polish (ManageEventMatchList row UX + YourMatchesList row UX)
+- v0.9.0 — Player Search Overhaul (pagination, sort controls)
 
 ## Tech Stack
 

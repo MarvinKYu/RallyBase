@@ -10,6 +10,14 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 ---
 
+## [0.8.3] - 2026-03-19
+
+### Changed
+- **ManageEventMatchList** — No inline score summary on collapsed completed rows; scores only visible in expanded panel. Chevron moved to the left of player names. Entire row clickable (except Enter result / Void buttons) to toggle expand on completed matches with scores. Winner's name bold white on COMPLETED matches. "Completed" status badge now uses the same neutral pill style as "Pending".
+- **YourMatchesList** — Chevron moved to the left of match text. Entire row clickable: completed-with-scores rows toggle expand; non-completed rows navigate to the action link (Submit / Confirm). Action button excluded from row click. Status label moved inline as a neutral pill badge on the same line as the match text. Matches within each group (In progress / Upcoming / Completed) sorted by event name A→Z.
+
+---
+
 ## [0.8.2] - 2026-03-19
 
 ### Changed

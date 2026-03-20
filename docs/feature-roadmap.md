@@ -1,22 +1,5 @@
 # Planned Features Roadmap
 
-## v0.8.3 — Completed matches polish
-
-### Manage event match list (ManageEventMatchList)
-- **No inline score summary when collapsed**: remove the per-game score string shown below the player names on completed rows by default; scores are only visible in the expanded panel.
-- **Expand toggle on the left**: move the ▾/▴ chevron to the left of the player names (before them), not the right.
-- **Entire row clickable**: clicking anywhere on the match row (except the TD action buttons) toggles the expand/collapse for completed matches.
-- **Bold winner name**: for COMPLETED matches, the winning player's name is bold white (`font-semibold text-text-1`).
-- **"Completed" badge matches "Pending" badge**: style the Completed status with the same neutral badge treatment as Pending (`bg-surface border border-border text-text-3 rounded-full px-2 py-0.5 text-xs`).
-
-### Your Matches list (YourMatchesList — tournament detail page)
-- **Expand toggle on the left**: move the ▾/▴ chevron to the left of the match text for completed matches with scores.
-- **Entire row clickable**: clicking anywhere on the match row (except the action button) toggles expand/collapse for completed matches.
-- **Status badge inline**: move the status label from a second line below the match text into the same line as event name / round / opponent, styled as a neutral pill (`bg-surface border border-border text-text-3 rounded-full px-2 py-0.5 text-xs`).
-- **Sort by event name**: within each group (In progress / Upcoming / Completed), matches are sorted by event name A→Z. (Future: re-sort by event `startTime` once that field is surfaced here.)
-
----
-
 ## v0.9.0 — Player Search Overhaul
 
 ### Paginated results
