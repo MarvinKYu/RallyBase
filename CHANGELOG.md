@@ -10,6 +10,13 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 ---
 
+## [0.10.1] - 2026-03-24
+
+### Changed
+- **EventForm eligibility layout** — reorganized the eligibility restrictions grid: row 1 is Max participants + Gender restriction, row 2 is Min rating + Max rating, row 3 is Min age + Max age.
+
+---
+
 ## [0.10.0] - 2026-03-24
 
 ### Added
