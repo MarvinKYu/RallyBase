@@ -39,6 +39,7 @@ import {
 } from "@/server/repositories/tournament.repository";
 import { generateBracket } from "@/server/services/bracket.service";
 import { findPlayerRatingByCategory } from "@/server/repositories/rating.repository";
+import { isAuthorizedAsTD } from "@/server/services/admin.service";
 
 const TOURNAMENT_STATUS_ORDER: TournamentStatus[] = [
   "DRAFT",
@@ -94,14 +95,14 @@ export async function getMyTournaments(clerkId: string) {
 export async function getEventManageDetail(eventId: string, clerkId: string) {
   const event = await findEventManageDetail(eventId);
   if (!event) return null;
-  if (event.tournament.createdByClerkId !== clerkId) return null;
+  if (!(await isAuthorizedAsTD(clerkId, event.tournament))) return null;
   return event;
 }
 
 export async function getTournamentManageDetail(tournamentId: string, clerkId: string) {
   const tournament = await findTournamentManageDetail(tournamentId);
   if (!tournament) return null;
-  if (tournament.createdByClerkId !== clerkId) return null;
+  if (!(await isAuthorizedAsTD(clerkId, tournament))) return null;
   return tournament;
 }
 
@@ -148,7 +149,7 @@ export async function createTournament(
 export async function deleteTournament(tournamentId: string, clerkId: string) {
   const tournament = await findTournamentById(tournamentId);
   if (!tournament) return { error: "Tournament not found." };
-  if (tournament.createdByClerkId !== clerkId) return { error: "Not authorized." };
+  if (!(await isAuthorizedAsTD(clerkId, tournament))) return { error: "Not authorized." };
   await deleteTournamentById(tournamentId);
   return { success: true };
 }
@@ -156,7 +157,7 @@ export async function deleteTournament(tournamentId: string, clerkId: string) {
 export async function deleteEvent(eventId: string, clerkId: string) {
   const event = await findEventById(eventId);
   if (!event) return { error: "Event not found." };
-  if (event.tournament.createdByClerkId !== clerkId) return { error: "Not authorized." };
+  if (!(await isAuthorizedAsTD(clerkId, event.tournament))) return { error: "Not authorized." };
   await deleteEventById(eventId);
   return { success: true, tournamentId: event.tournament.id };
 }
@@ -173,7 +174,7 @@ export async function updateTournament(
 ): Promise<UpdateTournamentResult> {
   const tournament = await findTournamentById(tournamentId);
   if (!tournament) return { error: "Tournament not found." };
-  if (tournament.createdByClerkId !== clerkId) return { error: "Not authorized." };
+  if (!(await isAuthorizedAsTD(clerkId, tournament))) return { error: "Not authorized." };
 
   const parsed = updateTournamentSchema.safeParse(data);
   if (!parsed.success) {
@@ -215,7 +216,7 @@ export async function updateEvent(
 ): Promise<UpdateEventResult> {
   const event = await findEventById(eventId);
   if (!event) return { error: "Event not found." };
-  if (event.tournament.createdByClerkId !== clerkId) return { error: "Not authorized." };
+  if (!(await isAuthorizedAsTD(clerkId, event.tournament))) return { error: "Not authorized." };
 
   const parsed = updateEventSchema.safeParse(data);
   if (!parsed.success) {
@@ -286,7 +287,7 @@ export async function advanceTournamentStatus(
 ): Promise<AdvanceStatusResult> {
   const tournament = await findTournamentById(tournamentId);
   if (!tournament) return { error: "Tournament not found." };
-  if (tournament.createdByClerkId !== clerkId) return { error: "Not authorized." };
+  if (!(await isAuthorizedAsTD(clerkId, tournament))) return { error: "Not authorized." };
 
   const currentIndex = TOURNAMENT_STATUS_ORDER.indexOf(tournament.status);
   if (currentIndex === -1 || currentIndex === TOURNAMENT_STATUS_ORDER.length - 1) {
@@ -325,7 +326,7 @@ export async function advanceEventStatus(
 ): Promise<AdvanceStatusResult> {
   const event = await findEventById(eventId);
   if (!event) return { error: "Event not found." };
-  if (event.tournament.createdByClerkId !== clerkId) return { error: "Not authorized." };
+  if (!(await isAuthorizedAsTD(clerkId, event.tournament))) return { error: "Not authorized." };
 
   const currentIndex = EVENT_STATUS_ORDER.indexOf(event.status);
   if (currentIndex === -1 || currentIndex === EVENT_STATUS_ORDER.length - 1) {
@@ -684,7 +685,7 @@ export async function tdRemoveEntrant(
 ): Promise<TdRemoveEntrantResult> {
   const event = await findEventById(eventId);
   if (!event) return { error: "Event not found." };
-  if (event.tournament.createdByClerkId !== clerkId) return { error: "Not authorized." };
+  if (!(await isAuthorizedAsTD(clerkId, event.tournament))) return { error: "Not authorized." };
 
   const progressed = await countProgressedMatches(eventId);
   if (progressed > 0) {

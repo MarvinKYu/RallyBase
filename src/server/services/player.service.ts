@@ -1,6 +1,7 @@
 import { currentUser } from "@clerk/nextjs/server";
 import { Gender, RoleName } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
+import { isPlatformAdmin } from "@/server/services/admin.service";
 import { createProfileSchema, updateProfileSchema } from "@/lib/schemas/player";
 import { upsertUserFromClerk } from "@/server/repositories/user.repository";
 import {
@@ -106,7 +107,9 @@ export async function updatePlayerProfile(
 ): Promise<UpdateProfileResult> {
   const profile = await findProfileById(profileId);
   if (!profile) return { error: "Profile not found." };
-  if (profile.user.clerkId !== requestingClerkId) return { error: "Not authorized." };
+  if (profile.user.clerkId !== requestingClerkId && !(await isPlatformAdmin(requestingClerkId))) {
+    return { error: "Not authorized." };
+  }
 
   const parsed = updateProfileSchema.safeParse(data);
   if (!parsed.success) {

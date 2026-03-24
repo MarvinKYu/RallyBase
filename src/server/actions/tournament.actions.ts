@@ -21,6 +21,7 @@ import {
 } from "@/server/services/tournament.service";
 import { getMyProfile } from "@/server/services/player.service";
 import { findPlayerRatingByCategory } from "@/server/repositories/rating.repository";
+import { isAuthorizedAsTD } from "@/server/services/admin.service";
 
 export type TournamentActionState = {
   error?: string;
@@ -146,7 +147,7 @@ export async function createEventAction(
 
   const tournament = await getTournamentDetail(tournamentId);
   if (!tournament) return { error: "Tournament not found." };
-  if (tournament.createdByClerkId !== userId) return { error: "Only the tournament creator can add events." };
+  if (!(await isAuthorizedAsTD(userId, tournament))) return { error: "Not authorized to add events." };
 
   const data = {
     ratingCategoryId: formData.get("ratingCategoryId") as string,
@@ -202,7 +203,7 @@ export async function addEntrantAction(
   if (!userId) return { error: "You must be signed in." };
 
   const tournament = await getTournamentDetail(tournamentId);
-  if (!tournament || tournament.createdByClerkId !== userId) {
+  if (!tournament || !(await isAuthorizedAsTD(userId, tournament))) {
     return { error: "Not authorized." };
   }
 

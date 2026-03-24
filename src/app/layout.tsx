@@ -3,7 +3,9 @@ import { GeistSans } from "geist/font/sans";
 import { GeistMono } from "geist/font/mono";
 import Link from "next/link";
 import { ClerkProvider, SignInButton, SignUpButton, Show, UserButton } from "@clerk/nextjs";
+import { auth } from "@clerk/nextjs/server";
 import { MobileNav } from "@/components/layout/MobileNav";
+import { isAdminUser } from "@/server/services/admin.service";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -11,11 +13,14 @@ export const metadata: Metadata = {
   description: "Competitive table tennis tournament management and rating tracking.",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const { userId } = await auth();
+  const isAdmin = userId ? await isAdminUser(userId) : false;
+
   return (
     <html lang="en">
       <body className={`${GeistSans.variable} ${GeistMono.variable} antialiased`}>
@@ -31,7 +36,7 @@ export default function RootLayout({
                   RallyBase
                 </Link>
                 {/* MobileNav renders desktop links (sm+) + mobile hamburger (<sm) */}
-                <MobileNav />
+                <MobileNav isAdmin={isAdmin} />
               </div>
 
               {/* Auth controls */}

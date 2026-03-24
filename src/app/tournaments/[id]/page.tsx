@@ -2,6 +2,7 @@ import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
 import { auth } from "@clerk/nextjs/server";
 import { getTournamentDetail } from "@/server/services/tournament.service";
+import { isAuthorizedAsTD } from "@/server/services/admin.service";
 import {
   getMyProfile,
   getPlayerMatchesForTournament,
@@ -36,9 +37,11 @@ export default async function TournamentDetailPage({ params }: Props) {
   const tournament = await getTournamentDetail(id);
   if (!tournament) notFound();
 
-  // Draft guard: only the creator can view a draft
-  if (tournament.status === "DRAFT" && tournament.createdByClerkId !== userId) {
-    redirect("/tournaments");
+  // Draft guard: only creator/platform admin/org admin can view a draft
+  if (tournament.status === "DRAFT") {
+    if (!userId || !(await isAuthorizedAsTD(userId, tournament))) {
+      redirect("/tournaments");
+    }
   }
 
   // Fetch podiums for completed events

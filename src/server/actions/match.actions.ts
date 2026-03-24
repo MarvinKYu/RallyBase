@@ -5,6 +5,7 @@ import { auth } from "@clerk/nextjs/server";
 import { getMyProfile } from "@/server/services/player.service";
 import { submitMatchResult, confirmMatchResult, tdSubmitMatch, tdVoidMatch, tdDefaultMatch, saveMatchProgress } from "@/server/services/match.service";
 import { getMatchWithSubmission } from "@/server/services/match.service";
+import { isAuthorizedAsTD } from "@/server/services/admin.service";
 import { MAX_GAMES } from "@/server/algorithms/match-validation";
 
 export type MatchActionState = {
@@ -114,7 +115,7 @@ export async function tdSubmitResultAction(
   // Verify TD authorization
   const match = await getMatchWithSubmission(matchId);
   if (!match) return { error: "Match not found" };
-  if (match.event.tournament.createdByClerkId !== userId) {
+  if (!(await isAuthorizedAsTD(userId, match.event.tournament))) {
     return { error: "Not authorized" };
   }
 
@@ -144,7 +145,7 @@ export async function tdDefaultMatchAction(
 
   const match = await getMatchWithSubmission(matchId);
   if (!match) throw new Error("Match not found");
-  if (match.event.tournament.createdByClerkId !== userId) {
+  if (!(await isAuthorizedAsTD(userId!, match.event.tournament))) {
     throw new Error("Not authorized");
   }
 
@@ -165,7 +166,7 @@ export async function tdVoidMatchAction(
 
   const match = await getMatchWithSubmission(matchId);
   if (!match) throw new Error("Match not found");
-  if (match.event.tournament.createdByClerkId !== userId) {
+  if (!(await isAuthorizedAsTD(userId!, match.event.tournament))) {
     throw new Error("Not authorized");
   }
 

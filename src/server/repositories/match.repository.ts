@@ -18,7 +18,7 @@ export async function findMatchById(id: string) {
           eventFormat: true,
           gamePointTarget: true,
           ratingCategoryId: true,
-          tournament: { select: { id: true, name: true, createdByClerkId: true } },
+          tournament: { select: { id: true, name: true, createdByClerkId: true, organizationId: true } },
         },
       },
       submissions: {

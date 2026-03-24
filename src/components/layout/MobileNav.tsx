@@ -3,21 +3,25 @@
 import { useState } from "react";
 import Link from "next/link";
 
-const NAV_LINKS = [
+const BASE_NAV_LINKS = [
   { href: "/", label: "Dashboard" },
   { href: "/tournaments", label: "Tournaments" },
   { href: "/tournament-directors", label: "Tournament Directors" },
   { href: "/players", label: "Players" },
 ];
 
-export function MobileNav() {
+export function MobileNav({ isAdmin = false }: { isAdmin?: boolean }) {
   const [open, setOpen] = useState(false);
+
+  const navLinks = isAdmin
+    ? [...BASE_NAV_LINKS, { href: "/admin", label: "Admin" }]
+    : BASE_NAV_LINKS;
 
   return (
     <>
       {/* Desktop nav links — hidden below sm breakpoint */}
       <div className="hidden items-center gap-6 sm:flex">
-        {NAV_LINKS.map(({ href, label }) => (
+        {navLinks.map(({ href, label }) => (
           <Link
             key={href}
             href={href}
@@ -51,7 +55,7 @@ export function MobileNav() {
       {open && (
         <div className="absolute left-0 right-0 top-full z-50 border-b border-border bg-surface px-6 py-4 sm:hidden">
           <nav className="flex flex-col gap-4">
-            {NAV_LINKS.map(({ href, label }) => (
+            {navLinks.map(({ href, label }) => (
               <Link
                 key={href}
                 href={href}
