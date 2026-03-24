@@ -207,6 +207,7 @@ export function EventForm({
 
           {showEligibility && (
             <div className="grid grid-cols-2 gap-3">
+              {/* Row 1: Max participants + Gender restriction */}
               <div className="space-y-1">
                 <label htmlFor="maxParticipants" className="block text-xs font-medium text-text-3">
                   Max participants
@@ -222,6 +223,23 @@ export function EventForm({
                 />
               </div>
 
+              <div className="space-y-1">
+                <label htmlFor="allowedGender" className="block text-xs font-medium text-text-3">
+                  Gender restriction
+                </label>
+                <select
+                  id="allowedGender"
+                  name="allowedGender"
+                  defaultValue={defaultValues?.allowedGender ?? ""}
+                  className="w-full rounded-md border border-border bg-surface px-3 py-2 text-sm text-text-1 shadow-sm focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
+                >
+                  <option value="">No restriction</option>
+                  <option value="MALE">Male only</option>
+                  <option value="FEMALE">Female only</option>
+                </select>
+              </div>
+
+              {/* Row 2: Min rating + Max rating */}
               <div className="space-y-1">
                 <label htmlFor="minRating" className="block text-xs font-medium text-text-3">
                   Min rating
@@ -250,6 +268,7 @@ export function EventForm({
                 />
               </div>
 
+              {/* Row 3: Min age + Max age */}
               <div className="space-y-1">
                 <label htmlFor="minAge" className="block text-xs font-medium text-text-3">
                   Min age
@@ -278,22 +297,6 @@ export function EventForm({
                   placeholder="e.g. 18"
                   className="w-full rounded-md border border-border bg-surface px-3 py-2 text-sm text-text-1 placeholder:text-text-3 shadow-sm focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
                 />
-              </div>
-
-              <div className="col-span-2 space-y-1">
-                <label htmlFor="allowedGender" className="block text-xs font-medium text-text-3">
-                  Gender restriction
-                </label>
-                <select
-                  id="allowedGender"
-                  name="allowedGender"
-                  defaultValue={defaultValues?.allowedGender ?? ""}
-                  className="w-full rounded-md border border-border bg-surface px-3 py-2 text-sm text-text-1 shadow-sm focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
-                >
-                  <option value="">No restriction</option>
-                  <option value="MALE">Male only</option>
-                  <option value="FEMALE">Female only</option>
-                </select>
               </div>
             </div>
           )}
