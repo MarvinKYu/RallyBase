@@ -21,10 +21,9 @@ Do this automatically for every shipped change — no need to ask.
 
 ## Project Status
 
-**Current version: v0.10.0.** The app is live on Vercel at https://rally-base.vercel.app. Next target is v0.11.0 (Platform Admin & Org Admin).
+**Current version: v0.11.1.** The app is live on Vercel at https://rally-base.vercel.app. Next target is v0.12.0 (Player Search Overhaul).
 
 ### Upcoming
-- v0.11.0 — Platform Admin & Org Admin roles
 - v0.12.0 — Player Search Overhaul (pagination, sort controls)
 
 ## Tech Stack
@@ -95,11 +94,15 @@ export async function addEntrantAction(eventId, tournamentId, formData): Promise
 - **Ratings update automatically** when `confirmMatchResult` is called — `applyRatingResult` runs in the same flow
 - **TDs can bypass confirmation**: `tdSubmitMatch` records result directly and runs Elo immediately (no code required); `tdVoidMatch` reverses rating transactions and resets match to `PENDING`
 - **Default match**: `tdDefaultMatch` marks a match COMPLETED with `isDefault=true`, no `MatchGame` records, no rating transactions. Winner advances in bracket normally. Displayed as "Winner: X by default" on match result page and "W/L by default" in match history.
-- **Event eligibility**: `checkEligibility()` validates maxParticipants, minRating/maxRating, minAge/maxAge before self-signup
+- **Event eligibility**: `checkEligibility()` validates maxParticipants, minRating/maxRating, minAge/maxAge, allowedGender before self-signup
+- **TD authorization**: `isAuthorizedAsTD(clerkId, tournament)` in `admin.service.ts` is the single source of truth for TD access — returns true for tournament creator, platform admin, or org admin for that tournament's org. Use this everywhere instead of direct `createdByClerkId` comparisons.
+- **Platform admin**: single account (test_user_1 / player #1) assigned `PLATFORM_ADMIN` role via `UserRole`. Can edit any profile, view all drafts, manage all tournaments.
+- **Org admin**: assigned per-org by platform admin via `/admin`. Stored in `OrgAdmin` table (separate from `UserRole`), scoped by `organizationId`.
+- **Player initial rating**: no `PlayerRating` row exists until after the first match or an admin sets one. `applyRatingResult` falls back to `DEFAULT_RATING = 1500` when no row is found.
 
 ## Database Schema Groups
 
-- Identity: `users`, `player_profiles`, `roles`, `user_roles`
+- Identity: `users`, `player_profiles`, `roles`, `user_roles`, `org_admins`
 - Organizations: `organizations`, `disciplines`, `rating_categories`
 - Ratings: `player_ratings`, `rating_transactions`
 - Tournaments: `tournaments`, `events`, `event_entries`
