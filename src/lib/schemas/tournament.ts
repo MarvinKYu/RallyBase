@@ -33,6 +33,7 @@ export const createEventSchema = z.object({
   maxRating: z.coerce.number().positive().optional().or(z.literal("")),
   minAge: z.coerce.number().int().positive().optional().or(z.literal("")),
   maxAge: z.coerce.number().int().positive().optional().or(z.literal("")),
+  allowedGender: z.enum(["MALE", "FEMALE"]).optional().or(z.literal("")),
   startTime: z.string().optional().or(z.literal("")),
 });
 
@@ -67,6 +68,7 @@ export const updateEventSchema = z.object({
   maxRating: z.coerce.number().positive().optional().or(z.literal("")),
   minAge: z.coerce.number().int().positive().optional().or(z.literal("")),
   maxAge: z.coerce.number().int().positive().optional().or(z.literal("")),
+  allowedGender: z.enum(["MALE", "FEMALE"]).optional().or(z.literal("")),
   startTime: z.string().optional().or(z.literal("")),
 });
 

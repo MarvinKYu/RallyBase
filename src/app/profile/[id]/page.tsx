@@ -18,6 +18,14 @@ export async function generateMetadata({ params }: Props) {
   return { title: profile ? `${profile.displayName} — RallyBase` : "Player not found" };
 }
 
+function computeAge(birthDate: Date): number {
+  const today = new Date();
+  let age = today.getFullYear() - birthDate.getFullYear();
+  const m = today.getMonth() - birthDate.getMonth();
+  if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) age--;
+  return age;
+}
+
 const STATUS_PRIORITY: Record<string, number> = {
   IN_PROGRESS: 0,
   AWAITING_CONFIRMATION: 1,
@@ -83,14 +91,39 @@ export default async function ProfilePage({ params }: Props) {
         <div className="space-y-8">
           {/* Header */}
           <div>
-            <div className="flex items-baseline gap-2">
-              <h1 className="text-3xl font-semibold text-text-1">
-                {profile.displayName}
-              </h1>
-              <span className="text-sm text-text-3">#{profile.playerNumber}</span>
+            <div className="flex items-start justify-between gap-3">
+              <div className="flex items-baseline gap-2">
+                <h1 className="text-3xl font-semibold text-text-1">
+                  {profile.displayName}
+                </h1>
+                <span className="text-sm text-text-3">#{profile.playerNumber}</span>
+              </div>
+              {(profile.gender || profile.birthDate) && (
+                <div className="shrink-0 text-right text-sm text-text-3">
+                  {profile.gender && (
+                    <p>
+                      {profile.gender === "MALE" ? "Male"
+                        : profile.gender === "FEMALE" ? "Female"
+                        : profile.gender === "OTHER" ? "Other"
+                        : "Prefer not to say"}
+                    </p>
+                  )}
+                  {profile.birthDate && (
+                    <p>Age {computeAge(profile.birthDate)}</p>
+                  )}
+                </div>
+              )}
             </div>
             {profile.bio && (
               <p className="mt-2 text-text-2">{profile.bio}</p>
+            )}
+            {isOwnProfile && (
+              <Link
+                href={`/profile/${profile.id}/edit`}
+                className="mt-2 inline-block text-xs text-accent hover:text-accent-dim"
+              >
+                Edit profile
+              </Link>
             )}
           </div>
 

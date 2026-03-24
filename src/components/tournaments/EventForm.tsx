@@ -20,6 +20,7 @@ type EventDefaultValues = {
   maxRating?: number | null;
   minAge?: number | null;
   maxAge?: number | null;
+  allowedGender?: string | null;
   ratingCategoryName?: string;
 };
 
@@ -49,7 +50,8 @@ export function EventForm({
       defaultValues?.minRating ||
       defaultValues?.maxRating ||
       defaultValues?.minAge ||
-      defaultValues?.maxAge
+      defaultValues?.maxAge ||
+      defaultValues?.allowedGender
     ),
   );
 
@@ -276,6 +278,22 @@ export function EventForm({
                   placeholder="e.g. 18"
                   className="w-full rounded-md border border-border bg-surface px-3 py-2 text-sm text-text-1 placeholder:text-text-3 shadow-sm focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
                 />
+              </div>
+
+              <div className="col-span-2 space-y-1">
+                <label htmlFor="allowedGender" className="block text-xs font-medium text-text-3">
+                  Gender restriction
+                </label>
+                <select
+                  id="allowedGender"
+                  name="allowedGender"
+                  defaultValue={defaultValues?.allowedGender ?? ""}
+                  className="w-full rounded-md border border-border bg-surface px-3 py-2 text-sm text-text-1 shadow-sm focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
+                >
+                  <option value="">No restriction</option>
+                  <option value="MALE">Male only</option>
+                  <option value="FEMALE">Female only</option>
+                </select>
               </div>
             </div>
           )}

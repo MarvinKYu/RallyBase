@@ -96,6 +96,7 @@ export async function updateEventAction(
     maxRating: (formData.get("maxRating") as string) || undefined,
     minAge: (formData.get("minAge") as string) || undefined,
     maxAge: (formData.get("maxAge") as string) || undefined,
+    allowedGender: (formData.get("allowedGender") as string) || undefined,
   };
 
   const result = await updateEvent(eventId, data, userId);
@@ -159,6 +160,7 @@ export async function createEventAction(
     maxRating: (formData.get("maxRating") as string) || undefined,
     minAge: (formData.get("minAge") as string) || undefined,
     maxAge: (formData.get("maxAge") as string) || undefined,
+    allowedGender: (formData.get("allowedGender") as string) || undefined,
   };
 
   const result = await createEvent(tournamentId, data);

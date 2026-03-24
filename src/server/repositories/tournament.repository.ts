@@ -1,4 +1,4 @@
-import { EventFormat, EventStatus, MatchFormat, TournamentStatus } from "@prisma/client";
+import { EventFormat, EventStatus, Gender, MatchFormat, TournamentStatus } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 
 // ── Organizations / Rating Categories ─────────────────────────────────────────
@@ -288,6 +288,7 @@ export async function createEvent(data: {
   maxRating?: number;
   minAge?: number;
   maxAge?: number;
+  allowedGender?: Gender | null;
   status?: EventStatus;
 }) {
   return prisma.event.create({ data });
@@ -305,6 +306,7 @@ export async function updateEventById(
     maxRating?: number | null;
     minAge?: number | null;
     maxAge?: number | null;
+    allowedGender?: Gender | null;
   },
 ) {
   return prisma.event.update({ where: { id }, data });

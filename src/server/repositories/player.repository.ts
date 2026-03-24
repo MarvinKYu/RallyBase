@@ -36,15 +36,24 @@ export async function createProfile(
   });
 }
 
+export async function updatePlayerProfile(
+  id: string,
+  data: { displayName: string; bio?: string | null; gender?: Gender | null; birthDate?: Date | null },
+) {
+  return prisma.playerProfile.update({ where: { id }, data });
+}
+
 export interface ProfileFilters {
   query?: string;
   organizationId?: string;
   ratingCategoryId?: string;
   gender?: Gender;
+  minAge?: number;
+  maxAge?: number;
 }
 
 export async function searchProfiles(filters: ProfileFilters) {
-  const { query, organizationId, ratingCategoryId, gender } = filters;
+  const { query, organizationId, ratingCategoryId, gender, minAge, maxAge } = filters;
 
   // Build where clause
   const where: Prisma.PlayerProfileWhereInput = {};
@@ -65,6 +74,22 @@ export async function searchProfiles(filters: ProfileFilters) {
   // Gender filter
   if (gender) {
     where.gender = gender;
+  }
+
+  // Age range filter (computed from birthDate)
+  if (minAge !== undefined || maxAge !== undefined) {
+    const today = new Date();
+    where.birthDate = {};
+    if (minAge !== undefined) {
+      // Must be at least minAge: born on or before today - minAge years
+      where.birthDate.lte = new Date(today.getFullYear() - minAge, today.getMonth(), today.getDate());
+    }
+    if (maxAge !== undefined) {
+      // Must be at most maxAge: born on or after today - (maxAge + 1) years + 1 day
+      const cutoff = new Date(today.getFullYear() - maxAge - 1, today.getMonth(), today.getDate());
+      cutoff.setDate(cutoff.getDate() + 1);
+      where.birthDate.gte = cutoff;
+    }
   }
 
   // Organization / rating category filter — match players who have a rating in that org/category

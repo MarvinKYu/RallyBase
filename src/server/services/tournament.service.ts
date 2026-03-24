@@ -1,4 +1,4 @@
-import { EventFormat, EventStatus, MatchFormat, Prisma, TournamentStatus } from "@prisma/client";
+import { EventFormat, EventStatus, Gender, MatchFormat, Prisma, TournamentStatus } from "@prisma/client";
 import {
   createTournamentSchema,
   createEventSchema,
@@ -232,6 +232,7 @@ export async function updateEvent(
     maxRating,
     minAge,
     maxAge,
+    allowedGender,
   } = parsed.data;
 
   try {
@@ -245,6 +246,7 @@ export async function updateEvent(
       maxRating: maxRating || null,
       minAge: minAge || null,
       maxAge: maxAge || null,
+      allowedGender: (allowedGender || null) as Gender | null,
     });
     const updated = await findEventById(eventId);
     return { event: updated! };
@@ -386,6 +388,7 @@ export async function createEvent(
     maxRating,
     minAge,
     maxAge,
+    allowedGender,
   } = parsed.data;
 
   const tournament = await findTournamentById(tournamentId);
@@ -407,6 +410,7 @@ export async function createEvent(
       maxRating: maxRating || undefined,
       minAge: minAge || undefined,
       maxAge: maxAge || undefined,
+      allowedGender: (allowedGender || null) as Gender | null,
       status: autoOpen ? EventStatus.REGISTRATION_OPEN : undefined,
     });
 
@@ -451,11 +455,13 @@ type EligibilityEvent = {
   maxRating?: number | null;
   minAge?: number | null;
   maxAge?: number | null;
+  allowedGender?: string | null;
   tournament: { startDate: Date };
 };
 
 type EligibilityPlayer = {
   birthDate?: Date | null;
+  gender?: string | null;
 };
 
 type EligibilityRating = {
@@ -530,6 +536,19 @@ export function checkEligibility(
         eligible: false,
         reason: `You must be ${event.maxAge} years old or younger for this event.`,
       };
+    }
+  }
+
+  if (event.allowedGender !== null && event.allowedGender !== undefined) {
+    if (!player.gender) {
+      return {
+        eligible: false,
+        reason: "This event has a gender restriction. Please add your gender to your profile.",
+      };
+    }
+    if (player.gender !== event.allowedGender) {
+      const label = event.allowedGender === "MALE" ? "male" : "female";
+      return { eligible: false, reason: `This event is ${label} only.` };
     }
   }
 

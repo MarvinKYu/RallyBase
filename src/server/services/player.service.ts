@@ -1,11 +1,12 @@
 import { currentUser } from "@clerk/nextjs/server";
 import { Gender, RoleName } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
-import { createProfileSchema } from "@/lib/schemas/player";
+import { createProfileSchema, updateProfileSchema } from "@/lib/schemas/player";
 import { upsertUserFromClerk } from "@/server/repositories/user.repository";
 import {
   findProfileByUserId,
   findProfileById,
+  updatePlayerProfile as dbUpdatePlayerProfile,
   searchProfiles,
   type ProfileFilters,
 } from "@/server/repositories/player.repository";
@@ -93,6 +94,38 @@ export async function getMyProfile() {
   return findProfileByUserId(dbUser.id);
 }
 
+export type UpdateProfileResult =
+  | { profile: NonNullable<Awaited<ReturnType<typeof findProfileById>>> }
+  | { error: string }
+  | { fieldErrors: Record<string, string[]> };
+
+export async function updatePlayerProfile(
+  profileId: string,
+  requestingClerkId: string,
+  data: unknown,
+): Promise<UpdateProfileResult> {
+  const profile = await findProfileById(profileId);
+  if (!profile) return { error: "Profile not found." };
+  if (profile.user.clerkId !== requestingClerkId) return { error: "Not authorized." };
+
+  const parsed = updateProfileSchema.safeParse(data);
+  if (!parsed.success) {
+    return { fieldErrors: parsed.error.flatten().fieldErrors as Record<string, string[]> };
+  }
+
+  const { displayName, bio, gender, birthDate } = parsed.data;
+
+  await dbUpdatePlayerProfile(profileId, {
+    displayName,
+    bio: bio || null,
+    gender: (gender || null) as Gender | null,
+    birthDate: birthDate ? new Date(birthDate) : null,
+  });
+
+  const updated = await findProfileById(profileId);
+  return { profile: updated! };
+}
+
 export async function getPlayerMatchHistory(playerProfileId: string) {
   return findCompletedMatchesByPlayerId(playerProfileId);
 }
@@ -112,7 +145,9 @@ export async function searchPlayers(
   const hasFilters =
     !!filters?.organizationId ||
     !!filters?.ratingCategoryId ||
-    !!filters?.gender;
+    !!filters?.gender ||
+    !!filters?.minAge ||
+    !!filters?.maxAge;
 
   if (!q && !hasFilters) return [];
   return searchProfiles({ query: q || undefined, ...filters });

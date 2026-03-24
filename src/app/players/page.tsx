@@ -13,6 +13,8 @@ type Props = {
     org?: string;
     discipline?: string;
     gender?: string;
+    minAge?: string;
+    maxAge?: string;
   }>;
 };
 
@@ -21,15 +23,19 @@ async function Results({
   organizationId,
   ratingCategoryId,
   gender,
+  minAge,
+  maxAge,
   displayRatingCategoryId,
 }: {
   query: string;
   organizationId?: string;
   ratingCategoryId?: string;
   gender?: string;
+  minAge?: number;
+  maxAge?: number;
   displayRatingCategoryId?: string;
 }) {
-  const hasFilter = !!organizationId || !!ratingCategoryId || !!gender;
+  const hasFilter = !!organizationId || !!ratingCategoryId || !!gender || !!minAge || !!maxAge;
 
   if (!query && !hasFilter) {
     return (
@@ -43,6 +49,8 @@ async function Results({
     organizationId: organizationId || undefined,
     ratingCategoryId: ratingCategoryId || undefined,
     gender: gender ? (gender as Gender) : undefined,
+    minAge,
+    maxAge,
   });
 
   if (players.length === 0) {
@@ -83,7 +91,7 @@ async function Results({
 }
 
 export default async function PlayersPage({ searchParams }: Props) {
-  const { q = "", org = "", discipline = "", gender = "" } = await searchParams;
+  const { q = "", org = "", discipline = "", gender = "", minAge = "", maxAge = "" } = await searchParams;
 
   const organizations = await getOrganizations();
   const ratingCategories = org ? await getRatingCategoriesForOrg(org) : [];
@@ -127,6 +135,8 @@ export default async function PlayersPage({ searchParams }: Props) {
             organizationId={org || undefined}
             ratingCategoryId={discipline || undefined}
             gender={gender || undefined}
+            minAge={minAge ? parseInt(minAge, 10) : undefined}
+            maxAge={maxAge ? parseInt(maxAge, 10) : undefined}
             displayRatingCategoryId={displayRatingCategoryId}
           />
         </Suspense>

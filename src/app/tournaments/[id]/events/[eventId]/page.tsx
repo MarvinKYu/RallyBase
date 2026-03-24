@@ -66,6 +66,8 @@ export default async function EventDetailPage({ params }: Props) {
   if (event.maxRating) eligibilityLines.push(`Max rating: ${Math.round(event.maxRating)}`);
   if (event.minAge) eligibilityLines.push(`Min age: ${event.minAge}`);
   if (event.maxAge) eligibilityLines.push(`Max age: ${event.maxAge}`);
+  if (event.allowedGender === "MALE") eligibilityLines.push("Male only");
+  if (event.allowedGender === "FEMALE") eligibilityLines.push("Female only");
 
   // Serialize all matches
   const allMatches: SerializedEventMatch[] = allMatchesRaw.map((m) => ({

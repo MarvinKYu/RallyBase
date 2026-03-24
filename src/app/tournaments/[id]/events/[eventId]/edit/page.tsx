@@ -51,6 +51,7 @@ export default async function EditEventPage({ params }: Props) {
           maxRating: event.maxRating,
           minAge: event.minAge,
           maxAge: event.maxAge,
+          allowedGender: event.allowedGender,
           ratingCategoryName: event.ratingCategory.name,
         }}
         submitLabel="Save changes"

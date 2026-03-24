@@ -173,6 +173,7 @@ model Event {
   maxRating        Float?
   minAge           Int?
   maxAge           Int?
+  allowedGender    Gender?
   createdAt        DateTime    @default(now())
 
   tournament     Tournament     @relation(fields: [tournamentId], references: [id], onDelete: Cascade)

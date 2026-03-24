@@ -1,7 +1,8 @@
 "use server";
 
 import { redirect } from "next/navigation";
-import { createPlayerProfile } from "@/server/services/player.service";
+import { auth } from "@clerk/nextjs/server";
+import { createPlayerProfile, updatePlayerProfile } from "@/server/services/player.service";
 
 export type ProfileActionState = {
   error?: string;
@@ -23,4 +24,28 @@ export async function createProfileAction(
   if ("error" in result) return { error: result.error };
 
   redirect(`/profile/${result.profile.id}`);
+}
+
+// profileId is pre-bound via .bind(null, profileId)
+export async function updateProfileAction(
+  profileId: string,
+  _prevState: ProfileActionState,
+  formData: FormData,
+): Promise<ProfileActionState> {
+  const { userId } = await auth();
+  if (!userId) return { error: "You must be signed in." };
+
+  const data = {
+    displayName: formData.get("displayName") as string,
+    bio: (formData.get("bio") as string) || undefined,
+    gender: (formData.get("gender") as string) || undefined,
+    birthDate: (formData.get("birthDate") as string) || undefined,
+  };
+
+  const result = await updatePlayerProfile(profileId, userId, data);
+
+  if ("fieldErrors" in result) return { fieldErrors: result.fieldErrors };
+  if ("error" in result) return { error: result.error };
+
+  redirect(`/profile/${profileId}`);
 }
