@@ -3,6 +3,12 @@
 import { useActionState } from "react";
 import { tdSubmitResultAction, type MatchActionState } from "@/server/actions/match.actions";
 
+interface GameScore {
+  gameNumber: number;
+  player1Points: number;
+  player2Points: number;
+}
+
 interface Props {
   matchId: string;
   tournamentId: string;
@@ -11,6 +17,7 @@ interface Props {
   maxGames: number;
   player1Name: string;
   player2Name: string;
+  initialScores?: GameScore[];
 }
 
 export function TdSubmitResultForm({
@@ -21,6 +28,7 @@ export function TdSubmitResultForm({
   maxGames,
   player1Name,
   player2Name,
+  initialScores,
 }: Props) {
   const boundAction = tdSubmitResultAction.bind(null, matchId, tournamentId, eventId, format);
   const [state, dispatch, isPending] = useActionState<MatchActionState, FormData>(
@@ -59,7 +67,7 @@ export function TdSubmitResultForm({
               type="number"
               min={0}
               name={`games.${i}.player1Points`}
-              defaultValue={0}
+              defaultValue={initialScores?.[i]?.player1Points ?? 0}
               className="w-full rounded-md border border-border bg-elevated px-3 py-1.5 text-sm text-text-1 placeholder:text-text-3 shadow-sm focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
               placeholder="0"
             />
@@ -67,7 +75,7 @@ export function TdSubmitResultForm({
               type="number"
               min={0}
               name={`games.${i}.player2Points`}
-              defaultValue={0}
+              defaultValue={initialScores?.[i]?.player2Points ?? 0}
               className="w-full rounded-md border border-border bg-elevated px-3 py-1.5 text-sm text-text-1 placeholder:text-text-3 shadow-sm focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
               placeholder="0"
             />

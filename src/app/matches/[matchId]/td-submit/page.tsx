@@ -35,6 +35,13 @@ export default async function TdSubmitResultPage({ params }: Props) {
   const player1Id = match.player1Id!;
   const player2Id = match.player2Id!;
 
+  const initialScores =
+    match.submissions[0]?.games.length
+      ? match.submissions[0].games
+      : match.matchGames.length
+        ? match.matchGames
+        : undefined;
+
   const defaultWinP1 = tdDefaultMatchAction.bind(null, matchId, tournamentId, eventId, player1Id);
   const defaultWinP2 = tdDefaultMatchAction.bind(null, matchId, tournamentId, eventId, player2Id);
 
@@ -68,6 +75,7 @@ export default async function TdSubmitResultPage({ params }: Props) {
         maxGames={maxGames}
         player1Name={match.player1?.displayName ?? "Player 1"}
         player2Name={match.player2?.displayName ?? "Player 2"}
+        initialScores={initialScores}
       />
 
       {/* Record by default */}

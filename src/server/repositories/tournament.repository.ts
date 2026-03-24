@@ -288,6 +288,7 @@ export async function createEvent(data: {
   maxRating?: number;
   minAge?: number;
   maxAge?: number;
+  status?: EventStatus;
 }) {
   return prisma.event.create({ data });
 }

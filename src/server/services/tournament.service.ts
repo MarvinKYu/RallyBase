@@ -388,6 +388,11 @@ export async function createEvent(
     maxAge,
   } = parsed.data;
 
+  const tournament = await findTournamentById(tournamentId);
+  const autoOpen =
+    tournament?.status === TournamentStatus.PUBLISHED ||
+    tournament?.status === TournamentStatus.IN_PROGRESS;
+
   try {
     const event = await dbCreateEvent({
       tournamentId,
@@ -402,6 +407,7 @@ export async function createEvent(
       maxRating: maxRating || undefined,
       minAge: minAge || undefined,
       maxAge: maxAge || undefined,
+      status: autoOpen ? EventStatus.REGISTRATION_OPEN : undefined,
     });
 
     const full = await findEventById(event.id);
