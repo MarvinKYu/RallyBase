@@ -40,6 +40,13 @@ export async function isAuthorizedAsTD(
   return false;
 }
 
+export async function getAllRatingCategories() {
+  return prisma.ratingCategory.findMany({
+    include: { organization: { select: { id: true, name: true } } },
+    orderBy: [{ organization: { name: "asc" } }, { name: "asc" }],
+  });
+}
+
 // ── Org admin management ───────────────────────────────────────────────────────
 
 export async function listOrgAdmins(organizationId: string) {
@@ -100,14 +107,20 @@ export async function adminSetPlayerRating(
   newRating: number,
   adminClerkId: string,
 ): Promise<{ success: true } | { error: string }> {
-  const existing = await prisma.playerRating.findUnique({
-    where: { playerProfileId_ratingCategoryId: { playerProfileId: profileId, ratingCategoryId } },
-    include: { ratingCategory: { select: { organizationId: true } } },
-  });
+  const [existing, ratingCategory] = await Promise.all([
+    prisma.playerRating.findUnique({
+      where: { playerProfileId_ratingCategoryId: { playerProfileId: profileId, ratingCategoryId } },
+    }),
+    prisma.ratingCategory.findUnique({
+      where: { id: ratingCategoryId },
+      select: { organizationId: true },
+    }),
+  ]);
+
+  if (!ratingCategory) return { error: "Rating category not found." };
 
   if (!(await isPlatformAdmin(adminClerkId))) {
-    if (!existing) return { error: "Rating record not found." };
-    if (!(await isOrgAdminForOrg(adminClerkId, existing.ratingCategory.organizationId))) {
+    if (!(await isOrgAdminForOrg(adminClerkId, ratingCategory.organizationId))) {
       return { error: "Not authorized." };
     }
   }
