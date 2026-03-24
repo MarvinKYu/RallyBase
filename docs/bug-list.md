@@ -12,6 +12,14 @@
 
 # Fixed
 
+## Version 0.9.8
+
+### New event on published tournament defaulted to DRAFT
+- Events created after a tournament is PUBLISHED or IN_PROGRESS now automatically get status `REGISTRATION_OPEN`.
+
+### TD score entry form showed all zeros regardless of existing scores
+- TD score entry form now pre-populates from pending submission games (AWAITING_CONFIRMATION) or saved in-progress match games (IN_PROGRESS).
+
 ## Version 0.9.7
 
 ### Rating chart: multiple matches per day caused multiple data points

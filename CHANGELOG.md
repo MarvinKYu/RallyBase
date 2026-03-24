@@ -10,6 +10,26 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 ---
 
+## [0.9.8] - 2026-03-24
+
+### Fixed
+- **New event on published tournament** — events created after a tournament is PUBLISHED or IN_PROGRESS now automatically get status `REGISTRATION_OPEN` instead of `DRAFT`.
+- **TD score entry pre-fill** — TD score entry form now pre-populates with any existing pending submission scores (AWAITING_CONFIRMATION) or saved in-progress scores (IN_PROGRESS), so TDs don't have to re-enter what a player already submitted.
+
+---
+
+## [0.9.7] - 2026-03-20
+
+### Fixed
+- **Rating chart** — multiple matches on the same day now collapsed into one chart point (end-of-day rating; tooltip shows net daily delta).
+- **Edit event redirect** — `updateEventAction` now redirects to the manage tournament page instead of the event detail page.
+- **Delete tournament button** — `DeleteTournamentButton` added to the manage tournament page header.
+- **Delete tournament redirect** — `deleteTournamentAction` now redirects to `/tournament-directors` on success.
+- **Date filter UTC fix** — tournament date filters now use `setUTCHours(0, 0, 0, 0)` to correctly compare against UTC-stored dates across all three filter pages.
+- **End date auto-fill** — `TournamentForm` now auto-populates `endDate` with the chosen `startDate` when `endDate` is empty.
+
+---
+
 ## [0.9.6] - 2026-03-19
 
 ### Changed

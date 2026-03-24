@@ -1,10 +1,13 @@
 # Planned features shortlist
 - TODO: Analyze and decide where to place into existing feature roadmap.
 
-## Rating chart should have 1 point on the chart per day
-- Use the player's rating at the end of that day, instead of one point on the chart per match
+## Platform admin and org admin roles + dashboards + permissions
+- Platform admin at highest level (should just be me) and can access all tournaments/matches across the site, and can edit any details about any player profile
+- Org admin has administrator access to all tournaments/matches within their scoped org, can modify ratings within their org as well
 
-## Update new player default rating: 1000
+## Birth year code for verification in case of only one phone 
+
+## Update new player default rating: Unrated
 
 ## Way to toggle "keep me signed in" for Clerk?
 - Investigate
@@ -22,8 +25,6 @@
 - Essentially a RR but with different group forming logic: given groups of size N, top N rated players are in group 1, then next N are in group 2, etc. 
 - Subfeature idea: previous week group N winner advances to group N-1. 
 - Subfeature idea: "league season" that can be signed up for in bulk
-
-## Platform admin and org admin roles + dashboards + permissions
 
 ## Develop custom algorithm for rating in separate org (RB rating)
 - Factor in age of player/number of years active
@@ -43,3 +44,5 @@
 ## UI/UX upgrade with https://github.com/nextlevelbuilder/ui-ux-pro-max-skill
 
 ## NotebookLM integration for creating visuals to explain the app
+
+## Security check for all user input
