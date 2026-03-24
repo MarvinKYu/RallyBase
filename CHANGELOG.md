@@ -10,6 +10,13 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 ---
 
+## [0.11.1] - 2026-03-24
+
+### Fixed
+- **Admin rating editor works for unrated players** — `adminSetPlayerRating` now looks up the `RatingCategory` directly for org-admin authorization instead of blocking when no `PlayerRating` row exists yet. Admin player detail page now shows all rating categories (not just ones with existing ratings), so admins can assign initial ratings to new players.
+
+---
+
 ## [0.11.0] - 2026-03-24
 
 ### Added
