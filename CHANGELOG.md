@@ -10,6 +10,25 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 ---
 
+## [0.11.0] - 2026-03-24
+
+### Added
+- **Platform Admin role** — single platform admin (assigned to test_user_1 via DB) can manage all tournaments, events, matches, and player profiles across the site.
+- **Org Admin role** — platform admin can assign org admins per organization via `/admin`. Org admins have TD-level access for all tournaments in their org.
+- **`OrgAdmin` table** — new schema model for scoped org admin assignments `(userId, organizationId)`.
+- **`isAuthorizedAsTD` helper** — shared auth check: tournament creator OR platform admin OR org admin for that tournament's org. Applied to all TD-gated actions and services.
+- **Admin nav link** — "Admin" link appears in the header for platform/org admin users.
+- **`/admin` dashboard** — org admin management: assign by player number, remove. Quick links to player and tournament management.
+- **`/admin/players`** — player search with links to individual player pages.
+- **`/admin/players/[profileId]`** — per-player rating editor: set absolute rating value, creates a `RatingTransaction` record.
+- **`/admin/tournaments`** — full tournament list (all statuses including drafts) with links to existing manage pages.
+
+### Changed
+- **Profile edit bypass** — platform admin can edit any player's profile (not just their own).
+- **Draft guard bypass** — platform/org admins can view draft tournaments.
+
+---
+
 ## [0.10.1] - 2026-03-24
 
 ### Changed

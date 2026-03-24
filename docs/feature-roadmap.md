@@ -1,20 +1,5 @@
 # Planned Features Roadmap
 
-## v0.11.0 — Platform Admin & Org Admin
-
-### Platform Admin role
-- Single platform admin (app owner) can view and edit all tournaments, matches, and player profiles across the site.
-- Platform admin dashboard with access to all org data.
-
-### Org Admin role
-- Org admin has administrator access to all tournaments/matches within their scoped org.
-- Org admin can modify ratings within their org.
-
-### DB backfill via admin UI
-- Use platform admin to backfill gender/DOB for demo seed users (deferred from v0.10.0).
-
----
-
 ## v0.12.0 — Player Search Overhaul
 
 ### Paginated results

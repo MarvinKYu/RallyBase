@@ -1,11 +1,7 @@
 # Planned features shortlist
 - TODO: Analyze and decide where to place into existing feature roadmap.
 
-## Platform admin and org admin roles + dashboards + permissions
-- Platform admin at highest level (should just be me) and can access all tournaments/matches across the site, and can edit any details about any player profile
-- Org admin has administrator access to all tournaments/matches within their scoped org, can modify ratings within their org as well
-
-## Birth year code for verification in case of only one phone 
+## Birth year code for verification in case of only one phone
 
 ## Update new player default rating: Unrated
 
