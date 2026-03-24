@@ -10,6 +10,19 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 ---
 
+## [0.10.0] - 2026-03-24
+
+### Added
+- **Profile edit page** (`/profile/[id]/edit`) — players can edit display name, bio, gender, and date of birth. "Edit profile" link shown on own profile page.
+- **Gender and age on public profile** — profile header shows gender label and computed age (from DOB) in the top-right of the left column when set.
+- **Event gender restriction** — TDs can restrict events to Male only or Female only via a new "Gender restriction" dropdown in the EventForm eligibility section. Restriction shows on the public event detail page and is enforced by `checkEligibility`.
+- **Age range filter in player search** — two number inputs (Min age / Max age) added to the player search filter row; filters by computed current age.
+
+### Changed
+- **Revised roadmap** — Platform Admin & Org Admin (formerly a later item) moved up to v0.11.0; Player Search Overhaul shifts to v0.12.0.
+
+---
+
 ## [0.9.8] - 2026-03-24
 
 ### Fixed

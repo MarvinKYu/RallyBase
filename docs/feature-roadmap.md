@@ -1,25 +1,21 @@
 # Planned Features Roadmap
 
-## v0.10.0 — Player Profile: Gender & Age
+## v0.11.0 — Platform Admin & Org Admin
 
-### Schema additions
-- Add optional `gender` and `dateOfBirth` fields to `player_profiles`.
+### Platform Admin role
+- Single platform admin (app owner) can view and edit all tournaments, matches, and player profiles across the site.
+- Platform admin dashboard with access to all org data.
 
-### Player search filters
-- Filter player search by gender and/or age range.
+### Org Admin role
+- Org admin has administrator access to all tournaments/matches within their scoped org.
+- Org admin can modify ratings within their org.
 
-### Event eligibility restrictions
-- Event creation: TD can restrict by gender and/or age range (min/max age).
-- `checkEligibility()` enforces these restrictions on self-signup.
-
-### Current DB backfill
-- Backfill test gender and age data for 8 seeded demo users in DB (match gender to name)
-- For testuser_1 and testuser_2, set gender = Male and age = 23
-- For testuser_boo, set gender = Female and age = 24
+### DB backfill via admin UI
+- Use platform admin to backfill gender/DOB for demo seed users (deferred from v0.10.0).
 
 ---
 
-## v0.11.0 — Player Search Overhaul
+## v0.12.0 — Player Search Overhaul
 
 ### Paginated results
 - Default view: all players shown 10 at a time, navigable with previous/next arrows.
@@ -31,7 +27,7 @@
 
 ---
 
-## v0.12.0 — Tournament Templates
+## v0.13.0 — Tournament Templates
 
 ### Save tournament as template
 - TDs can save a tournament's settings as a reusable template (tournament settings + full events list with per-event settings).
@@ -42,7 +38,7 @@
 
 ---
 
-## v0.13.0 — RR Group Draws
+## v0.14.0 — RR Group Draws
 
 ### Specify group size for RR events
 - TDs can set a group size when configuring a round-robin event.
@@ -53,7 +49,7 @@
 
 ---
 
-## v0.14.0 — RR → SE Hybrid Event Type
+## v0.15.0 — RR → SE Hybrid Event Type
 
 ### New event format: Round Robin into Single Elimination
 - TD selects number of advancers per group; advancers are seeded into the SE bracket by group result then rating.
@@ -81,6 +77,5 @@ Final polish and infrastructure pass before opening to the public.
 
 ## Dependency Notes
 
-- v0.8.0 should ship before any new feature work — open bugs affect existing TD workflows.
-- v0.13.0 (RR Group Draws) is a prerequisite for v0.14.0 (RR → SE hybrid): group draw logic is reused in the RR stage of the hybrid format.
+- v0.14.0 (RR Group Draws) is a prerequisite for v0.15.0 (RR → SE hybrid): group draw logic is reused in the RR stage of the hybrid format.
 - v1.0.0 cron auto-start depends on Vercel Pro plan — can be deferred within the v1.0.0 scope if not yet available, with the rest of v1.0.0 shipping independently.

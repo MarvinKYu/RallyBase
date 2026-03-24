@@ -21,11 +21,11 @@ Do this automatically for every shipped change — no need to ask.
 
 ## Project Status
 
-**Current version: v0.9.6.** The app is live on Vercel at https://rally-base.vercel.app. Next target is v0.10.0 (Player Profile: Gender & Age).
+**Current version: v0.10.0.** The app is live on Vercel at https://rally-base.vercel.app. Next target is v0.11.0 (Platform Admin & Org Admin).
 
 ### Upcoming
-- v0.10.0 — Player Profile: Gender & Age
-- v0.11.0 — Player Search Overhaul (pagination, sort controls)
+- v0.11.0 — Platform Admin & Org Admin roles
+- v0.12.0 — Player Search Overhaul (pagination, sort controls)
 
 ## Tech Stack
 
