@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import Link from "next/link";
 import { auth } from "@clerk/nextjs/server";
 import {
@@ -7,11 +8,24 @@ import {
 } from "@/server/services/tournament.service";
 import { getMyProfile } from "@/server/services/player.service";
 import MyTournamentsPreview from "@/components/players/MyTournamentsPreview";
-import TournamentSearchBar from "@/components/tournaments/TournamentSearchBar";
+import { TournamentSearchForm } from "@/components/tournaments/TournamentSearchForm";
+import { TournamentPagination } from "@/components/tournaments/TournamentPagination";
+import { filterTournaments, paginateItems } from "@/lib/tournament-search";
 
 export const metadata = { title: "Tournaments — RallyBase" };
 
 type Tournament = Awaited<ReturnType<typeof getPublicTournaments>>[number];
+
+type Props = {
+  searchParams: Promise<{
+    q?: string;
+    org?: string;
+    loc?: string;
+    after?: string;
+    before?: string;
+    page?: string;
+  }>;
+};
 
 function TournamentPreviewList({
   tournaments,
@@ -69,7 +83,8 @@ function TournamentPreviewList({
   );
 }
 
-export default async function TournamentsPage() {
+export default async function TournamentsPage({ searchParams }: Props) {
+  const { q = "", org = "", loc = "", after = "", before = "", page = "1" } = await searchParams;
   const { userId } = await auth();
 
   const [publicTournaments, organizations, profile] = await Promise.all([
@@ -91,13 +106,20 @@ export default async function TournamentsPage() {
     (t) => new Date(t.startDate) < today || t.status === "COMPLETED",
   );
 
+  // Right column: all public tournaments, filtered + paginated
+  const filtered = filterTournaments(publicTournaments, { q, org, loc, after, before });
+  const { items, total, totalPages, page: currentPage } = paginateItems(
+    filtered,
+    parseInt(page, 10),
+    10,
+  );
+
   return (
     <main className="mx-auto max-w-7xl px-4 py-12">
       <div className="grid grid-cols-1 gap-10 lg:grid-cols-[420px_1fr]">
 
-        {/* Left column */}
+        {/* Left column: header + my tournaments + upcoming/past previews */}
         <div className="space-y-8">
-          {/* Header */}
           <div className="flex items-start justify-between gap-4">
             <div>
               <h1 className="text-2xl font-semibold text-text-1">Tournaments</h1>
@@ -113,23 +135,10 @@ export default async function TournamentsPage() {
             )}
           </div>
 
-          {/* My Tournaments preview (logged-in players) */}
           {profile && (
             <MyTournamentsPreview tournaments={myTournamentHistory} profileId={profile.id} />
           )}
 
-          {/* Tournament search */}
-          <section>
-            <h2 className="mb-3 text-lg font-medium text-text-1">Search</h2>
-            <TournamentSearchBar
-              tournaments={publicTournaments}
-              organizations={organizations}
-            />
-          </section>
-        </div>
-
-        {/* Right column */}
-        <div className="space-y-8">
           <section>
             <div className="mb-3 flex items-center justify-between">
               <h2 className="text-lg font-medium text-text-1">Upcoming</h2>
@@ -163,6 +172,56 @@ export default async function TournamentsPage() {
               />
             </section>
           )}
+        </div>
+
+        {/* Right column: search + paginated all-tournaments */}
+        <div className="space-y-6">
+          <section className="space-y-4">
+            <h2 className="text-lg font-medium text-text-1">Search</h2>
+            <Suspense>
+              <TournamentSearchForm organizations={organizations} />
+            </Suspense>
+          </section>
+
+          <div className="space-y-4">
+            {items.length === 0 ? (
+              <p className="text-sm text-text-2">No tournaments found.</p>
+            ) : (
+              <ul className="overflow-hidden rounded-lg border border-border">
+                {items.map((t) => (
+                  <li key={t.id}>
+                    <Link
+                      href={`/tournaments/${t.id}`}
+                      className="flex items-center justify-between border-b border-border-subtle bg-surface px-4 py-3 transition-colors last:border-b-0 hover:bg-surface-hover"
+                    >
+                      <div className="min-w-0">
+                        <p className="text-sm font-medium text-text-1">{t.name}</p>
+                        <p className="text-xs text-text-3">
+                          {t.organization.name}
+                          {t.location ? ` · ${t.location}` : ""}
+                        </p>
+                      </div>
+                      <div className="ml-3 shrink-0 text-right">
+                        <p className="text-xs text-text-2">
+                          {new Date(t.startDate).toLocaleDateString()}
+                        </p>
+                        <p className="text-xs text-text-3">
+                          {t.events.length} event{t.events.length !== 1 ? "s" : ""}
+                        </p>
+                      </div>
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            )}
+            <Suspense>
+              <TournamentPagination
+                page={currentPage}
+                totalPages={totalPages}
+                total={total}
+              />
+            </Suspense>
+          </div>
         </div>
 
       </div>
