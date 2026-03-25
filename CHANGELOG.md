@@ -10,6 +10,15 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 ---
 
+## [0.11.2] - 2026-03-25
+
+### Fixed
+- **Add Rating form on admin player page** — `/admin/players/[profileId]` now shows only cards for existing rated scopes (no more "Unrated" placeholders). A new "Add Rating" row at the bottom expands inline to a form with org and discipline dropdowns and an initial rating field. Disabled (grayed) when all managed scopes are already rated. Server rejects the add action if a rating already exists for the selected scope.
+- **Admin rating card layout** — existing rating cards now use a two-column layout: org + discipline name + current rating on the left; "Set Rating" label + input + Set button on the right.
+- **Org admin scoping** — org admins see all rating categories on the page but can only add ratings for their own org (org dropdown is locked to their org in the Add Rating form).
+
+---
+
 ## [0.11.1] - 2026-03-24
 
 ### Fixed
