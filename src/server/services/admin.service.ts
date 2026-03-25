@@ -30,6 +30,21 @@ export async function isAdminUser(clerkId: string): Promise<boolean> {
   return count > 0;
 }
 
+/**
+ * Returns null for platform admins (meaning: all orgs), or an array of
+ * organization IDs this user manages as an org admin.
+ */
+export async function getAdminManagedOrgIds(clerkId: string): Promise<string[] | null> {
+  if (await isPlatformAdmin(clerkId)) return null;
+  const user = await findUserByClerkId(clerkId);
+  if (!user) return [];
+  const rows = await prisma.orgAdmin.findMany({
+    where: { userId: user.id },
+    select: { organizationId: true },
+  });
+  return rows.map((r) => r.organizationId);
+}
+
 export async function isAuthorizedAsTD(
   clerkId: string,
   tournament: { createdByClerkId: string | null; organizationId: string },
@@ -100,6 +115,51 @@ export async function removeOrgAdmin(orgAdminId: string) {
 }
 
 // ── Rating admin ───────────────────────────────────────────────────────────────
+
+export async function adminAddInitialRating(
+  profileId: string,
+  ratingCategoryId: string,
+  initialRating: number,
+  adminClerkId: string,
+): Promise<{ success: true } | { error: string }> {
+  const [existing, ratingCategory] = await Promise.all([
+    prisma.playerRating.findUnique({
+      where: { playerProfileId_ratingCategoryId: { playerProfileId: profileId, ratingCategoryId } },
+      select: { id: true },
+    }),
+    prisma.ratingCategory.findUnique({
+      where: { id: ratingCategoryId },
+      select: { organizationId: true },
+    }),
+  ]);
+
+  if (!ratingCategory) return { error: "Rating category not found." };
+  if (existing) return { error: "A rating already exists for this scope. Use the edit form to update it." };
+
+  if (!(await isPlatformAdmin(adminClerkId))) {
+    if (!(await isOrgAdminForOrg(adminClerkId, ratingCategory.organizationId))) {
+      return { error: "Not authorized." };
+    }
+  }
+
+  await prisma.$transaction([
+    prisma.playerRating.create({
+      data: { playerProfileId: profileId, ratingCategoryId, rating: initialRating },
+    }),
+    prisma.ratingTransaction.create({
+      data: {
+        playerProfileId: profileId,
+        ratingCategoryId,
+        matchId: null,
+        ratingBefore: 1500,
+        ratingAfter: initialRating,
+        delta: initialRating - 1500,
+      },
+    }),
+  ]);
+
+  return { success: true };
+}
 
 export async function adminSetPlayerRating(
   profileId: string,

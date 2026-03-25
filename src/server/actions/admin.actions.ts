@@ -8,6 +8,7 @@ import {
   assignOrgAdmin,
   removeOrgAdmin,
   adminSetPlayerRating,
+  adminAddInitialRating,
 } from "@/server/services/admin.service";
 
 export type AdminActionState = { error?: string; success?: boolean } | null;
@@ -27,6 +28,28 @@ export async function adminSetRatingAction(
   if (isNaN(newRating) || newRating < 0) return { error: "Invalid rating value." };
 
   const result = await adminSetPlayerRating(profileId, ratingCategoryId, newRating, userId);
+  if ("error" in result) return { error: result.error };
+
+  redirect(`/admin/players/${profileId}`);
+}
+
+// profileId is pre-bound via .bind()
+export async function adminAddInitialRatingAction(
+  profileId: string,
+  _prevState: AdminActionState,
+  formData: FormData,
+): Promise<AdminActionState> {
+  const { userId } = await auth();
+  if (!userId) return { error: "Not authenticated." };
+
+  const ratingCategoryId = formData.get("ratingCategoryId") as string;
+  const newRatingStr = formData.get("rating") as string;
+  const newRating = parseFloat(newRatingStr);
+
+  if (!ratingCategoryId) return { error: "Select a discipline." };
+  if (isNaN(newRating) || newRating < 0) return { error: "Invalid rating value." };
+
+  const result = await adminAddInitialRating(profileId, ratingCategoryId, Math.round(newRating), userId);
   if ("error" in result) return { error: result.error };
 
   redirect(`/admin/players/${profileId}`);

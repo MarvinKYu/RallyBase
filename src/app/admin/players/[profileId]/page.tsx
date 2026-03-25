@@ -1,10 +1,15 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { auth } from "@clerk/nextjs/server";
-import { isAdminUser, getAllRatingCategories } from "@/server/services/admin.service";
+import {
+  isAdminUser,
+  getAllRatingCategories,
+  getAdminManagedOrgIds,
+} from "@/server/services/admin.service";
 import { getPlayerProfile } from "@/server/services/player.service";
 import { AdminRatingForm } from "@/components/admin/AdminRatingForm";
-import { adminSetRatingAction } from "@/server/actions/admin.actions";
+import { AdminAddRatingForm } from "@/components/admin/AdminAddRatingForm";
+import { adminSetRatingAction, adminAddInitialRatingAction } from "@/server/actions/admin.actions";
 
 type Props = { params: Promise<{ profileId: string }> };
 
@@ -19,13 +24,24 @@ export default async function AdminPlayerDetailPage({ params }: Props) {
   if (!userId || !(await isAdminUser(userId))) notFound();
 
   const { profileId } = await params;
-  const [profile, allCategories] = await Promise.all([
+  const [profile, allCategories, managedOrgIds] = await Promise.all([
     getPlayerProfile(profileId),
     getAllRatingCategories(),
+    getAdminManagedOrgIds(userId),
   ]);
   if (!profile) notFound();
 
-  const ratingByCategory = new Map(profile.playerRatings.map((r) => [r.ratingCategoryId, r]));
+  const ratedCategoryIds = new Set(profile.playerRatings.map((r) => r.ratingCategoryId));
+
+  const availableCategories = allCategories
+    .filter((cat) => !ratedCategoryIds.has(cat.id))
+    .filter((cat) => managedOrgIds === null || managedOrgIds.includes(cat.organizationId))
+    .map((cat) => ({
+      id: cat.id,
+      orgId: cat.organization.id,
+      orgName: cat.organization.name,
+      disciplineName: cat.name,
+    }));
 
   return (
     <main className="mx-auto max-w-2xl px-4 py-12">
@@ -55,31 +71,25 @@ export default async function AdminPlayerDetailPage({ params }: Props) {
           <h2 className="text-base font-medium text-text-1">Ratings</h2>
 
           <div className="space-y-4">
-            {allCategories.map((cat) => {
-              const existing = ratingByCategory.get(cat.id);
-              return (
-                <div key={cat.id} className="rounded-lg border border-border bg-elevated p-4 space-y-3">
-                  <div>
-                    <p className="text-sm font-medium text-text-1">{cat.name}</p>
-                    <p className="text-xs text-text-3">{cat.organization.name}</p>
-                  </div>
-                  {existing ? (
-                    <>
-                      <p className="text-2xl font-semibold text-text-1">{Math.round(existing.rating)}</p>
-                      <p className="text-xs text-text-3">{existing.gamesPlayed} games played</p>
-                    </>
-                  ) : (
-                    <p className="text-sm text-text-3">Unrated</p>
-                  )}
-                  <AdminRatingForm
-                    profileId={profile.id}
-                    ratingCategoryId={cat.id}
-                    currentRating={existing?.rating ?? 1500}
-                    action={adminSetRatingAction.bind(null, profile.id, cat.id)}
-                  />
-                </div>
-              );
-            })}
+            {profile.playerRatings.map((rating) => (
+              <div key={rating.id} className="rounded-lg border border-border bg-elevated p-4">
+                <AdminRatingForm
+                  profileId={profile.id}
+                  ratingCategoryId={rating.ratingCategoryId}
+                  orgName={rating.ratingCategory.organization.name}
+                  categoryName={rating.ratingCategory.name}
+                  currentRating={rating.rating}
+                  gamesPlayed={rating.gamesPlayed}
+                  action={adminSetRatingAction.bind(null, profile.id, rating.ratingCategoryId)}
+                />
+              </div>
+            ))}
+
+            <AdminAddRatingForm
+              profileId={profile.id}
+              availableCategories={availableCategories}
+              action={adminAddInitialRatingAction.bind(null, profile.id)}
+            />
           </div>
         </section>
       </div>
