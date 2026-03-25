@@ -10,6 +10,23 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 ---
 
+## [0.12.2] - 2026-03-25
+
+### Added
+- **Tournament search and pagination** — all tournament listing pages now use URL-param-based search (name, org, location, date range) and paginate at 10 results per page, sorted newest first.
+- **New `TournamentSearchForm` component** — reusable URL-param filter inputs (same pattern as `PlayerSearchForm`). Accepts `pageParams` prop to reset multiple column pages simultaneously.
+- **New `TournamentPagination` component** — reusable Prev/Next pagination with configurable `pageParam` for multi-column layouts.
+- **`filterTournaments` + `paginateItems` utilities** — shared helpers in `src/lib/tournament-search.ts`.
+
+### Changed
+- **`/tournaments`** — Search section moves to right column (shows all public tournaments, paginated); Upcoming and Past preview lists move to left column.
+- **`/tournaments/past` + `/tournaments/upcoming`** — redesigned as 2-column layout (1:2 ratio): left = title + search + filters; right = paginated results.
+- **`/profile/[id]/tournaments`** — redesigned with top-row title + shared search form, and a 3-column body (Ongoing / Upcoming / Past), each paginated at 5 with independent page params.
+- **`/tournament-directors/completed`** — redesigned to match `/tournaments/past` format.
+- **`/admin/tournaments`** — redesigned to match `/tournaments/past` format; creator name fetch now scoped to visible page items only.
+
+---
+
 ## [0.12.1] - 2026-03-25
 
 ### Fixed
