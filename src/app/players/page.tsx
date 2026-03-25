@@ -122,10 +122,7 @@ export default async function PlayersPage({ searchParams }: Props) {
                     href={`/profile/${p.id}`}
                     className="flex items-center justify-between border-b border-border-subtle bg-surface px-4 py-3 transition-colors last:border-b-0 hover:bg-surface-hover"
                   >
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs text-text-3">#{p.playerNumber}</span>
-                      <span className="text-sm font-medium text-text-1">{p.displayName}</span>
-                    </div>
+                    <span className="text-sm font-medium text-text-1">{p.displayName}</span>
                     <span className="text-xs text-text-3">
                       {rating ? Math.round(rating.rating) : "Unrated"}
                     </span>
