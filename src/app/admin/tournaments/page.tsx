@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { auth } from "@clerk/nextjs/server";
-import { isAdminUser } from "@/server/services/admin.service";
+import { isAdminUser, getTournamentCreatorNames } from "@/server/services/admin.service";
 import { getTournaments } from "@/server/services/tournament.service";
 
 export const metadata = { title: "All Tournaments — RallyBase Admin" };
@@ -18,6 +18,8 @@ export default async function AdminTournamentsPage() {
   if (!userId || !(await isAdminUser(userId))) notFound();
 
   const tournaments = await getTournaments();
+  const creatorClerkIds = [...new Set(tournaments.map((t) => t.createdByClerkId).filter(Boolean) as string[])];
+  const creatorNames = await getTournamentCreatorNames(creatorClerkIds);
 
   return (
     <main className="mx-auto max-w-2xl px-4 py-12">
@@ -39,7 +41,7 @@ export default async function AdminTournamentsPage() {
             {tournaments.map((t) => (
               <li key={t.id} className="border-b border-border-subtle last:border-b-0">
                 <Link
-                  href={`/tournaments/${t.id}/manage`}
+                  href={`/tournaments/${t.id}/manage?from=admin`}
                   className="flex items-center justify-between bg-surface px-4 py-3 transition-colors hover:bg-surface-hover"
                 >
                   <div className="min-w-0">
@@ -47,6 +49,11 @@ export default async function AdminTournamentsPage() {
                     <p className="text-xs text-text-3">
                       {t.organization.name} · {new Date(t.startDate).toLocaleDateString()}
                     </p>
+                    {t.createdByClerkId && creatorNames.get(t.createdByClerkId) && (
+                      <p className="text-xs text-text-3">
+                        TD: {creatorNames.get(t.createdByClerkId)}
+                      </p>
+                    )}
                   </div>
                   <div className="ml-3 flex shrink-0 items-center gap-2">
                     <span className="text-xs text-text-3">

@@ -9,7 +9,7 @@ import { AdvanceTournamentStatusButton } from "@/components/tournaments/AdvanceT
 import { AdvanceEventStatusButton } from "@/components/tournaments/AdvanceEventStatusButton";
 import { DeleteTournamentButton } from "@/components/tournaments/DeleteTournamentButton";
 
-type Props = { params: Promise<{ id: string }> };
+type Props = { params: Promise<{ id: string }>; searchParams: Promise<{ from?: string }> };
 
 export async function generateMetadata({ params }: Props) {
   const { id } = await params;
@@ -66,8 +66,9 @@ function StatusBadge({ status }: { status: string }) {
   );
 }
 
-export default async function ManageTournamentPage({ params }: Props) {
+export default async function ManageTournamentPage({ params, searchParams }: Props) {
   const { id } = await params;
+  const { from } = await searchParams;
   const { userId } = await auth();
   if (!userId) redirect("/sign-in");
 
@@ -222,12 +223,21 @@ export default async function ManageTournamentPage({ params }: Props) {
           )}
         </section>
 
-        <Link
-          href="/tournament-directors"
-          className="text-sm text-text-2 transition-colors hover:text-text-1"
-        >
-          ← Back to Tournament Directors
-        </Link>
+        {from === "admin" ? (
+          <Link
+            href="/admin/tournaments"
+            className="text-sm text-text-2 transition-colors hover:text-text-1"
+          >
+            ← Admin Tournaments
+          </Link>
+        ) : (
+          <Link
+            href="/tournament-directors"
+            className="text-sm text-text-2 transition-colors hover:text-text-1"
+          >
+            ← Back to Tournament Directors
+          </Link>
+        )}
       </div>
     </main>
   );

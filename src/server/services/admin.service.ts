@@ -62,6 +62,15 @@ export async function getAllRatingCategories() {
   });
 }
 
+export async function getTournamentCreatorNames(clerkIds: string[]): Promise<Map<string, string>> {
+  if (clerkIds.length === 0) return new Map();
+  const users = await prisma.user.findMany({
+    where: { clerkId: { in: clerkIds } },
+    select: { clerkId: true, playerProfile: { select: { displayName: true } } },
+  });
+  return new Map(users.map((u) => [u.clerkId, u.playerProfile?.displayName ?? "Unknown"]));
+}
+
 // ── Org admin management ───────────────────────────────────────────────────────
 
 export async function listOrgAdmins(organizationId: string) {
