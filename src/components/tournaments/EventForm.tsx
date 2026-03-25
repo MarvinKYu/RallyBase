@@ -13,6 +13,7 @@ type EventDefaultValues = {
   name?: string;
   format?: string;
   eventFormat?: string;
+  groupSize?: number | null;
   gamePointTarget?: number;
   startTime?: string;
   maxParticipants?: number | null;
@@ -53,6 +54,10 @@ export function EventForm({
       defaultValues?.maxAge ||
       defaultValues?.allowedGender
     ),
+  );
+  // Track selected event format so groupSize field shows/hides reactively in create mode
+  const [selectedEventFormat, setSelectedEventFormat] = useState(
+    defaultValues?.eventFormat ?? "SINGLE_ELIMINATION",
   );
 
   const isEditMode = !!defaultValues;
@@ -133,11 +138,39 @@ export function EventForm({
             id="eventFormat"
             name="eventFormat"
             defaultValue="SINGLE_ELIMINATION"
+            onChange={(e) => setSelectedEventFormat(e.target.value)}
             className="w-full rounded-md border border-border bg-elevated px-3 py-2 text-sm text-text-1 shadow-sm focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
           >
             <option value="SINGLE_ELIMINATION">Single Elimination</option>
             <option value="ROUND_ROBIN">Round Robin</option>
           </select>
+        </div>
+      )}
+
+      {/* Group size — only for Round Robin events */}
+      {(selectedEventFormat === "ROUND_ROBIN" || defaultValues?.eventFormat === "ROUND_ROBIN") && (
+        <div className="space-y-1">
+          <label htmlFor="groupSize" className="block text-sm font-medium text-text-2">
+            Group size <span className="font-normal text-text-3">(optional)</span>
+          </label>
+          <select
+            id="groupSize"
+            name="groupSize"
+            defaultValue={String(defaultValues?.groupSize ?? "")}
+            className="w-full rounded-md border border-border bg-elevated px-3 py-2 text-sm text-text-1 shadow-sm focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
+          >
+            <option value="">Single group (up to 6 players)</option>
+            <option value="3">3 players per group</option>
+            <option value="4">4 players per group</option>
+            <option value="5">5 players per group</option>
+            <option value="6">6 players per group</option>
+          </select>
+          <p className="text-xs text-text-3">
+            Players are distributed into groups by rating using snake seeding.
+          </p>
+          {state?.fieldErrors?.groupSize && (
+            <p className="text-sm text-red-400">{state.fieldErrors.groupSize[0]}</p>
+          )}
         </div>
       )}
 

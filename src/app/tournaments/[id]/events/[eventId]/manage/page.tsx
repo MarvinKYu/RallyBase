@@ -53,7 +53,7 @@ export default async function ManageEventPage({ params }: Props) {
 
   const isRoundRobin = event.eventFormat === "ROUND_ROBIN";
   const podium = event.status === "COMPLETED"
-    ? await getEventPodium(eventId, event.eventFormat)
+    ? await getEventPodium(eventId, event.eventFormat, event.groupSize)
     : null;
   const totalMatches = event.matches.length;
   const completedMatches = event.matches.filter((m) => m.status === "COMPLETED").length;

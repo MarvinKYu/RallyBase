@@ -226,6 +226,7 @@ export async function updateEvent(
   const {
     name,
     format,
+    groupSize,
     gamePointTarget,
     startTime,
     maxParticipants,
@@ -240,6 +241,7 @@ export async function updateEvent(
     await updateEventById(eventId, {
       name,
       format: format as MatchFormat,
+      groupSize: event.eventFormat === "ROUND_ROBIN" ? (groupSize || null) : undefined,
       gamePointTarget,
       startTime: startTime ? new Date(startTime) : null,
       maxParticipants: maxParticipants || null,
@@ -382,6 +384,7 @@ export async function createEvent(
     name,
     format,
     eventFormat,
+    groupSize,
     gamePointTarget,
     startTime,
     maxParticipants,
@@ -404,6 +407,7 @@ export async function createEvent(
       name,
       format: format as MatchFormat,
       eventFormat: eventFormat as EventFormat,
+      groupSize: eventFormat === "ROUND_ROBIN" ? (groupSize || undefined) : undefined,
       gamePointTarget,
       startTime: startTime ? new Date(startTime) : undefined,
       maxParticipants: maxParticipants || undefined,

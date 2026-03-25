@@ -90,6 +90,7 @@ export async function updateEventAction(
   const data = {
     name: formData.get("name") as string,
     format: formData.get("format") as string,
+    groupSize: (formData.get("groupSize") as string) || undefined,
     gamePointTarget: formData.get("gamePointTarget") as string,
     startTime: (formData.get("startTime") as string) || undefined,
     maxParticipants: (formData.get("maxParticipants") as string) || undefined,
@@ -154,6 +155,7 @@ export async function createEventAction(
     name: formData.get("name") as string,
     format: formData.get("format") as string,
     eventFormat: (formData.get("eventFormat") as string) || "SINGLE_ELIMINATION",
+    groupSize: (formData.get("groupSize") as string) || undefined,
     gamePointTarget: formData.get("gamePointTarget") as string,
     startTime: (formData.get("startTime") as string) || undefined,
     maxParticipants: (formData.get("maxParticipants") as string) || undefined,

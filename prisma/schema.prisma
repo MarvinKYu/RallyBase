@@ -179,6 +179,7 @@ model Event {
   name             String
   format           MatchFormat @default(BEST_OF_5)
   eventFormat      EventFormat @default(SINGLE_ELIMINATION)
+  groupSize        Int?
   gamePointTarget  Int         @default(11)
   startTime        DateTime?
   status           EventStatus @default(DRAFT)
@@ -203,6 +204,7 @@ model EventEntry {
   eventId         String
   playerProfileId String
   seed            Int?
+  groupNumber     Int?
   createdAt       DateTime @default(now())
 
   event         Event         @relation(fields: [eventId], references: [id], onDelete: Cascade)
@@ -218,6 +220,7 @@ model Match {
   eventId     String
   round       Int
   position    Int
+  groupNumber Int?
   player1Id   String?
   player2Id   String?
   winnerId    String?

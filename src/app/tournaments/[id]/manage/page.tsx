@@ -77,7 +77,7 @@ export default async function ManageTournamentPage({ params, searchParams }: Pro
 
   const completedEvents = tournament.events.filter((e) => e.status === "COMPLETED");
   const podiumResults = await Promise.all(
-    completedEvents.map((e) => getEventPodium(e.id, e.eventFormat)),
+    completedEvents.map((e) => getEventPodium(e.id, e.eventFormat, e.groupSize)),
   );
   const podiumMap = new Map<string, EventPodium>(
     completedEvents.map((e, i) => [e.id, podiumResults[i]]),

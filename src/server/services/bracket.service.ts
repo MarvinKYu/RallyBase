@@ -6,6 +6,7 @@ import {
   winnerSlotInNextMatch,
 } from "@/server/algorithms/bracket";
 import { buildRoundRobinSchedule } from "@/server/algorithms/round-robin";
+import { assignGroups } from "@/server/algorithms/group-draw";
 import { computeHeadToHead, compareTiebreakers } from "@/server/algorithms/round-robin-tiebreaker";
 import {
   findMatchesByEventId,
@@ -34,8 +35,12 @@ export interface EventPodium {
 export async function getEventPodium(
   eventId: string,
   eventFormat: string,
+  groupSize?: number | null,
 ): Promise<EventPodium> {
   if (eventFormat === "ROUND_ROBIN") {
+    // Multi-group events have no cross-group ranking — podium is not defined
+    if (groupSize) return { first: null, second: null };
+
     const standings = await getRoundRobinStandings(eventId);
     return {
       first: standings[0]
@@ -83,7 +88,23 @@ export interface RoundRobinStanding {
   tied: boolean;
 }
 
-export async function getRoundRobinStandings(eventId: string): Promise<RoundRobinStanding[]> {
+export interface GroupedRoundRobinStandings {
+  groupNumber: number;
+  standings: RoundRobinStanding[];
+}
+
+export async function getRoundRobinStandings(eventId: string): Promise<RoundRobinStanding[]>;
+export async function getRoundRobinStandings(
+  eventId: string,
+  grouped: true,
+): Promise<GroupedRoundRobinStandings[]>;
+export async function getRoundRobinStandings(
+  eventId: string,
+  grouped?: true,
+): Promise<RoundRobinStanding[] | GroupedRoundRobinStandings[]> {
+  const event = await getEventDetail(eventId);
+  if (!event) return [];
+
   const matches = await prisma.match.findMany({
     where: { eventId, status: MatchStatus.COMPLETED },
     include: {
@@ -93,13 +114,40 @@ export async function getRoundRobinStandings(eventId: string): Promise<RoundRobi
     },
   });
 
-  // Collect all players from event entries
-  const event = await getEventDetail(eventId);
-  if (!event) return [];
+  if (grouped && event.groupSize) {
+    // Build standings per group
+    const groupNumbers = [
+      ...new Set(
+        event.eventEntries.map((e) => e.groupNumber).filter((g): g is number => g !== null),
+      ),
+    ].sort((a, b) => a - b);
 
+    return groupNumbers.map((groupNum) => {
+      const groupEntries = event.eventEntries.filter((e) => e.groupNumber === groupNum);
+      const groupMatches = matches.filter((m) => m.groupNumber === groupNum);
+      return {
+        groupNumber: groupNum,
+        standings: computeStandingsForGroup(groupEntries, groupMatches),
+      };
+    });
+  }
+
+  // Single group (legacy) or flat list for callers that don't need groups
+  return computeStandingsForGroup(event.eventEntries, matches);
+}
+
+function computeStandingsForGroup(
+  entries: Array<{ playerProfileId: string; playerProfile: { displayName: string } }>,
+  matches: Array<{
+    player1Id: string | null;
+    player2Id: string | null;
+    winnerId: string | null;
+    matchGames: Array<{ player1Points: number; player2Points: number }>;
+  }>,
+): RoundRobinStanding[] {
   const standingsMap = new Map<string, RoundRobinStanding>();
 
-  for (const entry of event.eventEntries) {
+  for (const entry of entries) {
     standingsMap.set(entry.playerProfileId, {
       playerProfileId: entry.playerProfileId,
       displayName: entry.playerProfile.displayName,
@@ -214,31 +262,79 @@ export async function generateBracket(eventId: string): Promise<void> {
   }
 
   if (event.eventFormat === "ROUND_ROBIN") {
-    await generateRoundRobinBracket(eventId, event.eventEntries.map((e) => e.playerProfileId));
+    await generateRoundRobinBracket(event);
   } else {
     await generateSingleEliminationBracket(eventId, event.eventEntries);
   }
 }
 
-async function generateRoundRobinBracket(eventId: string, playerIds: string[]): Promise<void> {
-  const { matches } = buildRoundRobinSchedule(playerIds);
+async function generateRoundRobinBracket(
+  event: NonNullable<Awaited<ReturnType<typeof getEventDetail>>>,
+): Promise<void> {
+  const { eventEntries, groupSize, ratingCategoryId } = event;
+  const eventId = event.id;
 
-  await prisma.$transaction(async (tx) => {
-    for (const m of matches) {
-      await tx.match.create({
-        data: {
-          eventId,
-          round: m.round,
-          position: m.position,
-          player1Id: m.player1Id,
-          player2Id: m.player2Id,
-          nextMatchId: null,
-          status: MatchStatus.PENDING,
-          winnerId: null,
-        },
-      });
-    }
-  });
+  if (groupSize) {
+    // Multi-group: distribute players by rating using snake seeding
+    const ratings = eventEntries.map(
+      (e) =>
+        e.playerProfile.playerRatings.find((r) => r.ratingCategoryId === ratingCategoryId)
+          ?.rating ?? 1500,
+    );
+    const playerIds = eventEntries.map((e) => e.playerProfileId);
+    const groups = assignGroups(playerIds, ratings, groupSize);
+
+    await prisma.$transaction(async (tx) => {
+      for (let gi = 0; gi < groups.length; gi++) {
+        const groupNumber = gi + 1; // 1-indexed
+        const groupPlayerIds = groups[gi];
+        const { matches } = buildRoundRobinSchedule(groupPlayerIds);
+
+        for (const m of matches) {
+          await tx.match.create({
+            data: {
+              eventId,
+              round: m.round,
+              position: m.position,
+              groupNumber,
+              player1Id: m.player1Id,
+              player2Id: m.player2Id,
+              nextMatchId: null,
+              status: MatchStatus.PENDING,
+              winnerId: null,
+            },
+          });
+        }
+
+        // Stamp group assignment on EventEntry rows
+        await tx.eventEntry.updateMany({
+          where: { eventId, playerProfileId: { in: groupPlayerIds } },
+          data: { groupNumber },
+        });
+      }
+    });
+  } else {
+    // Single group (legacy): all players in one schedule, no groupNumber
+    const playerIds = eventEntries.map((e) => e.playerProfileId);
+    const { matches } = buildRoundRobinSchedule(playerIds);
+
+    await prisma.$transaction(async (tx) => {
+      for (const m of matches) {
+        await tx.match.create({
+          data: {
+            eventId,
+            round: m.round,
+            position: m.position,
+            player1Id: m.player1Id,
+            player2Id: m.player2Id,
+            nextMatchId: null,
+            status: MatchStatus.PENDING,
+            winnerId: null,
+          },
+        });
+      }
+    });
+  }
 }
 
 async function generateSingleEliminationBracket(

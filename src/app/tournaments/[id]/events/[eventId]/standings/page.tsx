@@ -2,7 +2,12 @@ import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
 import { auth } from "@clerk/nextjs/server";
 import { getEventDetail } from "@/server/services/tournament.service";
-import { getEventBracket, getRoundRobinStandings } from "@/server/services/bracket.service";
+import {
+  getEventBracket,
+  getRoundRobinStandings,
+  type GroupedRoundRobinStandings,
+  type RoundRobinStanding,
+} from "@/server/services/bracket.service";
 import { StandingsSchedule, type SerializedMatch } from "@/components/tournaments/StandingsSchedule";
 
 type Props = {
@@ -20,21 +25,24 @@ export default async function StandingsPage({ params, searchParams }: Props) {
   const { id, eventId } = await params;
   const { from } = await searchParams;
   const { userId } = await auth();
-  const [event, matches, standings] = await Promise.all([
+  const [event, matches] = await Promise.all([
     getEventDetail(eventId),
     getEventBracket(eventId),
-    getRoundRobinStandings(eventId),
   ]);
 
   if (!event) notFound();
   if (event.eventFormat !== "ROUND_ROBIN") redirect(`/tournaments/${id}/events/${eventId}`);
 
+  const isGrouped = !!event.groupSize;
+  const standingsData = isGrouped
+    ? await getRoundRobinStandings(eventId, true)
+    : await getRoundRobinStandings(eventId);
+
   const isTD = !!userId && event.tournament.createdByClerkId === userId;
 
-  // Group matches by round and serialize
-  const roundMap = new Map<number, SerializedMatch[]>();
-  for (const m of matches) {
-    const serialized: SerializedMatch = {
+  // Serialize matches and group by [groupNumber, round]
+  function serializeMatch(m: (typeof matches)[0]): SerializedMatch {
+    return {
       id: m.id,
       round: m.round,
       status: m.status,
@@ -49,14 +57,31 @@ export default async function StandingsPage({ params, searchParams }: Props) {
         player2Points: g.player2Points,
       })),
     };
-    if (!roundMap.has(m.round)) roundMap.set(m.round, []);
-    roundMap.get(m.round)!.push(serialized);
   }
-  const roundNumbers = [...roundMap.keys()].sort((a, b) => a - b);
-  const scheduleRounds = roundNumbers.map((round) => ({
-    round,
-    matches: roundMap.get(round)!,
-  }));
+
+  // Build per-group schedule sections (or single section when not grouped)
+  type ScheduleSection = {
+    groupNumber: number | null;
+    rounds: { round: number; matches: SerializedMatch[] }[];
+  };
+
+  const groupMatchMap = new Map<number | null, Map<number, SerializedMatch[]>>();
+  for (const m of matches) {
+    const gNum = (m as typeof m & { groupNumber?: number | null }).groupNumber ?? null;
+    if (!groupMatchMap.has(gNum)) groupMatchMap.set(gNum, new Map());
+    const roundMap = groupMatchMap.get(gNum)!;
+    if (!roundMap.has(m.round)) roundMap.set(m.round, []);
+    roundMap.get(m.round)!.push(serializeMatch(m));
+  }
+
+  const scheduleSections: ScheduleSection[] = [...groupMatchMap.entries()]
+    .sort(([a], [b]) => (a ?? 0) - (b ?? 0))
+    .map(([groupNumber, roundMap]) => ({
+      groupNumber,
+      rounds: [...roundMap.entries()]
+        .sort(([a], [b]) => a - b)
+        .map(([round, ms]) => ({ round, matches: ms })),
+    }));
 
   return (
     <main className="mx-auto max-w-2xl px-4 py-12">
@@ -75,68 +100,54 @@ export default async function StandingsPage({ params, searchParams }: Props) {
           <h1 className="text-2xl font-semibold text-text-1">Standings</h1>
         </div>
 
-        {/* Standings table */}
-        {standings.length > 0 && (
-          <section>
-            <h2 className="mb-3 text-lg font-medium text-text-1">Current standings</h2>
-            <div className="overflow-hidden rounded-lg border border-border">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b border-border-subtle bg-elevated">
-                    <th className="px-4 py-2 text-left font-medium text-text-3">#</th>
-                    <th className="px-4 py-2 text-left font-medium text-text-3">Player</th>
-                    <th className="px-4 py-2 text-right font-medium text-text-3">W</th>
-                    <th className="px-4 py-2 text-right font-medium text-text-3">L</th>
-                    <th className="px-4 py-2 text-right font-medium text-text-3">Games</th>
-                    <th className="px-4 py-2 text-right font-medium text-text-3">Pts</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {standings.map((s, i) => (
-                    <tr
-                      key={s.playerProfileId}
-                      className="border-b border-border-subtle bg-surface last:border-b-0"
-                    >
-                      <td className="px-4 py-2 text-text-3">
-                        {s.tied ? `T-${s.rank}` : s.rank}
-                      </td>
-                      <td className="px-4 py-2 font-medium text-text-1">
-                        <Link
-                          href={`/profile/${s.playerProfileId}`}
-                          className="hover:text-accent hover:underline"
-                        >
-                          {s.displayName}
-                        </Link>
-                      </td>
-                      <td className="px-4 py-2 text-right text-accent">{s.wins}</td>
-                      <td className="px-4 py-2 text-right text-text-2">{s.losses}</td>
-                      <td className="px-4 py-2 text-right text-text-3">
-                        {s.gamesWon}–{s.gamesLost}
-                      </td>
-                      <td className="px-4 py-2 text-right text-text-3">
-                        {s.pointsFor}–{s.pointsAgainst}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </section>
-        )}
+        {/* Standings — grouped or single */}
+        {isGrouped ? (
+          // Multi-group: one section per group
+          (standingsData as GroupedRoundRobinStandings[]).map((g) => (
+            <div key={g.groupNumber} className="space-y-6">
+              <h2 className="text-lg font-semibold text-text-1">Group {g.groupNumber}</h2>
 
-        {/* Match schedule by round */}
-        {matches.length === 0 ? (
-          <p className="text-sm text-text-2">No matches generated yet.</p>
+              {g.standings.length > 0 && (
+                <StandingsTable standings={g.standings} tournamentId={id} />
+              )}
+
+              {(() => {
+                const section = scheduleSections.find((s) => s.groupNumber === g.groupNumber);
+                return section && section.rounds.length > 0 ? (
+                  <StandingsSchedule
+                    rounds={section.rounds}
+                    isTD={isTD}
+                    tournamentId={id}
+                    eventId={eventId}
+                  />
+                ) : null;
+              })()}
+            </div>
+          ))
         ) : (
-          <section>
-            <h2 className="mb-3 text-lg font-medium text-text-1">Schedule</h2>
-            <StandingsSchedule
-              rounds={scheduleRounds}
-              isTD={isTD}
-              tournamentId={id}
-              eventId={eventId}
-            />
-          </section>
+          // Single group (legacy)
+          <>
+            {(standingsData as RoundRobinStanding[]).length > 0 && (
+              <section>
+                <h2 className="mb-3 text-lg font-medium text-text-1">Current standings</h2>
+                <StandingsTable standings={standingsData as RoundRobinStanding[]} tournamentId={id} />
+              </section>
+            )}
+
+            {matches.length === 0 ? (
+              <p className="text-sm text-text-2">No matches generated yet.</p>
+            ) : (
+              <section>
+                <h2 className="mb-3 text-lg font-medium text-text-1">Schedule</h2>
+                <StandingsSchedule
+                  rounds={scheduleSections[0]?.rounds ?? []}
+                  isTD={isTD}
+                  tournamentId={id}
+                  eventId={eventId}
+                />
+              </section>
+            )}
+          </>
         )}
 
         <Link
@@ -151,5 +162,56 @@ export default async function StandingsPage({ params, searchParams }: Props) {
         </Link>
       </div>
     </main>
+  );
+}
+
+function StandingsTable({
+  standings,
+  tournamentId,
+}: {
+  standings: RoundRobinStanding[];
+  tournamentId: string;
+}) {
+  return (
+    <div className="overflow-hidden rounded-lg border border-border">
+      <table className="w-full text-sm">
+        <thead>
+          <tr className="border-b border-border-subtle bg-elevated">
+            <th className="px-4 py-2 text-left font-medium text-text-3">#</th>
+            <th className="px-4 py-2 text-left font-medium text-text-3">Player</th>
+            <th className="px-4 py-2 text-right font-medium text-text-3">W</th>
+            <th className="px-4 py-2 text-right font-medium text-text-3">L</th>
+            <th className="px-4 py-2 text-right font-medium text-text-3">Games</th>
+            <th className="px-4 py-2 text-right font-medium text-text-3">Pts</th>
+          </tr>
+        </thead>
+        <tbody>
+          {standings.map((s) => (
+            <tr
+              key={s.playerProfileId}
+              className="border-b border-border-subtle bg-surface last:border-b-0"
+            >
+              <td className="px-4 py-2 text-text-3">{s.tied ? `T-${s.rank}` : s.rank}</td>
+              <td className="px-4 py-2 font-medium text-text-1">
+                <Link
+                  href={`/profile/${s.playerProfileId}`}
+                  className="hover:text-accent hover:underline"
+                >
+                  {s.displayName}
+                </Link>
+              </td>
+              <td className="px-4 py-2 text-right text-accent">{s.wins}</td>
+              <td className="px-4 py-2 text-right text-text-2">{s.losses}</td>
+              <td className="px-4 py-2 text-right text-text-3">
+                {s.gamesWon}–{s.gamesLost}
+              </td>
+              <td className="px-4 py-2 text-right text-text-3">
+                {s.pointsFor}–{s.pointsAgainst}
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
   );
 }

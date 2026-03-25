@@ -56,7 +56,7 @@ export default async function EventDetailPage({ params }: Props) {
 
   const isRoundRobin = event.eventFormat === "ROUND_ROBIN";
   const podium = event.status === "COMPLETED"
-    ? await getEventPodium(eventId, event.eventFormat)
+    ? await getEventPodium(eventId, event.eventFormat, event.groupSize)
     : null;
 
   // Eligibility display lines (left column)

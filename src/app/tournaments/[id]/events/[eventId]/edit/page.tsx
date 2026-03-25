@@ -44,6 +44,7 @@ export default async function EditEventPage({ params }: Props) {
           name: event.name,
           format: event.format,
           eventFormat: event.eventFormat,
+          groupSize: event.groupSize,
           gamePointTarget: event.gamePointTarget,
           startTime: toDatetimeLocal(event.startTime),
           maxParticipants: event.maxParticipants,
