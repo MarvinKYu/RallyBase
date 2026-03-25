@@ -10,6 +10,15 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 ---
 
+## [0.12.0] - 2026-03-25
+
+### Added
+- **Paginated player lists** — all three player lists (public `/players`, admin `/admin/players`, TD entrants search) now paginate at 10 players per page with Prev/Next controls and a page counter.
+- **Sort controls on player lists** — public and TD entrants search: Rating ↓/↑, Last Name A→Z/Z→A, First Name A→Z/Z→A buttons. Admin players: Last Name and First Name only (no rating sort). Each button remembers its direction independently; clicking a different button does not reset the others.
+- **USATT Singles as default rating** — when no org/discipline filter is active on `/players`, displayed ratings and rating sort use USATT Singles. If an org filter is set (no discipline), defaults to that org's Singles category. If both org and discipline are set, uses that specific rating category.
+
+---
+
 ## [0.11.3] - 2026-03-25
 
 ### Fixed
