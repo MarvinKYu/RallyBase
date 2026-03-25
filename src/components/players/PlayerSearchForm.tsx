@@ -33,6 +33,7 @@ export function PlayerSearchForm({
         params.delete(key);
       }
     }
+    params.set("page", "1");
     startTransition(() => {
       router.push(`/players?${params.toString()}`);
     });

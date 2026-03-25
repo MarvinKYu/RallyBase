@@ -140,18 +140,77 @@ export async function getPlayerMatchesForTournament(
   return findMatchesByPlayerAndTournament(playerProfileId, tournamentId);
 }
 
+export type SortField = "rating" | "lastName" | "firstName";
+export type SortDir = "asc" | "desc";
+
+export interface PlayerSearchOptions {
+  sort?: SortField;
+  rDir?: SortDir;
+  lDir?: SortDir;
+  fDir?: SortDir;
+  page?: number;
+  pageSize?: number;
+  sortRatingCategoryId?: string;
+}
+
+export interface PlayerSearchResult {
+  players: Awaited<ReturnType<typeof searchProfiles>>;
+  total: number;
+  totalPages: number;
+  page: number;
+}
+
+function sortPlayerProfiles<T extends { displayName: string; playerRatings: { ratingCategoryId: string; rating: number }[] }>(
+  players: T[],
+  sort: SortField,
+  dirs: { rDir: SortDir; lDir: SortDir; fDir: SortDir },
+  sortRatingCategoryId?: string,
+): T[] {
+  const dir = sort === "rating" ? dirs.rDir : sort === "lastName" ? dirs.lDir : dirs.fDir;
+  return [...players].sort((a, b) => {
+    let cmp = 0;
+    if (sort === "rating") {
+      const rA = sortRatingCategoryId
+        ? (a.playerRatings.find((r) => r.ratingCategoryId === sortRatingCategoryId)?.rating ?? -1)
+        : -1;
+      const rB = sortRatingCategoryId
+        ? (b.playerRatings.find((r) => r.ratingCategoryId === sortRatingCategoryId)?.rating ?? -1)
+        : -1;
+      cmp = rA - rB;
+    } else if (sort === "lastName") {
+      const lastA = (a.displayName.split(" ").pop() ?? a.displayName).toLowerCase();
+      const lastB = (b.displayName.split(" ").pop() ?? b.displayName).toLowerCase();
+      cmp = lastA.localeCompare(lastB);
+    } else {
+      const firstA = (a.displayName.split(" ")[0] ?? a.displayName).toLowerCase();
+      const firstB = (b.displayName.split(" ")[0] ?? b.displayName).toLowerCase();
+      cmp = firstA.localeCompare(firstB);
+    }
+    return dir === "asc" ? cmp : -cmp;
+  });
+}
+
 export async function searchPlayers(
   query: string,
   filters?: Omit<ProfileFilters, "query">,
-) {
+  options?: PlayerSearchOptions,
+): Promise<PlayerSearchResult> {
   const q = query.trim();
-  const hasFilters =
-    !!filters?.organizationId ||
-    !!filters?.ratingCategoryId ||
-    !!filters?.gender ||
-    !!filters?.minAge ||
-    !!filters?.maxAge;
+  const page = Math.max(1, options?.page ?? 1);
+  const pageSize = options?.pageSize ?? 10;
+  const sort = options?.sort ?? "rating";
+  const rDir = options?.rDir ?? "desc";
+  const lDir = options?.lDir ?? "asc";
+  const fDir = options?.fDir ?? "asc";
+  const sortRatingCategoryId = options?.sortRatingCategoryId;
 
-  if (!q && !hasFilters) return [];
-  return searchProfiles({ query: q || undefined, ...filters });
+  const allPlayers = await searchProfiles({ query: q || undefined, ...filters });
+  const sorted = sortPlayerProfiles(allPlayers, sort, { rDir, lDir, fDir }, sortRatingCategoryId);
+
+  const total = sorted.length;
+  const totalPages = Math.max(1, Math.ceil(total / pageSize));
+  const safePage = Math.min(page, totalPages);
+  const players = sorted.slice((safePage - 1) * pageSize, safePage * pageSize);
+
+  return { players, total, totalPages, page: safePage };
 }

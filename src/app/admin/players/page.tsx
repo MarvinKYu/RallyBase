@@ -1,11 +1,20 @@
+import { Suspense } from "react";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { auth } from "@clerk/nextjs/server";
 import { isAdminUser } from "@/server/services/admin.service";
-import { searchPlayers } from "@/server/services/player.service";
+import { searchPlayers, type SortField, type SortDir } from "@/server/services/player.service";
+import { PlayerSortControls } from "@/components/players/PlayerSortControls";
+import { PlayerPagination } from "@/components/players/PlayerPagination";
 
 type Props = {
-  searchParams: Promise<{ q?: string }>;
+  searchParams: Promise<{
+    q?: string;
+    sort?: string;
+    lDir?: string;
+    fDir?: string;
+    page?: string;
+  }>;
 };
 
 export const metadata = { title: "Manage Players — RallyBase Admin" };
@@ -14,8 +23,24 @@ export default async function AdminPlayersPage({ searchParams }: Props) {
   const { userId } = await auth();
   if (!userId || !(await isAdminUser(userId))) notFound();
 
-  const { q = "" } = await searchParams;
-  const players = q ? await searchPlayers(q) : [];
+  const {
+    q = "",
+    sort = "lastName",
+    lDir = "asc",
+    fDir = "asc",
+    page = "1",
+  } = await searchParams;
+
+  const { players, total, totalPages, page: currentPage } = await searchPlayers(
+    q,
+    undefined,
+    {
+      sort: sort as SortField,
+      lDir: lDir as SortDir,
+      fDir: fDir as SortDir,
+      page: parseInt(page, 10),
+    },
+  );
 
   return (
     <main className="mx-auto max-w-2xl px-4 py-12">
@@ -25,7 +50,7 @@ export default async function AdminPlayersPage({ searchParams }: Props) {
             <h1 className="text-2xl font-semibold text-text-1">Players</h1>
             <p className="mt-0.5 text-sm text-text-3">Search and manage player ratings.</p>
           </div>
-          <Link href="/admin" className="text-sm text-text-2 hover:text-text-1 transition-colors">
+          <Link href="/admin" className="text-sm text-text-2 transition-colors hover:text-text-1">
             ← Admin
           </Link>
         </div>
@@ -46,11 +71,15 @@ export default async function AdminPlayersPage({ searchParams }: Props) {
           </button>
         </form>
 
-        {q && players.length === 0 && (
-          <p className="text-sm text-text-3">No players found for &quot;{q}&quot;.</p>
-        )}
+        <Suspense>
+          <PlayerSortControls fields={["lastName", "firstName"]} defaultSort="lastName" />
+        </Suspense>
 
-        {players.length > 0 && (
+        {players.length === 0 ? (
+          <p className="text-sm text-text-3">
+            {q ? `No players found for "${q}".` : "No players found."}
+          </p>
+        ) : (
           <ul className="overflow-hidden rounded-lg border border-border">
             {players.map((p) => (
               <li key={p.id} className="border-b border-border-subtle last:border-b-0">
@@ -71,9 +100,9 @@ export default async function AdminPlayersPage({ searchParams }: Props) {
           </ul>
         )}
 
-        {!q && (
-          <p className="text-sm text-text-3">Enter a name or player number to search.</p>
-        )}
+        <Suspense>
+          <PlayerPagination page={currentPage} totalPages={totalPages} total={total} />
+        </Suspense>
       </div>
     </main>
   );

@@ -110,7 +110,5 @@ export async function searchProfiles(filters: ProfileFilters) {
         },
       },
     },
-    take: 20,
-    orderBy: { displayName: "asc" },
   });
 }
