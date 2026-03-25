@@ -10,6 +10,15 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 ---
 
+## [0.12.1] - 2026-03-25
+
+### Fixed
+- **Entrants page always shows results** — sort controls and paginated player list now appear by default without requiring a search query, matching the behavior of the public player search.
+- **Entrants page 2-column layout** — redesigned as a side-by-side layout: left column has the search input, sort controls, and paginated add-entrant results; right column is a scrollable current entrants list.
+- **Player # removed from public search** — player number badge removed from result cards on `/players`.
+
+---
+
 ## [0.12.0] - 2026-03-25
 
 ### Added
