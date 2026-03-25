@@ -1,18 +1,5 @@
 # Planned Features Roadmap
 
-## v0.13.0 — RR Group Draws
-
-> Plan mode: **Yes** — new schema (groups table or group-assignment relation), new algorithm module, and changes to event creation flow, bracket service, and standings. Full blueprint review before any file is written reduces risk of interdependency gaps.
-
-### Specify group size for RR events
-- TDs can set a group size when configuring a round-robin event.
-
-### Auto-seeded group assignments
-- If registrants exceed the group size, players are distributed into groups based on rating.
-- Applies to pure RR events; also groundwork for the RR → SE hybrid (v0.14.0).
-
----
-
 ## v0.14.0 — RR → SE Hybrid Event Type
 
 > Plan mode: **Yes** — new event format touches schema (new EventFormat enum value + advancement mapping), two algorithm modules (RR + SE must interoperate), bracket service, and UI across event creation, match management, and bracket display. High interconnection warrants a full upfront plan.

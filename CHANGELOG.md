@@ -10,6 +10,23 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 ---
 
+## [0.13.0] - 2026-03-25
+
+### Added
+- **RR group draws** — TDs can now set a `groupSize` (3–6) on round-robin events. When set, players are automatically distributed into multiple groups at schedule generation time using snake/serpentine seeding by rating (best player per group, balanced across groups).
+- **New `assignGroups` algorithm** (`src/server/algorithms/group-draw.ts`) — pure function; snake seeding; throws with a clear message if any group would fall below the 3-player minimum.
+- **`Event.groupSize` schema field** — nullable integer; null = single group (legacy behavior unchanged).
+- **`EventEntry.groupNumber` + `Match.groupNumber` schema fields** — stamped at schedule generation time; associates players and matches with their group.
+- **Grouped standings** — standings page shows one section per group ("Group 1", "Group 2", …) with independent standings tables and schedules when groups are present.
+- **`getRoundRobinStandings(eventId, true)`** overload — returns `GroupedRoundRobinStandings[]` with per-group standings.
+- **EventForm group size selector** — appears only for Round Robin events; reactive in create mode, shown in edit mode.
+- **10 unit tests + 8 integration tests** — all 237 tests passing.
+
+### Changed
+- **`getEventPodium`** — returns `{ first: null, second: null }` for multi-group RR events (no cross-group ranking until v0.14.0).
+
+---
+
 ## [0.12.2] - 2026-03-25
 
 ### Added
