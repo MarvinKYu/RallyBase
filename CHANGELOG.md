@@ -10,6 +10,14 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 ---
 
+## [0.11.3] - 2026-03-25
+
+### Fixed
+- **TD name on admin tournaments list** — `/admin/tournaments` now shows "TD: [player name]" below the org/date line for each tournament that has a creator. Tournaments with no `createdByClerkId` (seeded/legacy) show nothing.
+- **Back-nav on manage page from admin** — `/tournaments/[id]/manage?from=admin` now shows "← Admin Tournaments" back link instead of "← Back to Tournament Directors". Links from `/admin/tournaments` automatically append `?from=admin`.
+
+---
+
 ## [0.11.2] - 2026-03-25
 
 ### Fixed
