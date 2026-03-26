@@ -1,16 +1,5 @@
 # Planned Features Roadmap
 
-## v0.14.0 — RR → SE Hybrid Event Type
-
-> Plan mode: **Yes** — new event format touches schema (new EventFormat enum value + advancement mapping), two algorithm modules (RR + SE must interoperate), bracket service, and UI across event creation, match management, and bracket display. High interconnection warrants a full upfront plan.
-
-### New event format: Round Robin into Single Elimination
-- TD selects number of advancers per group; advancers are seeded into the SE bracket by group result then rating.
-- Bracket UI populates progressively as RR groups finish.
-- Once all RR group matches are complete, the SE stage starts automatically.
-
----
-
 ## v0.15.0 — RallyBase Rating System
 
 > Plan mode: **No** — primarily data/config (new org + rating categories seeded) and a permission policy change. No new algorithm modules; Elo is already isolated. The org admin allowlist addition is scoped to existing patterns.
@@ -60,5 +49,5 @@ Final polish and infrastructure pass before opening to the public.
 
 ## Dependency Notes
 
-- v0.13.0 (RR Group Draws) is a prerequisite for v0.14.0 (RR → SE hybrid): group draw logic is reused in the RR stage of the hybrid format.
+- v0.14.0 (RR → SE hybrid) built on v0.13.0 (RR Group Draws): group draw logic is reused in the RR stage of the hybrid format.
 - v1.0.0 cron auto-start depends on Vercel Pro plan — can be deferred within the v1.0.0 scope if not yet available, with the rest of v1.0.0 shipping independently.

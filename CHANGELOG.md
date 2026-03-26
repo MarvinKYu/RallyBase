@@ -10,6 +10,26 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 ---
 
+## [0.14.0] - 2026-03-26
+
+### Added
+- **New event format: RR → SE (Round Robin → Single Elimination)** — TDs can create a hybrid event where players compete in round-robin groups, then advancers seed into a single-elimination bracket.
+- **`Event.advancersPerGroup`** — TD-configurable integer (1–5) specifying how many players advance from each group to the SE bracket.
+- **`EventEntry.advancesToSE`** — nullable boolean override for tie resolution; `true` = manually advanced, `false` = manually excluded, `null` = use standings.
+- **Inter-group snake seeding** (`src/server/algorithms/advancer.ts`) — `computeAdvancers` pure function assigns SE seeds across groups using snake/serpentine ordering (odd ranks ascending, even ranks descending) to separate group winners and runners-up in the bracket.
+- **`getRoundLabel` utility** (`src/lib/bracket-labels.ts`) — maps `(round, totalRounds)` to human-readable labels: Final, Semifinal, Quarterfinal, Round of 16, Round of 32, Round of 64.
+- **`generateSEStage`** — service function that verifies all RR matches are complete, computes advancers, stamps SE seeds on EventEntry rows, and builds the SE bracket.
+- **`regenerateSEStage`** — deletes existing SE matches (if none are active), clears seeds, and re-runs `generateSEStage`.
+- **`checkSEStageStatus`** — page-load helper returning `{ rrComplete, seExists, seCanRegenerate, ties, seTotalRounds }` for the manage page.
+- **`resolveTie`** — sets `advancesToSE` overrides for a tied group then attempts to generate the SE stage.
+- **Auto-trigger** — when the last RR match in an `RR_TO_SE` event is confirmed/submitted, the SE stage is automatically generated if no ties exist.
+- **Tie resolution panel** (`TieResolutionPanel.tsx`) — shows per-tied-group UI with "Advance this player" buttons; TD manually resolves ties in-person before SE bracket generates.
+- **Manage event page updates** — "View Bracket" button alongside "View Standings" once SE exists; Generate/Re-generate bracket buttons; tie resolution panel; Groups section shows "Completed" badge after SE is generated.
+- **Matches section phase toggle** — for RR→SE events with SE generated, a dropdown switches between "RR Phase" (grouped) and "Bracket Phase" (SE matches with round labels).
+- **20 new tests** — 8 unit tests for `computeAdvancers` + `getRoundLabel`, 12 integration tests for the full RR→SE flow. All 261 tests passing.
+
+---
+
 ## [0.13.1] - 2026-03-25
 
 ### Added

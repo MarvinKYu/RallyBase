@@ -4,9 +4,9 @@
 
 ## Remove ability to edit date of birth
 
-## Display "USATT" and "Singles" for player search filters by default
+## Display "USATT" and "Singles" as selected options for player search filters by default
 
-## Add back player number in player search
+## Add back player number in player search but format UI to have consistent spacing
 
 ## Edit event -> Save changes should redirect back to manage event page
 
