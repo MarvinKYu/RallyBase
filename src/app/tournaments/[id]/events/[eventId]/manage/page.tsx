@@ -6,9 +6,10 @@ import { getEventManageDetail } from "@/server/services/tournament.service";
 import { bracketExists, getEventPodium } from "@/server/services/bracket.service";
 import { generateBracketAction } from "@/server/actions/bracket.actions";
 import { DeleteEventButton } from "@/components/tournaments/DeleteEventButton";
-import { ManageEventMatchList } from "@/components/tournaments/ManageEventMatchList";
 import { AdvanceEventStatusButton } from "@/components/tournaments/AdvanceEventStatusButton";
+import { ManageEventRightSection } from "@/components/tournaments/ManageEventRightSection";
 import type { MatchRow } from "@/components/tournaments/ManageEventMatchList";
+import type { EntryCard } from "@/components/tournaments/ManageEventRightSection";
 
 type Props = { params: Promise<{ id: string; eventId: string }> };
 
@@ -62,6 +63,7 @@ export default async function ManageEventPage({ params }: Props) {
   const serializedMatches: MatchRow[] = event.matches.map((m) => ({
     id: m.id,
     round: m.round,
+    groupNumber: m.groupNumber ?? null,
     status: m.status,
     player1Id: m.player1Id,
     player2Id: m.player2Id,
@@ -74,6 +76,18 @@ export default async function ManageEventPage({ params }: Props) {
       player2Points: g.player2Points,
     })),
   }));
+
+  const serializedEntries: EntryCard[] = event.eventEntries.map((e) => {
+    const ratingRow = e.playerProfile.playerRatings.find(
+      (r) => r.ratingCategoryId === event.ratingCategoryId,
+    );
+    return {
+      playerProfileId: e.playerProfileId,
+      displayName: e.playerProfile.displayName,
+      rating: ratingRow ? ratingRow.rating : null,
+      groupNumber: e.groupNumber ?? null,
+    };
+  });
 
   const statusBadgeClass = STATUS_BADGE_CLASSES[event.status] ?? "bg-surface border border-border text-text-3";
   const statusLabel = event.status.replace(/_/g, " ");
@@ -263,23 +277,15 @@ export default async function ManageEventPage({ params }: Props) {
         </div>
 
         {/* ── Right column ── */}
-        <div className="flex flex-col gap-4">
-          <h2 className="text-base font-medium text-text-1">
-            Matches ({totalMatches})
-          </h2>
-
-          {/* Scrollable match list */}
-          <div
-            className="overflow-y-auto overflow-x-hidden rounded-lg border border-border"
-            style={{ maxHeight: "70vh" }}
-          >
-            <ManageEventMatchList
-              matches={serializedMatches}
-              tournamentId={id}
-              eventId={eventId}
-            />
-          </div>
-
+        <div>
+          <ManageEventRightSection
+            matches={serializedMatches}
+            entries={serializedEntries}
+            isGrouped={!!event.groupSize}
+            totalMatches={totalMatches}
+            tournamentId={id}
+            eventId={eventId}
+          />
         </div>
 
       </div>

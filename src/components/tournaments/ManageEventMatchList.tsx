@@ -14,6 +14,7 @@ type GameScore = {
 export type MatchRow = {
   id: string;
   round: number;
+  groupNumber?: number | null;
   status: "PENDING" | "IN_PROGRESS" | "AWAITING_CONFIRMATION" | "COMPLETED";
   player1Id: string | null;
   player2Id: string | null;
