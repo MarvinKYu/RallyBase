@@ -10,6 +10,15 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 ---
 
+## [0.13.1] - 2026-03-25
+
+### Added
+- **Groups section on manage event page** — for grouped RR events, the right column now shows a 4-column × 2-row grid of group cards; each card lists players with their current rating and W-L record computed from completed matches. Paginates if > 8 groups.
+- **Paginated match list on manage event page** — matches are now displayed one group or one round at a time with ← → navigation, a "Group N · X / Y" label, and a "Jump to:" input field.
+- **Sort by dropdown** — TDs can toggle between "By group" and "By round" match display on grouped RR events.
+
+---
+
 ## [0.13.0] - 2026-03-25
 
 ### Added
