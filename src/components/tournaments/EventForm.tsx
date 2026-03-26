@@ -14,6 +14,7 @@ type EventDefaultValues = {
   format?: string;
   eventFormat?: string;
   groupSize?: number | null;
+  advancersPerGroup?: number | null;
   gamePointTarget?: number;
   startTime?: string;
   maxParticipants?: number | null;
@@ -125,7 +126,11 @@ export function EventForm({
         <div className="space-y-1">
           <p className="block text-sm font-medium text-text-2">Event format</p>
           <p className="rounded-md border border-border bg-elevated px-3 py-2 text-sm text-text-1">
-            {defaultValues.eventFormat === "ROUND_ROBIN" ? "Round Robin" : "Single Elimination"}
+            {defaultValues.eventFormat === "ROUND_ROBIN"
+              ? "Round Robin"
+              : defaultValues.eventFormat === "RR_TO_SE"
+                ? "Round Robin → Single Elimination"
+                : "Single Elimination"}
           </p>
           <p className="text-xs text-text-3">Event format cannot be changed after creation.</p>
         </div>
@@ -143,15 +148,24 @@ export function EventForm({
           >
             <option value="SINGLE_ELIMINATION">Single Elimination</option>
             <option value="ROUND_ROBIN">Round Robin</option>
+            <option value="RR_TO_SE">Round Robin → Single Elimination</option>
           </select>
         </div>
       )}
 
-      {/* Group size — only for Round Robin events */}
-      {(selectedEventFormat === "ROUND_ROBIN" || defaultValues?.eventFormat === "ROUND_ROBIN") && (
+      {/* Group size — for Round Robin and RR → SE events */}
+      {(selectedEventFormat === "ROUND_ROBIN" ||
+        selectedEventFormat === "RR_TO_SE" ||
+        defaultValues?.eventFormat === "ROUND_ROBIN" ||
+        defaultValues?.eventFormat === "RR_TO_SE") && (
         <div className="space-y-1">
           <label htmlFor="groupSize" className="block text-sm font-medium text-text-2">
-            Group size <span className="font-normal text-text-3">(optional)</span>
+            Group size{" "}
+            {selectedEventFormat === "RR_TO_SE" || defaultValues?.eventFormat === "RR_TO_SE" ? (
+              <span className="text-red-400">*</span>
+            ) : (
+              <span className="font-normal text-text-3">(optional)</span>
+            )}
           </label>
           <select
             id="groupSize"
@@ -159,7 +173,10 @@ export function EventForm({
             defaultValue={String(defaultValues?.groupSize ?? "")}
             className="w-full rounded-md border border-border bg-elevated px-3 py-2 text-sm text-text-1 shadow-sm focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
           >
-            <option value="">Single group (up to 6 players)</option>
+            {(selectedEventFormat === "ROUND_ROBIN" ||
+              defaultValues?.eventFormat === "ROUND_ROBIN") && (
+              <option value="">Single group (up to 6 players)</option>
+            )}
             <option value="3">3 players per group</option>
             <option value="4">4 players per group</option>
             <option value="5">5 players per group</option>
@@ -170,6 +187,34 @@ export function EventForm({
           </p>
           {state?.fieldErrors?.groupSize && (
             <p className="text-sm text-red-400">{state.fieldErrors.groupSize[0]}</p>
+          )}
+        </div>
+      )}
+
+      {/* Advancers per group — only for RR → SE events */}
+      {(selectedEventFormat === "RR_TO_SE" || defaultValues?.eventFormat === "RR_TO_SE") && (
+        <div className="space-y-1">
+          <label htmlFor="advancersPerGroup" className="block text-sm font-medium text-text-2">
+            Advancers per group <span className="text-red-400">*</span>
+          </label>
+          <select
+            id="advancersPerGroup"
+            name="advancersPerGroup"
+            defaultValue={String(defaultValues?.advancersPerGroup ?? "1")}
+            className="w-full rounded-md border border-border bg-elevated px-3 py-2 text-sm text-text-1 shadow-sm focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
+          >
+            <option value="1">1 player advances per group</option>
+            <option value="2">2 players advance per group</option>
+            <option value="3">3 players advance per group</option>
+            <option value="4">4 players advance per group</option>
+            <option value="5">5 players advance per group</option>
+          </select>
+          <p className="text-xs text-text-3">
+            Must be less than the group size. Players are seeded into the bracket using
+            inter-group snake seeding.
+          </p>
+          {state?.fieldErrors?.advancersPerGroup && (
+            <p className="text-sm text-red-400">{state.fieldErrors.advancersPerGroup[0]}</p>
           )}
         </div>
       )}

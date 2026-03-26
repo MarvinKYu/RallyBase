@@ -282,6 +282,7 @@ export async function createEvent(data: {
   format: MatchFormat;
   eventFormat: EventFormat;
   groupSize?: number;
+  advancersPerGroup?: number;
   gamePointTarget: number;
   startTime?: Date;
   maxParticipants?: number;
@@ -301,6 +302,7 @@ export async function updateEventById(
     name: string;
     format: MatchFormat;
     groupSize?: number | null;
+    advancersPerGroup?: number | null;
     gamePointTarget: number;
     startTime?: Date | null;
     maxParticipants?: number | null;

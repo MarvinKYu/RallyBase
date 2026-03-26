@@ -2,6 +2,7 @@
 
 import { useState, useMemo, useRef } from "react";
 import { ManageEventMatchList, type MatchRow } from "@/components/tournaments/ManageEventMatchList";
+import { getRoundLabel } from "@/lib/bracket-labels";
 
 export type EntryCard = {
   playerProfileId: string;
@@ -16,6 +17,9 @@ export function ManageEventRightSection({
   matches,
   entries,
   isGrouped,
+  isRRToSE,
+  seExists,
+  seTotalRounds,
   totalMatches,
   tournamentId,
   eventId,
@@ -23,14 +27,21 @@ export function ManageEventRightSection({
   matches: MatchRow[];
   entries: EntryCard[];
   isGrouped: boolean;
+  isRRToSE?: boolean;
+  seExists?: boolean;
+  seTotalRounds?: number | null;
   totalMatches: number;
   tournamentId: string;
   eventId: string;
 }) {
   const [groupsPage, setGroupsPage] = useState(0);
   const [sortBy, setSortBy] = useState<"group" | "round">(isGrouped ? "group" : "round");
+  // For RR→SE events with SE stage generated: which phase to display
+  const [phase, setPhase] = useState<"rr" | "se">("rr");
   const [matchPage, setMatchPage] = useState(0);
   const jumpRef = useRef<HTMLInputElement>(null);
+
+  const showSEPhase = isRRToSE && seExists;
 
   // ── Groups data ──────────────────────────────────────────────────────────────
 
@@ -86,26 +97,41 @@ export function ManageEventRightSection({
   // ── Match pages ──────────────────────────────────────────────────────────────
 
   const matchPages = useMemo(() => {
+    // RR→SE SE phase: SE matches (groupNumber === null) with round labels
+    if (showSEPhase && phase === "se") {
+      const seMatches = matches.filter((m) => m.groupNumber === null);
+      const rounds = [...new Set(seMatches.map((m) => m.round))].sort((a, b) => a - b);
+      const totalRounds = seTotalRounds ?? Math.max(...rounds, 1);
+      return rounds.map((r) => ({
+        label: getRoundLabel(r, totalRounds),
+        matches: seMatches.filter((m) => m.round === r),
+      }));
+    }
+
+    // RR phase (or pure RR/SE): filter to RR matches only when in hybrid mode
+    const activeMatches =
+      isRRToSE ? matches.filter((m) => m.groupNumber !== null) : matches;
+
     if (sortBy === "group" && isGrouped) {
       const groupNums = [
         ...new Set(
-          matches
+          activeMatches
             .map((m) => m.groupNumber)
             .filter((g): g is number => g !== null),
         ),
       ].sort((a, b) => a - b);
       return groupNums.map((gNum) => ({
         label: `Group ${gNum}`,
-        matches: matches.filter((m) => m.groupNumber === gNum),
+        matches: activeMatches.filter((m) => m.groupNumber === gNum),
       }));
     }
     // By round
-    const rounds = [...new Set(matches.map((m) => m.round))].sort((a, b) => a - b);
+    const rounds = [...new Set(activeMatches.map((m) => m.round))].sort((a, b) => a - b);
     return rounds.map((r) => ({
       label: `Round ${r}`,
-      matches: matches.filter((m) => m.round === r),
+      matches: activeMatches.filter((m) => m.round === r),
     }));
-  }, [sortBy, isGrouped, matches]);
+  }, [sortBy, isGrouped, matches, showSEPhase, phase, isRRToSE, seTotalRounds]);
 
   const totalMatchPages = matchPages.length;
   const safeMatchPage = Math.min(matchPage, Math.max(0, totalMatchPages - 1));
@@ -113,6 +139,12 @@ export function ManageEventRightSection({
 
   function handleSortChange(next: "group" | "round") {
     setSortBy(next);
+    setMatchPage(0);
+    if (jumpRef.current) jumpRef.current.value = "";
+  }
+
+  function handlePhaseChange(next: "rr" | "se") {
+    setPhase(next);
     setMatchPage(0);
     if (jumpRef.current) jumpRef.current.value = "";
   }
@@ -131,7 +163,14 @@ export function ManageEventRightSection({
       {/* ── Groups section ──────────────────────────────────────────────────── */}
       {isGrouped && groups.length > 0 && (
         <section>
-          <h2 className="mb-3 text-base font-medium text-text-1">Groups</h2>
+          <div className="mb-3 flex items-center gap-2">
+            <h2 className="text-base font-medium text-text-1">Groups</h2>
+            {seExists && (
+              <span className="inline-flex items-center rounded-full border border-border bg-surface px-2 py-0.5 text-xs font-medium text-text-2">
+                Completed
+              </span>
+            )}
+          </div>
 
           {/* 4-column grid, max 2 rows per page */}
           <div className="grid grid-cols-4 gap-3">
@@ -198,20 +237,34 @@ export function ManageEventRightSection({
 
       {/* ── Matches section ─────────────────────────────────────────────────── */}
       <section>
-        <div className="mb-3 flex items-center justify-between">
+        <div className="mb-3 flex items-center justify-between gap-2">
           <h2 className="text-base font-medium text-text-1">
             Matches ({totalMatches})
           </h2>
-          {isGrouped && (
-            <select
-              value={sortBy}
-              onChange={(e) => handleSortChange(e.target.value as "group" | "round")}
-              className="rounded-md border border-border bg-elevated px-2 py-1 text-xs text-text-1 focus:border-accent focus:outline-none"
-            >
-              <option value="group">By group</option>
-              <option value="round">By round</option>
-            </select>
-          )}
+          <div className="flex items-center gap-2">
+            {/* Phase toggle — RR→SE events with SE stage generated */}
+            {showSEPhase && (
+              <select
+                value={phase}
+                onChange={(e) => handlePhaseChange(e.target.value as "rr" | "se")}
+                className="rounded-md border border-border bg-elevated px-2 py-1 text-xs text-text-1 focus:border-accent focus:outline-none"
+              >
+                <option value="rr">RR Phase</option>
+                <option value="se">Bracket Phase</option>
+              </select>
+            )}
+            {/* Sort by — only for RR phase (grouped events, not SE phase) */}
+            {isGrouped && (!showSEPhase || phase === "rr") && (
+              <select
+                value={sortBy}
+                onChange={(e) => handleSortChange(e.target.value as "group" | "round")}
+                className="rounded-md border border-border bg-elevated px-2 py-1 text-xs text-text-1 focus:border-accent focus:outline-none"
+              >
+                <option value="group">By group</option>
+                <option value="round">By round</option>
+              </select>
+            )}
+          </div>
         </div>
 
         {matches.length === 0 ? (

@@ -3,11 +3,20 @@ import Link from "next/link";
 import { auth } from "@clerk/nextjs/server";
 import type { EventStatus } from "@prisma/client";
 import { getEventManageDetail } from "@/server/services/tournament.service";
-import { bracketExists, getEventPodium } from "@/server/services/bracket.service";
-import { generateBracketAction } from "@/server/actions/bracket.actions";
+import {
+  bracketExists,
+  getEventPodium,
+  checkSEStageStatus,
+} from "@/server/services/bracket.service";
+import {
+  generateBracketAction,
+  generateSEStageAction,
+  regenerateSEStageAction,
+} from "@/server/actions/bracket.actions";
 import { DeleteEventButton } from "@/components/tournaments/DeleteEventButton";
 import { AdvanceEventStatusButton } from "@/components/tournaments/AdvanceEventStatusButton";
 import { ManageEventRightSection } from "@/components/tournaments/ManageEventRightSection";
+import { TieResolutionPanel } from "@/components/tournaments/TieResolutionPanel";
 import type { MatchRow } from "@/components/tournaments/ManageEventMatchList";
 import type { EntryCard } from "@/components/tournaments/ManageEventRightSection";
 
@@ -53,9 +62,15 @@ export default async function ManageEventPage({ params }: Props) {
   if (!event) notFound();
 
   const isRoundRobin = event.eventFormat === "ROUND_ROBIN";
-  const podium = event.status === "COMPLETED"
-    ? await getEventPodium(eventId, event.eventFormat, event.groupSize)
-    : null;
+  const isRRToSE = event.eventFormat === "RR_TO_SE";
+  const isGroupBased = isRoundRobin || isRRToSE;
+
+  const [podium, seStatus] = await Promise.all([
+    event.status === "COMPLETED"
+      ? getEventPodium(eventId, event.eventFormat, event.groupSize)
+      : null,
+    isRRToSE ? checkSEStageStatus(eventId) : null,
+  ]);
   const totalMatches = event.matches.length;
   const completedMatches = event.matches.filter((m) => m.status === "COMPLETED").length;
   const progressPct = totalMatches > 0 ? Math.round((completedMatches / totalMatches) * 100) : 0;
@@ -131,28 +146,34 @@ export default async function ManageEventPage({ params }: Props) {
               {event.ratingCategory.organization.name} · {event.ratingCategory.name}
             </p>
             <p>
-              {isRoundRobin ? "Round Robin" : "Single Elimination"} ·{" "}
-              {FORMAT_LABEL[event.format] ?? event.format} · First to{" "}
+              {isRoundRobin
+                ? "Round Robin"
+                : isRRToSE
+                  ? "Round Robin → Single Elimination"
+                  : "Single Elimination"}{" "}
+              · {FORMAT_LABEL[event.format] ?? event.format} · First to{" "}
               {event.gamePointTarget}
             </p>
           </div>
 
-          {/* Bracket / standings link */}
-          <div className="flex items-center gap-4">
-            {hasBracket && !isRoundRobin && (
-              <Link
-                href={`/tournaments/${id}/events/${eventId}/bracket?from=manage`}
-                className="rounded-md bg-accent px-4 py-2 text-sm font-medium text-background transition-colors hover:bg-accent-dim"
-              >
-                View bracket
-              </Link>
-            )}
-            {isRoundRobin && (
+          {/* Bracket / standings links */}
+          <div className="flex flex-wrap items-center gap-3">
+            {/* View standings — RR and RR_TO_SE (once RR matches exist) */}
+            {(isRoundRobin || (isRRToSE && hasBracket)) && (
               <Link
                 href={`/tournaments/${id}/events/${eventId}/standings?from=manage`}
                 className="rounded-md bg-accent px-4 py-2 text-sm font-medium text-background transition-colors hover:bg-accent-dim"
               >
                 View standings
+              </Link>
+            )}
+            {/* View bracket — pure SE or RR_TO_SE SE stage */}
+            {((hasBracket && !isGroupBased) || seStatus?.seExists) && (
+              <Link
+                href={`/tournaments/${id}/events/${eventId}/bracket?from=manage`}
+                className="rounded-md bg-accent px-4 py-2 text-sm font-medium text-background transition-colors hover:bg-accent-dim"
+              >
+                View bracket
               </Link>
             )}
           </div>
@@ -220,14 +241,47 @@ export default async function ManageEventPage({ params }: Props) {
             </div>
           )}
 
-          {/* Generate bracket */}
-          {!hasBracket && event.eventEntries.length >= (isRoundRobin ? 3 : 2) && (
+          {/* Generate schedule / bracket */}
+          {!hasBracket && event.eventEntries.length >= (isGroupBased ? 3 : 2) && (
             <form action={generateBracketAction.bind(null, eventId, id)}>
               <button
                 type="submit"
                 className="rounded-md bg-accent px-4 py-2 text-sm font-medium text-background transition-colors hover:bg-accent-dim"
               >
-                {isRoundRobin ? "Generate schedule" : "Generate bracket"}
+                {isGroupBased ? "Generate schedule" : "Generate bracket"}
+              </button>
+            </form>
+          )}
+
+          {/* RR → SE: tie resolution */}
+          {isRRToSE && seStatus?.ties && (
+            <TieResolutionPanel
+              ties={seStatus.ties}
+              eventId={eventId}
+              tournamentId={id}
+            />
+          )}
+
+          {/* RR → SE: generate SE bracket (RR complete, no ties, SE not yet generated) */}
+          {isRRToSE && hasBracket && !seStatus?.seExists && seStatus?.rrComplete && !seStatus?.ties && (
+            <form action={generateSEStageAction.bind(null, eventId, id)}>
+              <button
+                type="submit"
+                className="rounded-md bg-accent px-4 py-2 text-sm font-medium text-background transition-colors hover:bg-accent-dim"
+              >
+                Generate bracket
+              </button>
+            </form>
+          )}
+
+          {/* RR → SE: re-generate SE bracket (only if no SE matches played yet) */}
+          {isRRToSE && seStatus?.seCanRegenerate && (
+            <form action={regenerateSEStageAction.bind(null, eventId, id)}>
+              <button
+                type="submit"
+                className="rounded-md border border-border px-4 py-2 text-sm font-medium text-text-2 transition-colors hover:border-accent hover:text-text-1"
+              >
+                Re-generate bracket
               </button>
             </form>
           )}
@@ -282,6 +336,9 @@ export default async function ManageEventPage({ params }: Props) {
             matches={serializedMatches}
             entries={serializedEntries}
             isGrouped={!!event.groupSize}
+            isRRToSE={isRRToSE}
+            seExists={seStatus?.seExists}
+            seTotalRounds={seStatus?.seTotalRounds}
             totalMatches={totalMatches}
             tournamentId={id}
             eventId={eventId}

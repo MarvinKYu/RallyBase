@@ -227,6 +227,7 @@ export async function updateEvent(
     name,
     format,
     groupSize,
+    advancersPerGroup,
     gamePointTarget,
     startTime,
     maxParticipants,
@@ -237,11 +238,16 @@ export async function updateEvent(
     allowedGender,
   } = parsed.data;
 
+  const isGroupBased =
+    event.eventFormat === "ROUND_ROBIN" || event.eventFormat === "RR_TO_SE";
+
   try {
     await updateEventById(eventId, {
       name,
       format: format as MatchFormat,
-      groupSize: event.eventFormat === "ROUND_ROBIN" ? (groupSize || null) : undefined,
+      groupSize: isGroupBased ? (groupSize || null) : undefined,
+      advancersPerGroup:
+        event.eventFormat === "RR_TO_SE" ? (advancersPerGroup || null) : undefined,
       gamePointTarget,
       startTime: startTime ? new Date(startTime) : null,
       maxParticipants: maxParticipants || null,
@@ -270,7 +276,7 @@ async function tryAutoGenerateBracket(
   matchCount: number,
 ): Promise<void> {
   if (matchCount > 0) return;
-  const minPlayers = eventFormat === "ROUND_ROBIN" ? 3 : 2;
+  const minPlayers = eventFormat === "ROUND_ROBIN" || eventFormat === "RR_TO_SE" ? 3 : 2;
   if (entryCount < minPlayers) return;
   try {
     await generateBracket(eventId);
@@ -385,6 +391,7 @@ export async function createEvent(
     format,
     eventFormat,
     groupSize,
+    advancersPerGroup,
     gamePointTarget,
     startTime,
     maxParticipants,
@@ -400,6 +407,8 @@ export async function createEvent(
     tournament?.status === TournamentStatus.PUBLISHED ||
     tournament?.status === TournamentStatus.IN_PROGRESS;
 
+  const isGroupBased = eventFormat === "ROUND_ROBIN" || eventFormat === "RR_TO_SE";
+
   try {
     const event = await dbCreateEvent({
       tournamentId,
@@ -407,7 +416,9 @@ export async function createEvent(
       name,
       format: format as MatchFormat,
       eventFormat: eventFormat as EventFormat,
-      groupSize: eventFormat === "ROUND_ROBIN" ? (groupSize || undefined) : undefined,
+      groupSize: isGroupBased ? (groupSize || undefined) : undefined,
+      advancersPerGroup:
+        eventFormat === "RR_TO_SE" ? (advancersPerGroup || undefined) : undefined,
       gamePointTarget,
       startTime: startTime ? new Date(startTime) : undefined,
       maxParticipants: maxParticipants || undefined,

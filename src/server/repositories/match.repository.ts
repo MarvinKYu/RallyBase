@@ -49,6 +49,7 @@ export async function findSubmissionByCode(confirmationCode: string) {
               id: true,
               status: true,
               format: true,
+              eventFormat: true,
               gamePointTarget: true,
               ratingCategoryId: true,
               tournament: { select: { id: true } },

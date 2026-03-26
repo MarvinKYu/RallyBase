@@ -173,14 +173,15 @@ model Tournament {
 }
 
 model Event {
-  id               String      @id @default(cuid())
-  tournamentId     String
-  ratingCategoryId String
-  name             String
-  format           MatchFormat @default(BEST_OF_5)
-  eventFormat      EventFormat @default(SINGLE_ELIMINATION)
-  groupSize        Int?
-  gamePointTarget  Int         @default(11)
+  id                String      @id @default(cuid())
+  tournamentId      String
+  ratingCategoryId  String
+  name              String
+  format            MatchFormat @default(BEST_OF_5)
+  eventFormat       EventFormat @default(SINGLE_ELIMINATION)
+  groupSize         Int?
+  advancersPerGroup Int?
+  gamePointTarget   Int         @default(11)
   startTime        DateTime?
   status           EventStatus @default(DRAFT)
   maxParticipants  Int?
@@ -205,6 +206,7 @@ model EventEntry {
   playerProfileId String
   seed            Int?
   groupNumber     Int?
+  advancesToSE    Boolean?
   createdAt       DateTime @default(now())
 
   event         Event         @relation(fields: [eventId], references: [id], onDelete: Cascade)
@@ -318,6 +320,7 @@ enum MatchFormat {
 enum EventFormat {
   SINGLE_ELIMINATION
   ROUND_ROBIN
+  RR_TO_SE
 }
 
 enum Gender {

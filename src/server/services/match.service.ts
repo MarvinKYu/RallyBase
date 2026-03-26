@@ -17,6 +17,8 @@ import {
   countNonCompletedEvents,
   setTournamentStatus,
 } from "@/server/repositories/tournament.repository";
+import { countIncompleteRRMatches } from "@/server/repositories/bracket.repository";
+import { generateSEStage } from "@/server/services/bracket.service";
 import { prisma } from "@/lib/prisma";
 
 // ── Queries ───────────────────────────────────────────────────────────────────
@@ -206,6 +208,9 @@ export async function confirmMatchResult(
     }
   }
 
+  // RR → SE: auto-generate SE bracket when last RR group match completes
+  await tryAutoGenerateSEStage(match.eventId, match.event.eventFormat, match.groupNumber);
+
   return {
     success: true,
     tournamentId: match.event.tournament.id,
@@ -283,6 +288,9 @@ export async function tdSubmitMatch(params: TdSubmitParams): Promise<TdSubmitRes
       }
     }
   }
+
+  // RR → SE: auto-generate SE bracket when last RR group match completes
+  await tryAutoGenerateSEStage(match.eventId, match.event.eventFormat, match.groupNumber);
 
   return {
     success: true,
@@ -389,4 +397,30 @@ export async function tdVoidMatch(matchId: string): Promise<TdVoidResult> {
     tournamentId: match.event.tournament.id,
     eventId: match.eventId,
   };
+}
+
+// ── RR → SE auto-trigger ──────────────────────────────────────────────────────
+
+/**
+ * After any RR group match is completed, check whether all RR matches in this
+ * RR_TO_SE event are now done. If so, attempt to auto-generate the SE bracket.
+ * Silently ignores failures (tie blocks) — the manage page surfaces them.
+ */
+async function tryAutoGenerateSEStage(
+  eventId: string,
+  eventFormat: string,
+  matchGroupNumber: number | null,
+): Promise<void> {
+  // Only applies to RR_TO_SE events and RR-phase matches (groupNumber IS NOT NULL)
+  if (eventFormat !== "RR_TO_SE" || matchGroupNumber === null) return;
+
+  try {
+    const incompleteRR = await countIncompleteRRMatches(eventId);
+    if (incompleteRR > 0) return;
+
+    // All RR matches done — attempt SE generation (may fail silently if tie exists)
+    await generateSEStage(eventId);
+  } catch {
+    // Silently ignore — TD will see the state on the manage page
+  }
 }

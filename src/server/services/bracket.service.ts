@@ -8,11 +8,25 @@ import {
 import { buildRoundRobinSchedule } from "@/server/algorithms/round-robin";
 import { assignGroups } from "@/server/algorithms/group-draw";
 import { computeHeadToHead, compareTiebreakers } from "@/server/algorithms/round-robin-tiebreaker";
+import { computeAdvancers } from "@/server/algorithms/advancer";
+import type { TiedGroup } from "@/server/algorithms/advancer";
 import {
   findMatchesByEventId,
   countMatchesByEventId,
+  countIncompleteRRMatches,
+  countSEMatches,
+  countActiveSEMatches,
+  deleteSEMatches,
+  findEntryAdvancementOverrides,
+  stampEntrySeeds,
+  clearEntrySeeds,
+  setEntryAdvancesToSE,
+  findSETotalRounds,
 } from "@/server/repositories/bracket.repository";
 import { getEventDetail } from "@/server/services/tournament.service";
+
+// Re-export TiedGroup so UI and actions can import it from one place
+export type { TiedGroup };
 
 // ── Queries ───────────────────────────────────────────────────────────────────
 
@@ -52,9 +66,16 @@ export async function getEventPodium(
     };
   }
 
-  // Single elimination: final = highest-round completed match
+  if (eventFormat === "RR_TO_SE") {
+    // Podium comes from the SE stage final (SE matches have groupNumber = null)
+    const seExists = (await countSEMatches(eventId)) > 0;
+    if (!seExists) return { first: null, second: null };
+    // Fall through to SE bracket logic below
+  }
+
+  // Single elimination (and RR_TO_SE SE stage): final = highest-round completed SE match
   const finalMatch = await prisma.match.findFirst({
-    where: { eventId, winnerId: { not: null } },
+    where: { eventId, groupNumber: null, winnerId: { not: null } },
     include: {
       player1: { select: { id: true, displayName: true } },
       player2: { select: { id: true, displayName: true } },
@@ -263,6 +284,9 @@ export async function generateBracket(eventId: string): Promise<void> {
 
   if (event.eventFormat === "ROUND_ROBIN") {
     await generateRoundRobinBracket(event);
+  } else if (event.eventFormat === "RR_TO_SE") {
+    // RR phase only — SE stage is generated separately after all group matches complete
+    await generateRoundRobinBracket(event);
   } else {
     await generateSingleEliminationBracket(eventId, event.eventEntries);
   }
@@ -414,4 +438,134 @@ async function generateSingleEliminationBracket(
       }
     }
   });
+}
+
+// ── RR → SE stage ─────────────────────────────────────────────────────────────
+
+export type GenerateSEStageResult =
+  | { ok: true }
+  | { ok: false; reason: "incomplete_rr" | "tie"; tiedGroups?: TiedGroup[] };
+
+/**
+ * Generates the SE bracket stage for an RR_TO_SE event.
+ * Reads per-group standings, computes advancers with inter-group snake seeding,
+ * stamps EventEntry.seed, and creates SE matches (groupNumber = null).
+ *
+ * Returns { ok: false, reason: 'incomplete_rr' } if any RR matches are unfinished.
+ * Returns { ok: false, reason: 'tie', tiedGroups } if a tie at the advancement
+ * boundary remains unresolved.
+ */
+export async function generateSEStage(eventId: string): Promise<GenerateSEStageResult> {
+  const event = await getEventDetail(eventId);
+  if (!event) throw new Error("Event not found");
+  if (event.eventFormat !== "RR_TO_SE") throw new Error("Event is not RR_TO_SE format");
+
+  const advancersPerGroup = event.advancersPerGroup;
+  if (!advancersPerGroup) throw new Error("advancersPerGroup is not configured for this event");
+
+  // Guard: all RR matches must be complete
+  const incompleteRR = await countIncompleteRRMatches(eventId);
+  if (incompleteRR > 0) {
+    return { ok: false, reason: "incomplete_rr" };
+  }
+
+  // Get per-group standings and tie-resolution overrides
+  const groupStandings = await getRoundRobinStandings(eventId, true);
+  const overrides = await findEntryAdvancementOverrides(eventId);
+
+  const result = computeAdvancers(groupStandings, advancersPerGroup, overrides);
+  if (!result.ok) {
+    return { ok: false, reason: "tie", tiedGroups: result.tiedGroups };
+  }
+
+  const { advancers } = result;
+
+  // Stamp SE seeds on EventEntry rows
+  await stampEntrySeeds(
+    advancers.map((a) => ({ eventId, playerProfileId: a.playerProfileId, seed: a.seSeed })),
+  );
+
+  // Build and persist the SE bracket using advancers already in seed order
+  await generateSingleEliminationBracket(
+    eventId,
+    advancers.map((a) => ({ playerProfileId: a.playerProfileId, seed: a.seSeed })),
+  );
+
+  return { ok: true };
+}
+
+/**
+ * Re-generates the SE bracket stage, replacing any existing SE matches.
+ * Blocked if any SE match has already been played (IN_PROGRESS, AWAITING_CONFIRMATION, or COMPLETED).
+ */
+export async function regenerateSEStage(eventId: string): Promise<GenerateSEStageResult> {
+  const activeCount = await countActiveSEMatches(eventId);
+  if (activeCount > 0) {
+    throw new Error(
+      "Cannot re-generate bracket: some bracket matches have already been played.",
+    );
+  }
+
+  // Delete existing SE matches and clear seeds
+  await deleteSEMatches(eventId);
+  await clearEntrySeeds(eventId);
+
+  return generateSEStage(eventId);
+}
+
+export interface SEStageStatus {
+  rrComplete: boolean;
+  seExists: boolean;
+  seCanRegenerate: boolean; // SE exists but no matches played yet
+  ties: TiedGroup[] | null;
+  seTotalRounds: number | null;
+}
+
+/**
+ * Returns the current SE stage status for a RR_TO_SE event.
+ * Used by the manage event page to decide what controls to render.
+ */
+export async function checkSEStageStatus(eventId: string): Promise<SEStageStatus> {
+  const [incompleteRR, seMatchCount, activeSECount, seTotalRounds] = await Promise.all([
+    countIncompleteRRMatches(eventId),
+    countSEMatches(eventId),
+    countActiveSEMatches(eventId),
+    findSETotalRounds(eventId),
+  ]);
+
+  const rrComplete = incompleteRR === 0;
+  const seExists = seMatchCount > 0;
+  const seCanRegenerate = seExists && activeSECount === 0;
+
+  let ties: TiedGroup[] | null = null;
+  if (rrComplete && !seExists) {
+    const event = await getEventDetail(eventId);
+    const advancersPerGroup = event?.advancersPerGroup;
+    if (event && advancersPerGroup) {
+      const groupStandings = await getRoundRobinStandings(eventId, true);
+      const overrides = await findEntryAdvancementOverrides(eventId);
+      const result = computeAdvancers(groupStandings, advancersPerGroup, overrides);
+      if (!result.ok) ties = result.tiedGroups;
+    }
+  }
+
+  return { rrComplete, seExists, seCanRegenerate, ties, seTotalRounds };
+}
+
+/**
+ * Records a TD's manual tie-resolution choice for one group.
+ * Sets advancesToSE = true for the chosen player and false for the excluded ones,
+ * then attempts SE generation (which may still be blocked by ties in other groups).
+ */
+export async function resolveTie(
+  eventId: string,
+  advancingPlayerId: string,
+  excludedPlayerIds: string[],
+): Promise<GenerateSEStageResult> {
+  await setEntryAdvancesToSE(eventId, [
+    { playerProfileId: advancingPlayerId, advancesToSE: true },
+    ...excludedPlayerIds.map((id) => ({ playerProfileId: id, advancesToSE: false })),
+  ]);
+
+  return generateSEStage(eventId);
 }
