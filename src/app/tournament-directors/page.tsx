@@ -97,7 +97,7 @@ export default async function TournamentDirectorsPage() {
                 <div>
                   <h2 className="text-base font-semibold text-text-1">Templates</h2>
                   <p className="mt-1 text-sm text-text-2">
-                    Save tournament configurations as reusable templates — coming in v0.8.0.
+                    Save tournament configurations as reusable templates — coming in v0.16.0.
                   </p>
                 </div>
                 <span className="shrink-0 rounded-full border border-border px-2.5 py-0.5 text-xs text-text-3">

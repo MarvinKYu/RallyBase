@@ -21,10 +21,12 @@ Do this automatically for every shipped change — no need to ask.
 
 ## Project Status
 
-**Current version: v0.11.1.** The app is live on Vercel at https://rally-base.vercel.app. Next target is v0.12.0 (Player Search Overhaul).
+**Current version: v0.13.1.** The app is live on Vercel at https://rally-base.vercel.app. Next target is v0.14.0 (RR → SE Hybrid Event Type).
 
 ### Upcoming
-- v0.12.0 — Player Search Overhaul (pagination, sort controls)
+- v0.14.0 — RR → SE Hybrid Event Type
+- v0.15.0 — RallyBase Rating System (new org + custom algorithm)
+- v0.16.0 — Tournament Templates
 
 ## Tech Stack
 
@@ -99,6 +101,7 @@ export async function addEntrantAction(eventId, tournamentId, formData): Promise
 - **Platform admin**: single account (test_user_1 / player #1) assigned `PLATFORM_ADMIN` role via `UserRole`. Can edit any profile, view all drafts, manage all tournaments.
 - **Org admin**: assigned per-org by platform admin via `/admin`. Stored in `OrgAdmin` table (separate from `UserRole`), scoped by `organizationId`.
 - **Player initial rating**: no `PlayerRating` row exists until after the first match or an admin sets one. `applyRatingResult` falls back to `DEFAULT_RATING = 1500` when no row is found.
+- **Multi-group RR events**: `Event.groupSize Int?` enables multi-group round robin. When set, `generateRoundRobinBracket` uses `assignGroups` (snake seeding) to distribute players, then builds one schedule per group. `getRoundRobinStandings(eventId, true)` returns `GroupedRoundRobinStandings[]`. `getEventPodium` returns `{first: null, second: null}` for multi-group events — no cross-group ranking until v0.14.0.
 
 ## Database Schema Groups
 
@@ -125,9 +128,15 @@ Submitted scores live in `match_result_submission_games`. Official scores are on
 - Matches created final→R1 in `$transaction` so `nextMatchId` refs are always available
 
 **Round Robin** (`src/server/algorithms/round-robin.ts`)
-- `buildRoundRobinSchedule(playerIds)` — circle-method algorithm, supports 3–6 players
+- `buildRoundRobinSchedule(playerIds)` — circle-method algorithm, supports 3–6 players per group
 - Returns array of rounds, each round an array of `{player1Id, player2Id}` pairs (odd player counts get a bye)
 - No advancement chain — matches have no `nextMatchId`; winners determined by W/L count in standings
+
+**Group Draw** (`src/server/algorithms/group-draw.ts`)
+- `assignGroups(playerIds, ratings, groupSize)` — snake/serpentine seeding by rating descending
+- `numGroups = Math.ceil(n / groupSize)`; groups can differ in size by at most 1; all groups must have ≥ 3 players
+- Throws if any group would have fewer than `MIN_RR_PLAYERS` (3); error message includes player count needed
+- Called by `generateRoundRobinBracket` when `event.groupSize` is set; stamps `groupNumber` on Match + EventEntry in `$transaction`
 
 **Match validation** (`src/server/algorithms/match-validation.ts`)
 - `validateGameScore(p1, p2, pointTarget)` → `"p1" | "p2" | "unplayed" | "invalid"`

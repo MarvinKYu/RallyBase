@@ -1,9 +1,11 @@
 # Planned features shortlist
 - TODO: Analyze and decide where to place into existing feature roadmap.
 
-## Birth year code for verification in case of only one phone
+## Think about display vs actual name + edge cases
 
-## Update new player default rating: Unrated
+## Tournament flow reversal - option to move from "published" back to "draft"
+
+## Birth year code for verification in case of only one phone
 
 ## Way to toggle "keep me signed in" for Clerk?
 - Investigate
@@ -21,6 +23,12 @@
 - Essentially a RR but with different group forming logic: given groups of size N, top N rated players are in group 1, then next N are in group 2, etc. 
 - Subfeature idea: previous week group N winner advances to group N-1. 
 - Subfeature idea: "league season" that can be signed up for in bulk
+
+## Add "Leaderboard" competition format 
+- For player groups that have friendly competitions 
+- Can choose to be rated or unrated
+- Anyone in the group can add matches
+- Rank by W/L record
 
 ## Develop custom algorithm for rating in separate org (RB rating)
 - Factor in age of player/number of years active

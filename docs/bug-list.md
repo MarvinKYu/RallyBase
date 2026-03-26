@@ -1,5 +1,15 @@
 # Current bugs
 
+## Make gender and age display on public profile togglable 
+
+## Remove ability to edit date of birth
+
+## Display "USATT" and "Singles" for player search filters by default
+
+## Add back player number in player search
+
+## Edit event -> Save changes should redirect back to manage event page
+
 ## Mobile UI fix (ongoing list, needs comprehensive review)
 - Clicking into player search bar forces zoom in
 - Many other small issues currently undocumented
