@@ -1,5 +1,16 @@
 # Planned Features Roadmap
 
+## v0.14.3 — RR→SE Placeholder SE Bracket
+
+> Plan mode: **No** — UI-only change; no schema changes. Bracket page computes placeholder cards from group/advancer counts without creating Match records.
+
+### Show placeholder SE bracket before group stage completes
+- When a RR_TO_SE event has a bracket generated (group matches exist) but no SE matches yet, the bracket page shows computed placeholder cards: "Group 1 Winner vs BYE", "Group 2 Winner vs Group 3 Runner-Up", etc., based on `groupSize`, `advancersPerGroup`, and total group count.
+- TBD vs TBD cards shown for all rounds beyond R1.
+- Fixes the confusing "COMPLETED" event status that appears when group stage finishes before SE is generated — the bracket page will show an in-progress state instead.
+
+---
+
 ## v0.15.0 — RallyBase Rating System
 
 > Plan mode: **No** — primarily data/config (new org + rating categories seeded) and a permission policy change. No new algorithm modules; Elo is already isolated. The org admin allowlist addition is scoped to existing patterns.
