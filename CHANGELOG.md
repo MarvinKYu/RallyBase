@@ -10,6 +10,13 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 ---
 
+## [0.14.6] - 2026-03-27
+
+### Added
+- **Placeholder SE bracket** — for RR→SE events, the bracket page now shows a full two-sided placeholder layout (with SVG connectors) when the group stage is complete but the SE bracket hasn't been generated yet. Each R1 slot displays its expected occupant label (e.g. "Group 1 — 1st", "Group 4 — 2nd", "BYE") computed from the inter-group snake seeding order. Higher rounds show "TBD". Falls back to the previous "not generated yet" message if the RR hasn't started.
+
+---
+
 ## [0.14.5] - 2026-03-27
 
 ### Fixed
