@@ -3,14 +3,17 @@
  *
  * Given per-group RR standings and a configured advancers-per-group count, produces
  * an ordered list of advancing players with their SE bracket seeds assigned via
- * inter-group snake seeding:
+ * ascending inter-group ordering for every rank:
  *
  *   Rank 1 seeds → groups in ascending order   (seeds 1 … numGroups)
- *   Rank 2 seeds → groups in descending order  (seeds numGroups+1 … 2*numGroups)
+ *   Rank 2 seeds → groups in ascending order   (seeds numGroups+1 … 2*numGroups)
  *   Rank 3 seeds → groups in ascending order   (seeds 2*numGroups+1 … 3*numGroups)
- *   …and so on (snake/serpentine pattern)
  *
- * This ensures a group's winner and runner-up fall into opposite bracket halves.
+ * Ascending ordering for all ranks ensures that, given the standard recursive
+ * bracket seeding (bracketSeedOrder), no two players from the same group are
+ * paired in the first round. E.g. for 4 groups × 2 advancers:
+ *   seeds 1–4 = G1–G4 winners; seeds 5–8 = G1–G4 runners-up
+ *   bracketSeedOrder(8) pairs: 1v8(G1W/G4R), 4v5(G4W/G1R), 2v7(G2W/G3R), 3v6(G3W/G2R)
  */
 
 import type {
@@ -123,17 +126,13 @@ export function computeAdvancers(
     return { ok: false, tiedGroups };
   }
 
-  // Assign SE seeds using inter-group snake seeding
-  // Rank 1 (odd rank): groups in ascending order → seeds 1..numGroups
-  // Rank 2 (even rank): groups in descending order → seeds numGroups+1..2*numGroups
-  // etc.
+  // Assign SE seeds using ascending inter-group ordering for every rank
   const advancers: Advancer[] = [];
   let nextSeed = 1;
 
   for (let rank = 1; rank <= advancersPerGroup; rank++) {
     const groupsAtRank = advancersByRank.get(rank) ?? [];
-    // Snake: even ranks reverse group order
-    const ordered = rank % 2 === 0 ? [...groupsAtRank].reverse() : groupsAtRank;
+    const ordered = groupsAtRank; // always ascending group order
 
     for (const { groupNumber, standing } of ordered) {
       advancers.push({

@@ -45,7 +45,7 @@ describe("computeAdvancers", () => {
     });
   });
 
-  describe("2 advancers per group, 4 groups — snake seeding", () => {
+  describe("2 advancers per group, 4 groups — ascending seeding", () => {
     // 4 groups × 2 advancers = 8 players in SE bracket
     const groups = [
       g(1, [
@@ -88,11 +88,11 @@ describe("computeAdvancers", () => {
       expect(rank1.map((a) => a.seSeed)).toEqual([1, 2, 3, 4]);
     });
 
-    it("rank 2 (even) seeds 5–8 in DESCENDING group order (snake)", () => {
+    it("rank 2 seeds 5–8 in ascending group order (same as rank 1)", () => {
       const result = computeAdvancers(groups, 2, new Map());
       if (!result.ok) throw new Error("expected ok");
       const rank2 = result.advancers.filter((a) => a.groupRank === 2);
-      expect(rank2.map((a) => a.playerProfileId)).toEqual(["g4p2", "g3p2", "g2p2", "g1p2"]);
+      expect(rank2.map((a) => a.playerProfileId)).toEqual(["g1p2", "g2p2", "g3p2", "g4p2"]);
       expect(rank2.map((a) => a.seSeed)).toEqual([5, 6, 7, 8]);
     });
   });

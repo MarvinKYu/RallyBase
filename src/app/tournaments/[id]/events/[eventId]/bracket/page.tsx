@@ -388,7 +388,7 @@ function computeCompletedGroupRankings(
 
 /**
  * Maps a seed number to a human-readable label for the placeholder bracket.
- * Uses the same inter-group snake seeding order as computeAdvancers.
+ * Uses the same ascending inter-group ordering as computeAdvancers (all ranks ascending).
  * When a group is fully complete, uses actual player names instead of generic labels.
  */
 function seedToGroupLabel(
@@ -400,8 +400,8 @@ function seedToGroupLabel(
   if (seed > numSlots) return "BYE";
   const rank = Math.ceil(seed / numGroups);
   const idxInRank = (seed - 1) % numGroups;
-  // Odd ranks: ascending group order; even ranks: descending
-  const groupNum = rank % 2 === 1 ? idxInRank + 1 : numGroups - idxInRank;
+  // All ranks use ascending group order (same as computeAdvancers)
+  const groupNum = idxInRank + 1;
 
   const groupRanking = completedGroups.get(groupNum);
   if (groupRanking && groupRanking[rank - 1]) {
