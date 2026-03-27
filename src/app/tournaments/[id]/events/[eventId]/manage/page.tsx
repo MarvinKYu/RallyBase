@@ -169,7 +169,7 @@ export default async function ManageEventPage({ params }: Props) {
               </Link>
             )}
             {/* View bracket — pure SE or RR_TO_SE SE stage */}
-            {((hasBracket && !isGroupBased) || seStatus?.seExists) && (
+            {((hasBracket && !isRoundRobin) || seStatus?.seExists) && (
               <Link
                 href={`/tournaments/${id}/events/${eventId}/bracket?from=manage`}
                 className="rounded-md bg-accent px-4 py-2 text-sm font-medium text-background transition-colors hover:bg-accent-dim"
@@ -344,6 +344,7 @@ export default async function ManageEventPage({ params }: Props) {
               totalMatches={totalMatches}
               tournamentId={id}
               eventId={eventId}
+              advancersPerGroup={event.advancersPerGroup ?? null}
             />
           </Suspense>
         </div>

@@ -24,6 +24,7 @@ export function ManageEventRightSection({
   totalMatches,
   tournamentId,
   eventId,
+  advancersPerGroup,
 }: {
   matches: MatchRow[];
   entries: EntryCard[];
@@ -34,6 +35,7 @@ export function ManageEventRightSection({
   totalMatches: number;
   tournamentId: string;
   eventId: string;
+  advancersPerGroup?: number | null;
 }) {
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -87,14 +89,14 @@ export function ManageEventRightSection({
 
     return groupNums.map((groupNum) => {
       const groupEntries = entries.filter((e) => e.groupNumber === groupNum);
-      const groupMatches = matches.filter(
-        (m) => m.groupNumber === groupNum && m.status === "COMPLETED",
-      );
+      const allGroupMatches = matches.filter((m) => m.groupNumber === groupNum);
+      const completedGroupMatches = allGroupMatches.filter((m) => m.status === "COMPLETED");
+      const groupComplete =
+        allGroupMatches.length > 0 && allGroupMatches.length === completedGroupMatches.length;
 
-      // Compute W-L per player within the group
       const wl = new Map<string, { wins: number; losses: number }>();
       for (const e of groupEntries) wl.set(e.playerProfileId, { wins: 0, losses: 0 });
-      for (const m of groupMatches) {
+      for (const m of completedGroupMatches) {
         if (!m.winnerId || !m.player1Id || !m.player2Id) continue;
         const p1 = wl.get(m.player1Id);
         const p2 = wl.get(m.player2Id);
@@ -107,12 +109,36 @@ export function ManageEventRightSection({
         }
       }
 
+      const rawPlayers = groupEntries.map((e) => ({
+        ...e,
+        wins: wl.get(e.playerProfileId)?.wins ?? 0,
+        losses: wl.get(e.playerProfileId)?.losses ?? 0,
+      }));
+
+      const sortedPlayers = groupComplete
+        ? [...rawPlayers].sort((a, b) => b.wins - a.wins)
+        : rawPlayers;
+
+      // Assign ranks (competition ranking: ties share rank)
+      const rankList: number[] = [];
+      if (groupComplete) {
+        for (let i = 0; i < sortedPlayers.length; i++) {
+          if (i === 0) {
+            rankList.push(1);
+          } else if (sortedPlayers[i].wins === sortedPlayers[i - 1].wins) {
+            rankList.push(rankList[i - 1]);
+          } else {
+            rankList.push(i + 1);
+          }
+        }
+      }
+
       return {
         groupNumber: groupNum,
-        players: groupEntries.map((e) => ({
-          ...e,
-          wins: wl.get(e.playerProfileId)?.wins ?? 0,
-          losses: wl.get(e.playerProfileId)?.losses ?? 0,
+        groupComplete,
+        players: sortedPlayers.map((p, i) => ({
+          ...p,
+          rank: groupComplete ? rankList[i] : null,
         })),
       };
     });
@@ -218,25 +244,45 @@ export function ManageEventRightSection({
                 <table className="w-full">
                   <thead>
                     <tr>
+                      {group.groupComplete && (
+                        <th className="pb-1 w-4 text-left text-xs font-medium text-text-3">#</th>
+                      )}
                       <th className="pb-1 text-left text-xs font-medium text-text-3">Player</th>
                       <th className="pb-1 text-right text-xs font-medium text-text-3">Rtg</th>
-                      <th className="pb-1 text-right text-xs font-medium text-text-3">W</th>
-                      <th className="pb-1 text-right text-xs font-medium text-text-3">L</th>
+                      <th className="pb-1 text-right text-xs font-medium text-text-3">W-L</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {group.players.map((p) => (
-                      <tr key={p.playerProfileId}>
-                        <td className="py-0.5 pr-2 text-xs text-text-1 truncate max-w-0 w-full">
-                          {p.displayName}
-                        </td>
-                        <td className="py-0.5 text-right text-xs text-text-3">
-                          {p.rating !== null ? Math.round(p.rating) : "—"}
-                        </td>
-                        <td className="py-0.5 text-right text-xs text-accent">{p.wins}</td>
-                        <td className="py-0.5 text-right text-xs text-text-2">{p.losses}</td>
-                      </tr>
-                    ))}
+                    {group.players.map((p) => {
+                      const rank = p.rank;
+                      const isAdvancer = !!advancersPerGroup && rank !== null && rank <= advancersPerGroup;
+                      const rankColor =
+                        rank === 1
+                          ? "text-amber-400"
+                          : rank === 2
+                            ? "text-gray-400"
+                            : rank === 3
+                              ? "text-orange-500"
+                              : "text-text-3";
+                      return (
+                        <tr key={p.playerProfileId}>
+                          {group.groupComplete && (
+                            <td className={`py-0.5 pr-1 text-xs ${rankColor} ${isAdvancer ? "font-bold" : ""}`}>
+                              {rank}
+                            </td>
+                          )}
+                          <td className="py-0.5 pr-2 text-xs text-text-1 truncate max-w-0 w-full">
+                            {p.displayName}
+                          </td>
+                          <td className="py-0.5 text-right text-xs text-text-3">
+                            {p.rating !== null ? Math.round(p.rating) : "—"}
+                          </td>
+                          <td className={`py-0.5 text-right text-xs ${isAdvancer ? "font-semibold text-text-1" : "text-text-2"}`}>
+                            {p.wins}-{p.losses}
+                          </td>
+                        </tr>
+                      );
+                    })}
                   </tbody>
                 </table>
               </div>

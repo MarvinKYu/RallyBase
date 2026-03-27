@@ -346,15 +346,68 @@ function BracketColumn({
 type PlaceholderSlot = { p1: string; p2: string };
 
 /**
+ * Computes per-group player rankings for fully completed groups only.
+ * Returns groupNumber → ordered array of displayNames (index 0 = rank 1).
+ */
+function computeCompletedGroupRankings(
+  rrMatches: BracketMatch[],
+): Map<number, string[]> {
+  const byGroup = new Map<number, BracketMatch[]>();
+  for (const m of rrMatches) {
+    if (m.groupNumber === null) continue;
+    if (!byGroup.has(m.groupNumber)) byGroup.set(m.groupNumber, []);
+    byGroup.get(m.groupNumber)!.push(m);
+  }
+
+  const result = new Map<number, string[]>();
+  for (const [groupNum, gMatches] of byGroup) {
+    if (!gMatches.every((m) => m.status === "COMPLETED")) continue;
+
+    const winCount = new Map<string, number>();
+    const names = new Map<string, string>();
+    for (const m of gMatches) {
+      if (m.player1Id && m.player1) {
+        names.set(m.player1Id, m.player1.displayName);
+        if (!winCount.has(m.player1Id)) winCount.set(m.player1Id, 0);
+      }
+      if (m.player2Id && m.player2) {
+        names.set(m.player2Id, m.player2.displayName);
+        if (!winCount.has(m.player2Id)) winCount.set(m.player2Id, 0);
+      }
+      if (m.winnerId) winCount.set(m.winnerId, (winCount.get(m.winnerId) ?? 0) + 1);
+    }
+
+    const ranked = [...winCount.keys()].sort(
+      (a, b) => (winCount.get(b) ?? 0) - (winCount.get(a) ?? 0),
+    );
+    result.set(groupNum, ranked.map((id) => names.get(id) ?? "?"));
+  }
+
+  return result;
+}
+
+/**
  * Maps a seed number to a human-readable label for the placeholder bracket.
  * Uses the same inter-group snake seeding order as computeAdvancers.
+ * When a group is fully complete, uses actual player names instead of generic labels.
  */
-function seedToGroupLabel(seed: number, numGroups: number, numSlots: number): string {
+function seedToGroupLabel(
+  seed: number,
+  numGroups: number,
+  numSlots: number,
+  completedGroups: Map<number, string[]>,
+): string {
   if (seed > numSlots) return "BYE";
   const rank = Math.ceil(seed / numGroups);
   const idxInRank = (seed - 1) % numGroups;
   // Odd ranks: ascending group order; even ranks: descending
   const groupNum = rank % 2 === 1 ? idxInRank + 1 : numGroups - idxInRank;
+
+  const groupRanking = completedGroups.get(groupNum);
+  if (groupRanking && groupRanking[rank - 1]) {
+    return groupRanking[rank - 1];
+  }
+
   const ordinal = rank === 1 ? "1st" : rank === 2 ? "2nd" : rank === 3 ? "3rd" : `${rank}th`;
   return `Group ${groupNum} — ${ordinal}`;
 }
@@ -363,7 +416,11 @@ function seedToGroupLabel(seed: number, numGroups: number, numSlots: number): st
  * Computes R1 slot labels and layout dimensions for the placeholder bracket.
  * R1 slots carry group/rank labels; all higher rounds show "TBD".
  */
-function computePlaceholderBracket(numGroups: number, advancersPerGroup: number) {
+function computePlaceholderBracket(
+  numGroups: number,
+  advancersPerGroup: number,
+  completedGroups: Map<number, string[]>,
+) {
   const numSlots = numGroups * advancersPerGroup;
   const totalRounds = Math.ceil(Math.log2(numSlots));
   const bracketSize = Math.pow(2, totalRounds);
@@ -380,8 +437,8 @@ function computePlaceholderBracket(numGroups: number, advancersPerGroup: number)
       return Array.from({ length: count }, (_, i) => {
         const pos = offset + i; // 0-indexed position within R1
         return {
-          p1: seedToGroupLabel(seedOrder[2 * pos], numGroups, numSlots),
-          p2: seedToGroupLabel(seedOrder[2 * pos + 1], numGroups, numSlots),
+          p1: seedToGroupLabel(seedOrder[2 * pos], numGroups, numSlots, completedGroups),
+          p2: seedToGroupLabel(seedOrder[2 * pos + 1], numGroups, numSlots, completedGroups),
         };
       });
     }
@@ -528,7 +585,9 @@ export default async function BracketPage({ params, searchParams }: Props) {
       );
     }
 
-    const ph = computePlaceholderBracket(numGroups, event.advancersPerGroup!);
+    const rrMatches = matches.filter((m) => m.groupNumber !== null);
+    const completedGroups = computeCompletedGroupRankings(rrMatches);
+    const ph = computePlaceholderBracket(numGroups, event.advancersPerGroup!, completedGroups);
     const leftRounds = Array.from({ length: ph.totalRounds - 1 }, (_, i) => i + 1);
     const rightRounds = [...leftRounds].reverse();
 
@@ -546,7 +605,6 @@ export default async function BracketPage({ params, searchParams }: Props) {
             </Link>
           </p>
           <h1 className="text-2xl font-semibold text-text-1">Bracket</h1>
-          <p className="text-sm text-text-3">Group stage complete — SE bracket coming soon.</p>
         </div>
 
         {/* Placeholder bracket */}
