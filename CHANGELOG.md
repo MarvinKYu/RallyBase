@@ -10,6 +10,13 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 ---
 
+## [0.14.7] - 2026-03-27
+
+### Fixed
+- **Manage event state persistence across TD submit navigation** — "Enter result" links from `ManageEventMatchList` now append `?returnTo=<current-url-with-params>` so that the td-submit page redirects back to the exact manage page URL (including `sort`/`phase`/`mp`/`gp` params) after any action. Previously the redirect always went to the bare manage URL, resetting the group/round selection.
+
+---
+
 ## [0.14.6] - 2026-03-27
 
 ### Added
@@ -21,7 +28,7 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 ### Fixed
 - **Entrants pagination with filtering** — `searchPlayers` now accepts `excludeIds` and filters before pagination, so total/page counts correctly reflect unregistered players only. Previously, filtering happened after page fetch, causing "No unregistered players found" when all 10 players on a page were already entered despite remaining pages still having eligible players.
-- **Manage event group/round selection persistence** — selected sort mode (by group/round), phase (RR/SE), match page, and groups page are now stored in URL search params (`sort`, `phase`, `mp`, `gp`) via `useSearchParams` + `router.replace`. Navigating to a TD submit page and back restores the previous selection.
+- **Manage event group/round selection in URL** — selected sort mode (by group/round), phase (RR/SE), match page, and groups page are now stored in URL search params (`sort`, `phase`, `mp`, `gp`) via `useSearchParams` + `router.replace`. Note: full round-trip persistence (surviving td-submit navigation) was not complete until v0.14.7.
 
 ---
 
