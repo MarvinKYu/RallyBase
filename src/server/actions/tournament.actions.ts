@@ -227,6 +227,39 @@ export async function addEntrantAction(
 }
 
 // eventId and tournamentId are pre-bound via .bind(null, eventId, tournamentId)
+export async function addBulkEntrantsAction(
+  eventId: string,
+  tournamentId: string,
+  _prevState: TournamentActionState,
+  formData: FormData,
+): Promise<TournamentActionState> {
+  const { userId } = await auth();
+  if (!userId) return { error: "You must be signed in." };
+
+  const tournament = await getTournamentDetail(tournamentId);
+  if (!tournament || !(await isAuthorizedAsTD(userId, tournament))) {
+    return { error: "Not authorized." };
+  }
+
+  const event = await getEventDetail(eventId);
+  if (!event) return { error: "Event not found." };
+  if (event.status === "IN_PROGRESS" || event.status === "COMPLETED") {
+    return { error: "Cannot add entrants after the event has started." };
+  }
+
+  const playerProfileIds = formData.getAll("playerProfileIds") as string[];
+  for (const playerProfileId of playerProfileIds) {
+    const result = await addEntrant(eventId, { playerProfileId });
+    // Skip already-entered players silently; surface other errors
+    if ("error" in result && result.error !== "This player is already entered in this event.") {
+      return { error: result.error };
+    }
+  }
+
+  redirect(`/tournaments/${tournamentId}/events/${eventId}/manage/entrants`);
+}
+
+// eventId and tournamentId are pre-bound via .bind(null, eventId, tournamentId)
 export async function signUpForEventAction(
   eventId: string,
   tournamentId: string,
