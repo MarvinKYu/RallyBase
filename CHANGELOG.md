@@ -10,6 +10,15 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 ---
 
+## [0.14.10] - 2026-03-27
+
+### Fixed
+- **RR→SE seeding bug** — the inter-group snake seeding assigned the runner-up of group N to the seed that `bracketSeedOrder` places in the same first-round match as group N's winner. E.g. with 4 groups × 2 advancers, group 1 winner (seed 1) and group 1 runner-up (seed 8) were immediately paired. Fix: use ascending group order for all ranks (no snake). Seeds 1–4 = G1–G4 winners, seeds 5–8 = G1–G4 runners-up. `bracketSeedOrder(8)` then pairs: 1v8 (G1W/G4R), 4v5 (G4W/G1R), 2v7 (G2W/G3R), 3v6 (G3W/G2R) — no same-group first-round matchups.
+- **Placeholder bracket labels** — `seedToGroupLabel` updated to use the same ascending ordering, so placeholder slots now correctly show cross-group pairings.
+- **Unit tests** — advancer test updated to expect ascending order for rank-2 runners-up.
+
+---
+
 ## [0.14.9] - 2026-03-27
 
 ### Fixed

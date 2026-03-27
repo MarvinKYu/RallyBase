@@ -21,7 +21,7 @@ Do this automatically for every shipped change — no need to ask.
 
 ## Project Status
 
-**Current version: v0.14.9.** The app is live on Vercel at https://rally-base.vercel.app. Next target is v0.15.0 (RallyBase Rating System).
+**Current version: v0.14.10.** The app is live on Vercel at https://rally-base.vercel.app. Next target is v0.15.0 (RallyBase Rating System).
 
 ### Upcoming
 - v0.15.0 — RallyBase Rating System (new org + custom algorithm)

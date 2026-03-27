@@ -1,5 +1,7 @@
 # Current bugs
 
+## Persist filled-out fields and selections chosen in create event page if error is thrown 
+
 ## RR -> SE "View Standings" button broken
 - Tried to click on this button while group matches were still ongoing
 - /tournaments/[id]/events[id]/standings page tried to load for a second but failed
@@ -35,6 +37,13 @@
 - Requires scheduled job. Deferred.
 
 # Fixed
+
+## Version 0.14.10
+
+### RR→SE bracket seeding: same-group players paired in first round
+- The snake seeding reversed group order for runners-up (even ranks), placing group 1's runner-up at seed 8. `bracketSeedOrder(8)` pairs seed 1 vs seed 8 in R1, so group 1 winner and runner-up met immediately. Fix: all ranks now use ascending group order. No same-group first-round matchups.
+
+---
 
 ## Version 0.14.9
 
