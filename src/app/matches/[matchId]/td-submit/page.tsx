@@ -51,8 +51,8 @@ export default async function TdSubmitResultPage({ params }: Props) {
         ? match.matchGames
         : undefined;
 
-  const defaultWinP1 = tdDefaultMatchAction.bind(null, matchId, tournamentId, eventId, player1Id);
-  const defaultWinP2 = tdDefaultMatchAction.bind(null, matchId, tournamentId, eventId, player2Id);
+  const defaultWinP1 = tdDefaultMatchAction.bind(null, matchId, tournamentId, eventId, player1Id, backHref);
+  const defaultWinP2 = tdDefaultMatchAction.bind(null, matchId, tournamentId, eventId, player2Id, backHref);
 
   return (
     <main className="mx-auto max-w-lg px-4 py-16">
@@ -76,6 +76,7 @@ export default async function TdSubmitResultPage({ params }: Props) {
         tournamentId={tournamentId}
         eventId={eventId}
         format={match.event.format}
+        redirectTo={backHref}
         maxGames={maxGames}
         player1Name={match.player1?.displayName ?? "Player 1"}
         player2Name={match.player2?.displayName ?? "Player 2"}

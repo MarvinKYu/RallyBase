@@ -71,27 +71,52 @@ describe("buildSingleEliminationBlueprint — seeding (power of 2)", () => {
 });
 
 describe("buildSingleEliminationBlueprint — byes (non-power of 2)", () => {
-  it("3 players: top seed gets a bye", () => {
+  it("3 players: top seed gets a bye at pos 1, bottom two at pos 2", () => {
     const { matches } = buildSingleEliminationBlueprint(["p1", "p2", "p3"]);
     const r1 = matches.filter((m) => m.round === 1).sort((a, b) => a.position - b.position);
-    // pos 1: p1 (bye), pos 2: p2 vs p3
+    // bracketSeedOrder(4) = [1,4,2,3] → pos1:(seed1,seed4=bye), pos2:(seed2,seed3)
     expect(r1[0]).toMatchObject({ player1Id: "p1", player2Id: null });
     expect(r1[1]).toMatchObject({ player1Id: "p2", player2Id: "p3" });
   });
 
-  it("6 players: top 2 seeds get byes", () => {
+  it("6 players: seeds 1 and 2 both get byes on opposite halves", () => {
     const { matches } = buildSingleEliminationBlueprint(ids(6));
     const r1 = matches.filter((m) => m.round === 1).sort((a, b) => a.position - b.position);
-    expect(r1[0]).toMatchObject({ player1Id: "p1", player2Id: null });
-    expect(r1[1]).toMatchObject({ player1Id: "p2", player2Id: null });
-    expect(r1[2]).toMatchObject({ player1Id: "p3", player2Id: "p6" });
-    expect(r1[3]).toMatchObject({ player1Id: "p4", player2Id: "p5" });
+    // bracketSeedOrder(8) = [1,8,4,5,2,7,3,6]
+    // pos1:(seed1,seed8=bye), pos2:(seed4,seed5), pos3:(seed2,seed7=bye), pos4:(seed3,seed6)
+    expect(r1[0]).toMatchObject({ position: 1, player1Id: "p1", player2Id: null });
+    expect(r1[1]).toMatchObject({ position: 2, player1Id: "p4", player2Id: "p5" });
+    expect(r1[2]).toMatchObject({ position: 3, player1Id: "p2", player2Id: null });
+    expect(r1[3]).toMatchObject({ position: 4, player1Id: "p3", player2Id: "p6" });
   });
 
   it("total matches equals bracketSize−1 regardless of byes", () => {
     for (const n of [3, 5, 6, 7]) {
       const { bracketSize, matches } = buildSingleEliminationBlueprint(ids(n));
       expect(matches.length).toBe(bracketSize - 1);
+    }
+  });
+});
+
+describe("buildSingleEliminationBlueprint — seeding (correct bracket halves)", () => {
+  it("8 players: pos1=(1v8), pos2=(4v5), pos3=(2v7), pos4=(3v6)", () => {
+    const { matches } = buildSingleEliminationBlueprint(ids(8));
+    const r1 = matches.filter((m) => m.round === 1).sort((a, b) => a.position - b.position);
+    expect(r1[0]).toMatchObject({ position: 1, player1Id: "p1", player2Id: "p8" });
+    expect(r1[1]).toMatchObject({ position: 2, player1Id: "p4", player2Id: "p5" });
+    expect(r1[2]).toMatchObject({ position: 3, player1Id: "p2", player2Id: "p7" });
+    expect(r1[3]).toMatchObject({ position: 4, player1Id: "p3", player2Id: "p6" });
+  });
+
+  it("seeds 1 and 2 always land on opposite halves for any power-of-2 size", () => {
+    for (const n of [4, 8, 16, 32]) {
+      const { matches, bracketSize } = buildSingleEliminationBlueprint(ids(n));
+      const r1 = matches.filter((m) => m.round === 1).sort((a, b) => a.position - b.position);
+      const halfSize = bracketSize / 4; // R1 positions per half
+      const seed1Pos = r1.find((m) => m.player1Id === "p1")!.position;
+      const seed2Pos = r1.find((m) => m.player1Id === "p2")!.position;
+      expect(seed1Pos <= halfSize).toBe(true);
+      expect(seed2Pos > halfSize).toBe(true);
     }
   });
 });

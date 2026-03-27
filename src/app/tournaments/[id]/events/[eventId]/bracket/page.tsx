@@ -17,13 +17,37 @@ export async function generateMetadata({ params }: Props) {
   return { title: event ? `${event.name} Bracket — RallyBase` : "Bracket not found" };
 }
 
-// Card height constants — all cards render at CARD_H regardless of actionability
-// to keep spacing uniform across rounds.
+// ── Layout constants ──────────────────────────────────────────────────────────
+
 const MATCH_H = 80;
 const ACTIONS_H = 24;
-const CARD_H = MATCH_H + ACTIONS_H; // effective card height for spacing
+const CARD_H = MATCH_H + ACTIONS_H; // 104px — effective card height for spacing
+const CARD_W = 176;                  // w-44
+const CONN_W = 40;                   // width of SVG connector columns
+const LABEL_H = 28;                  // height reserved above cards for round labels
+
+// ── Geometry helpers ──────────────────────────────────────────────────────────
+
+/** y-center (px) of the local-index-i match (0-based) in a given round */
+function yCenter(round: number, localIndex: number): number {
+  const factor = Math.pow(2, round - 1);
+  const pt = ((factor - 1) * CARD_H) / 2;
+  const gap = (factor - 1) * CARD_H;
+  return pt + localIndex * (CARD_H + gap) + CARD_H / 2;
+}
+
+/** Total pixel height of one bracket half (left or right side) */
+function halfHeight(bracketSize: number): number {
+  // Equals the height of R1 within the half: (bracketSize/4) cards with no gap.
+  // Clamped to at least CARD_H to handle the degenerate 2-player case.
+  return Math.max(CARD_H, (bracketSize / 4) * CARD_H);
+}
+
+// ── Types ─────────────────────────────────────────────────────────────────────
 
 type BracketMatch = Awaited<ReturnType<typeof getEventBracket>>[number];
+
+// ── Match card ────────────────────────────────────────────────────────────────
 
 function MatchCard({
   match,
@@ -60,33 +84,42 @@ function MatchCard({
     >
       {/* Player 1 row */}
       <div className="flex items-center justify-between px-3 py-1.5 text-sm">
-        <span className={`truncate ${p1Wins ? "font-semibold text-text-1" : p1IsTBD ? "text-text-2" : "text-text-2"}`}>
+        <span
+          className={`truncate ${
+            p1Wins ? "font-semibold text-text-1" : p1IsTBD ? "text-text-2" : "text-text-2"
+          }`}
+        >
           {p1}
         </span>
         {isCompleted && p1GameWins !== null && (
-          <span className="ml-2 flex w-10 shrink-0 items-center justify-end gap-1 text-xs">
-            {p1Wins
-              ? <><span className="font-bold text-accent">W</span><span className="font-bold text-text-1">{p1GameWins}</span></>
-              : <><span className="font-bold text-red-400">L</span><span className="text-text-3">{p1GameWins}</span></>
-            }
+          <span className={`ml-2 shrink-0 text-xs font-bold ${p1Wins ? "text-accent" : "text-text-3"}`}>
+            {p1GameWins}
           </span>
         )}
       </div>
       <div className="border-t border-border-subtle" />
       {/* Player 2 row */}
       <div className="flex items-center justify-between px-3 py-1.5 text-sm">
-        <span className={`truncate ${p2Wins ? "font-semibold text-text-1" : isBye ? "italic text-text-3" : p2IsTBD ? "text-text-2" : "text-text-2"}`}>
+        <span
+          className={`truncate ${
+            p2Wins
+              ? "font-semibold text-text-1"
+              : isBye
+                ? "italic text-text-3"
+                : p2IsTBD
+                  ? "text-text-2"
+                  : "text-text-2"
+          }`}
+        >
           {p2}
         </span>
         {isCompleted && p2GameWins !== null && (
-          <span className="ml-2 flex w-10 shrink-0 items-center justify-end gap-1 text-xs">
-            {p2Wins
-              ? <><span className="font-bold text-accent">W</span><span className="font-bold text-text-1">{p2GameWins}</span></>
-              : <><span className="font-bold text-red-400">L</span><span className="text-text-3">{p2GameWins}</span></>
-            }
+          <span className={`ml-2 shrink-0 text-xs font-bold ${p2Wins ? "text-accent" : "text-text-3"}`}>
+            {p2GameWins}
           </span>
         )}
       </div>
+      {/* Footer: status + actions */}
       <div className="flex items-center justify-between border-t border-border-subtle bg-elevated px-3 py-1">
         <span className="text-[10px] uppercase tracking-wide text-text-3">
           {isBye ? "bye" : match.status.toLowerCase().replace(/_/g, " ")}
@@ -118,24 +151,32 @@ function MatchCard({
             </>
           )}
           {/* TD actions */}
-          {isTD && (match.status === "PENDING" || match.status === "AWAITING_CONFIRMATION") && match.player1Id && match.player2Id && (
-            <Link
-              href={`/matches/${match.id}/td-submit`}
-              className="text-[10px] font-medium text-accent underline-offset-2 hover:underline"
-            >
-              Enter result
-            </Link>
-          )}
-          {isTD && (match.status === "COMPLETED" || match.status === "AWAITING_CONFIRMATION") && !isBye && (
-            <form action={tdVoidMatchAction.bind(null, match.id, tournamentId, eventId)} className="flex items-center">
-              <button
-                type="submit"
-                className="text-[10px] font-medium text-red-400 underline-offset-2 hover:underline"
+          {isTD &&
+            (match.status === "PENDING" || match.status === "AWAITING_CONFIRMATION") &&
+            match.player1Id &&
+            match.player2Id && (
+              <Link
+                href={`/matches/${match.id}/td-submit`}
+                className="text-[10px] font-medium text-accent underline-offset-2 hover:underline"
               >
-                Void
-              </button>
-            </form>
-          )}
+                Enter result
+              </Link>
+            )}
+          {isTD &&
+            (match.status === "COMPLETED" || match.status === "AWAITING_CONFIRMATION") &&
+            !isBye && (
+              <form
+                action={tdVoidMatchAction.bind(null, match.id, tournamentId, eventId)}
+                className="flex items-center"
+              >
+                <button
+                  type="submit"
+                  className="text-[10px] font-medium text-red-400 underline-offset-2 hover:underline"
+                >
+                  Void
+                </button>
+              </form>
+            )}
           {match.status === "COMPLETED" && !isBye && (
             <Link
               href={`/matches/${match.id}`}
@@ -149,6 +190,157 @@ function MatchCard({
     </div>
   );
 }
+
+// ── SVG connectors ────────────────────────────────────────────────────────────
+
+/**
+ * Bracket-fork SVG connector.
+ *
+ * For side="left": outer matches are on the left edge (x=0), inner match on
+ * the right edge (x=CONN_W). Draws the standard ─┐ / ├─ / └─ shape.
+ *
+ * For side="right": mirror — outer matches on right edge (x=CONN_W), inner on left.
+ *
+ * @param outerRound  The round with more matches (the column being connected FROM)
+ * @param outerCount  Number of matches in the outer half for outerRound
+ * @param H           Total bracket half-height in pixels
+ */
+function ForkConnector({
+  outerRound,
+  outerCount,
+  H,
+  side,
+}: {
+  outerRound: number;
+  outerCount: number;
+  H: number;
+  side: "left" | "right";
+}) {
+  const segments: React.ReactNode[] = [];
+
+  for (let i = 0; i < outerCount; i += 2) {
+    const topY = yCenter(outerRound, i);
+    const bottomY = yCenter(outerRound, i + 1);
+    const midY = (topY + bottomY) / 2;
+    const mid = CONN_W / 2;
+
+    if (side === "left") {
+      segments.push(
+        <g key={i}>
+          <line x1={0} y1={topY} x2={mid} y2={topY} stroke="currentColor" strokeWidth={1} />
+          <line x1={0} y1={bottomY} x2={mid} y2={bottomY} stroke="currentColor" strokeWidth={1} />
+          <line x1={mid} y1={topY} x2={mid} y2={bottomY} stroke="currentColor" strokeWidth={1} />
+          <line x1={mid} y1={midY} x2={CONN_W} y2={midY} stroke="currentColor" strokeWidth={1} />
+        </g>,
+      );
+    } else {
+      segments.push(
+        <g key={i}>
+          <line x1={CONN_W} y1={topY} x2={mid} y2={topY} stroke="currentColor" strokeWidth={1} />
+          <line x1={CONN_W} y1={bottomY} x2={mid} y2={bottomY} stroke="currentColor" strokeWidth={1} />
+          <line x1={mid} y1={topY} x2={mid} y2={bottomY} stroke="currentColor" strokeWidth={1} />
+          <line x1={mid} y1={midY} x2={0} y2={midY} stroke="currentColor" strokeWidth={1} />
+        </g>,
+      );
+    }
+  }
+
+  return (
+    <div className="shrink-0 text-border" style={{ width: CONN_W }}>
+      <div style={{ height: LABEL_H }} />
+      <svg width={CONN_W} height={H} style={{ display: "block", overflow: "visible" }}>
+        {segments}
+      </svg>
+    </div>
+  );
+}
+
+/** Simple horizontal line connector (1-to-1 match, e.g. between semifinal and final) */
+function SimpleConnector({ H, side }: { H: number; side: "left" | "right" }) {
+  const midY = H / 2;
+  return (
+    <div className="shrink-0 text-border" style={{ width: CONN_W }}>
+      <div style={{ height: LABEL_H }} />
+      <svg width={CONN_W} height={H} style={{ display: "block" }}>
+        {side === "left" ? (
+          <line x1={0} y1={midY} x2={CONN_W} y2={midY} stroke="currentColor" strokeWidth={1} />
+        ) : (
+          <line x1={0} y1={midY} x2={CONN_W} y2={midY} stroke="currentColor" strokeWidth={1} />
+        )}
+      </svg>
+    </div>
+  );
+}
+
+// ── Bracket column ────────────────────────────────────────────────────────────
+
+function BracketColumn({
+  label,
+  labelVariant,
+  round,
+  matches,
+  H,
+  isCenter,
+  tournamentId,
+  eventId,
+  isTD,
+}: {
+  label: string;
+  labelVariant: "default" | "final";
+  round: number;
+  matches: BracketMatch[];
+  H: number;
+  isCenter: boolean;
+  tournamentId: string;
+  eventId: string;
+  isTD: boolean;
+}) {
+  const factor = Math.pow(2, round - 1);
+  const paddingTop = isCenter
+    ? (H - CARD_H) / 2
+    : ((factor - 1) * CARD_H) / 2;
+  const gap = isCenter ? 0 : (factor - 1) * CARD_H;
+
+  return (
+    <div className="flex shrink-0 flex-col" style={{ width: CARD_W }}>
+      <div
+        style={{ height: LABEL_H }}
+        className="flex items-end pb-3"
+      >
+        <p
+          className={`text-xs uppercase tracking-wide ${
+            labelVariant === "final"
+              ? "font-bold text-text-1"
+              : "font-medium text-text-3"
+          }`}
+        >
+          {label}
+        </p>
+      </div>
+      <div
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          height: H,
+          paddingTop,
+          gap,
+        }}
+      >
+        {matches.map((m) => (
+          <MatchCard
+            key={m.id}
+            match={m}
+            tournamentId={tournamentId}
+            eventId={eventId}
+            isTD={isTD}
+          />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ── Page ──────────────────────────────────────────────────────────────────────
 
 export default async function BracketPage({ params, searchParams }: Props) {
   const { id, eventId } = await params;
@@ -185,17 +377,15 @@ export default async function BracketPage({ params, searchParams }: Props) {
             ? "SE bracket not generated yet — complete all group matches first."
             : "No bracket generated yet."}
         </p>
-        <Link
-          href={backHref}
-          className="mt-4 inline-block text-sm text-text-2 hover:text-text-1"
-        >
+        <Link href={backHref} className="mt-4 inline-block text-sm text-text-2 hover:text-text-1">
           {from === "manage" ? "← Back to manage event" : "← Back to event"}
         </Link>
       </main>
     );
   }
 
-  // Group matches by round
+  // ── Derive bracket dimensions ─────────────────────────────────────────────
+
   const roundMap = new Map<number, BracketMatch[]>();
   for (const m of bracketMatches) {
     if (!roundMap.has(m.round)) roundMap.set(m.round, []);
@@ -203,9 +393,37 @@ export default async function BracketPage({ params, searchParams }: Props) {
   }
   const roundNumbers = [...roundMap.keys()].sort((a, b) => a - b);
   const totalRounds = roundNumbers[roundNumbers.length - 1];
+  const bracketSize = Math.pow(2, totalRounds);
+  const H = halfHeight(bracketSize);
+
+  // Sorted R1 matches are the authoritative source for which positions exist.
+  // Left half: positions 1..(bracketSize/4), Right half: (bracketSize/4)+1..(bracketSize/2)
+  const leftHalfCount = (round: number) => bracketSize / Math.pow(2, round + 1);
+
+  function leftMatches(round: number): BracketMatch[] {
+    const half = leftHalfCount(round);
+    return (roundMap.get(round) ?? [])
+      .filter((m) => m.position <= half)
+      .sort((a, b) => a.position - b.position);
+  }
+
+  function rightMatches(round: number): BracketMatch[] {
+    const half = leftHalfCount(round);
+    return (roundMap.get(round) ?? [])
+      .filter((m) => m.position > half)
+      .sort((a, b) => a.position - b.position);
+  }
+
+  const finalMatch = (roundMap.get(totalRounds) ?? [])[0];
+  const leftRounds = Array.from({ length: totalRounds - 1 }, (_, i) => i + 1);
+  // Right side: innermost first (totalRounds-1 → 1), left-to-right in the visual
+  const rightRounds = [...leftRounds].reverse();
+
+  // ── Render ────────────────────────────────────────────────────────────────
 
   return (
     <main className="px-6 py-12">
+      {/* Header */}
       <div className="mb-8 space-y-1">
         <p className="text-sm text-text-3">
           <Link href={`/tournaments/${id}`} className="hover:text-text-2">
@@ -226,41 +444,77 @@ export default async function BracketPage({ params, searchParams }: Props) {
         </div>
       </div>
 
-      {/* Bracket columns */}
-      <div className="flex items-start gap-10 overflow-x-auto pb-8">
-        {roundNumbers.map((round) => {
-          const roundMatches = roundMap.get(round)!;
-          // Calculate spacing so matches align with their R1 feeders
-          const factor = Math.pow(2, round - 1);
-          const paddingTop = ((factor - 1) * CARD_H) / 2;
-          const gap = (factor - 1) * CARD_H;
+      {/* Bracket */}
+      <div className="overflow-x-auto pb-8">
+        <div className="flex items-start" style={{ minWidth: "max-content" }}>
 
-          return (
-            <div key={round} className="flex shrink-0 flex-col">
-              <p className="mb-3 text-xs font-medium uppercase tracking-wide text-text-3">
-                {getRoundLabel(round, totalRounds)}
-              </p>
-              <div
-                style={{
-                  display: "flex",
-                  flexDirection: "column",
-                  paddingTop,
-                  gap,
-                }}
-              >
-                {roundMatches.map((match) => (
-                  <MatchCard
-                    key={match.id}
-                    match={match}
-                    tournamentId={id}
-                    eventId={eventId}
-                    isTD={isTD}
-                  />
-                ))}
+          {/* ── LEFT SIDE ── */}
+          {leftRounds.map((round, idx) => {
+            const isLastLeft = idx === leftRounds.length - 1;
+            const count = leftHalfCount(round);
+            return (
+              <div key={`l-${round}`} className="flex items-start">
+                <BracketColumn
+                  label={getRoundLabel(round, totalRounds)}
+                  labelVariant="default"
+                  round={round}
+                  matches={leftMatches(round)}
+                  H={H}
+                  isCenter={false}
+                  tournamentId={id}
+                  eventId={eventId}
+                  isTD={isTD}
+                />
+                {isLastLeft ? (
+                  <SimpleConnector H={H} side="left" />
+                ) : (
+                  <ForkConnector outerRound={round} outerCount={count} H={H} side="left" />
+                )}
               </div>
-            </div>
-          );
-        })}
+            );
+          })}
+
+          {/* ── FINAL ── */}
+          <BracketColumn
+            label="Final"
+            labelVariant="final"
+            round={totalRounds}
+            matches={finalMatch ? [finalMatch] : []}
+            H={H}
+            isCenter={true}
+            tournamentId={id}
+            eventId={eventId}
+            isTD={isTD}
+          />
+
+          {/* ── RIGHT SIDE ── */}
+          {rightRounds.map((round, idx) => {
+            const isFirstRight = idx === 0;
+            const count = leftHalfCount(round);
+            return (
+              <div key={`r-${round}`} className="flex items-start">
+                {isFirstRight ? (
+                  <SimpleConnector H={H} side="right" />
+                ) : (
+                  // outerRound is the CURRENT round (more matches, outer column)
+                  <ForkConnector outerRound={round} outerCount={count} H={H} side="right" />
+                )}
+                <BracketColumn
+                  label={getRoundLabel(round, totalRounds)}
+                  labelVariant="default"
+                  round={round}
+                  matches={rightMatches(round)}
+                  H={H}
+                  isCenter={false}
+                  tournamentId={id}
+                  eventId={eventId}
+                  isTD={isTD}
+                />
+              </div>
+            );
+          })}
+
+        </div>
       </div>
 
       <Link

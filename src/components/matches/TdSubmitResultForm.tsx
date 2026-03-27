@@ -14,6 +14,7 @@ interface Props {
   tournamentId: string;
   eventId: string;
   format: string;
+  redirectTo: string;
   maxGames: number;
   player1Name: string;
   player2Name: string;
@@ -25,12 +26,13 @@ export function TdSubmitResultForm({
   tournamentId,
   eventId,
   format,
+  redirectTo,
   maxGames,
   player1Name,
   player2Name,
   initialScores,
 }: Props) {
-  const boundAction = tdSubmitResultAction.bind(null, matchId, tournamentId, eventId, format);
+  const boundAction = tdSubmitResultAction.bind(null, matchId, tournamentId, eventId, format, redirectTo);
   const [state, dispatch, isPending] = useActionState<MatchActionState, FormData>(
     boundAction,
     null,

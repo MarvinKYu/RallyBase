@@ -100,12 +100,13 @@ export async function confirmResultAction(
 
 // ── TD Actions ────────────────────────────────────────────────────────────────
 
-// matchId, tournamentId, eventId, format are pre-bound via .bind()
+// matchId, tournamentId, eventId, format, redirectTo are pre-bound via .bind()
 export async function tdSubmitResultAction(
   matchId: string,
   tournamentId: string,
   eventId: string,
   format: string,
+  redirectTo: string,
   _prevState: MatchActionState,
   formData: FormData,
 ): Promise<MatchActionState> {
@@ -130,15 +131,16 @@ export async function tdSubmitResultAction(
   const result = await tdSubmitMatch({ matchId, games });
   if ("error" in result) return { error: result.error };
 
-  redirect(`/tournaments/${tournamentId}/events/${eventId}/manage`);
+  redirect(redirectTo);
 }
 
-// matchId, tournamentId, eventId, winnerId are pre-bound via .bind()
+// matchId, tournamentId, eventId, winnerId, redirectTo are pre-bound via .bind()
 export async function tdDefaultMatchAction(
   matchId: string,
   tournamentId: string,
   eventId: string,
   winnerId: string,
+  redirectTo: string,
 ): Promise<void> {
   const { userId } = await auth();
   if (!userId) redirect("/sign-in");
@@ -152,7 +154,7 @@ export async function tdDefaultMatchAction(
   const result = await tdDefaultMatch({ matchId, winnerId });
   if ("error" in result) throw new Error(result.error);
 
-  redirect(`/tournaments/${tournamentId}/events/${eventId}/manage`);
+  redirect(redirectTo);
 }
 
 // matchId, tournamentId, eventId are pre-bound via .bind()
