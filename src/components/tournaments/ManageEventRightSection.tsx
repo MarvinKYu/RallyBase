@@ -181,10 +181,11 @@ export function ManageEventRightSection({
         matches: activeMatches.filter((m) => m.groupNumber === gNum),
       }));
     }
-    // By round
+    // By round — SE events get proper labels; RR "by round" keeps "Round N"
     const rounds = [...new Set(activeMatches.map((m) => m.round))].sort((a, b) => a - b);
+    const totalRounds = !isGrouped && rounds.length > 0 ? Math.max(...rounds) : null;
     return rounds.map((r) => ({
-      label: `Round ${r}`,
+      label: totalRounds !== null ? getRoundLabel(r, totalRounds) : `Round ${r}`,
       matches: activeMatches.filter((m) => m.round === r),
     }));
   }, [sortBy, isGrouped, matches, showSEPhase, phase, isRRToSE, seTotalRounds]);
@@ -249,7 +250,7 @@ export function ManageEventRightSection({
                       )}
                       <th className="pb-1 text-left text-xs font-medium text-text-3">Player</th>
                       <th className="pb-1 text-right text-xs font-medium text-text-3">Rtg</th>
-                      <th className="pb-1 text-right text-xs font-medium text-text-3">W-L</th>
+                      <th className="pb-1 text-right text-xs font-medium text-text-3 whitespace-nowrap">W-L</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -274,10 +275,10 @@ export function ManageEventRightSection({
                           <td className="py-0.5 pr-2 text-xs text-text-1 truncate max-w-0 w-full">
                             {p.displayName}
                           </td>
-                          <td className="py-0.5 text-right text-xs text-text-3">
+                          <td className="py-0.5 pr-2 text-right text-xs text-text-3">
                             {p.rating !== null ? Math.round(p.rating) : "—"}
                           </td>
-                          <td className={`py-0.5 text-right text-xs ${isAdvancer ? "font-semibold text-text-1" : "text-text-2"}`}>
+                          <td className={`py-0.5 text-right text-xs whitespace-nowrap ${isAdvancer ? "font-semibold text-text-1" : "text-text-2"}`}>
                             {p.wins}-{p.losses}
                           </td>
                         </tr>

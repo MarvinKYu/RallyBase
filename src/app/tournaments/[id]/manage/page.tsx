@@ -216,7 +216,11 @@ export default async function ManageTournamentPage({ params, searchParams }: Pro
                   )}
 
                   {/* Match list */}
-                  <EventMatchList matches={event.matches} />
+                  <EventMatchList
+                    matches={event.matches}
+                    eventFormat={event.eventFormat}
+                    groupSize={event.groupSize}
+                  />
                 </div>
               );
             })

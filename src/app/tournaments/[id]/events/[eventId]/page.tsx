@@ -55,11 +55,99 @@ export default async function EventDetailPage({ params }: Props) {
   if (!event) notFound();
 
   const isRoundRobin = event.eventFormat === "ROUND_ROBIN";
+  const isRRToSE = event.eventFormat === "RR_TO_SE";
+  const isGrouped = !!(event.groupSize);
   const podium = event.status === "COMPLETED"
     ? await getEventPodium(eventId, event.eventFormat, event.groupSize)
     : null;
 
-  // Eligibility display lines (left column)
+  // ── Groups computation ────────────────────────────────────────────────────
+  const groups: Array<{
+    groupNumber: number;
+    groupComplete: boolean;
+    players: Array<{
+      playerProfileId: string;
+      displayName: string;
+      rating: number | null;
+      wins: number;
+      losses: number;
+      rank: number | null;
+    }>;
+  }> = [];
+
+  if (isGrouped && (isRoundRobin || isRRToSE)) {
+    const groupNums = [
+      ...new Set(
+        event.eventEntries
+          .map((e) => e.groupNumber)
+          .filter((g): g is number => g !== null),
+      ),
+    ].sort((a, b) => a - b);
+
+    for (const groupNum of groupNums) {
+      const groupEntries = event.eventEntries.filter((e) => e.groupNumber === groupNum);
+      const allGroupMatches = allMatchesRaw.filter((m) => m.groupNumber === groupNum);
+      const completedGroupMatches = allGroupMatches.filter((m) => m.status === "COMPLETED");
+      const groupComplete =
+        allGroupMatches.length > 0 && allGroupMatches.length === completedGroupMatches.length;
+
+      const wl = new Map<string, { wins: number; losses: number }>();
+      for (const e of groupEntries) wl.set(e.playerProfileId, { wins: 0, losses: 0 });
+      for (const m of completedGroupMatches) {
+        if (!m.winnerId || !m.player1Id || !m.player2Id) continue;
+        const p1 = wl.get(m.player1Id);
+        const p2 = wl.get(m.player2Id);
+        if (m.winnerId === m.player1Id) {
+          if (p1) p1.wins++;
+          if (p2) p2.losses++;
+        } else {
+          if (p2) p2.wins++;
+          if (p1) p1.losses++;
+        }
+      }
+
+      const rawPlayers = groupEntries.map((e) => {
+        const ratingRow = e.playerProfile.playerRatings.find(
+          (r) => r.ratingCategoryId === event.ratingCategoryId,
+        );
+        return {
+          playerProfileId: e.playerProfileId,
+          displayName: e.playerProfile.displayName,
+          rating: ratingRow ? ratingRow.rating : null,
+          wins: wl.get(e.playerProfileId)?.wins ?? 0,
+          losses: wl.get(e.playerProfileId)?.losses ?? 0,
+        };
+      });
+
+      const sortedPlayers = groupComplete
+        ? [...rawPlayers].sort((a, b) => b.wins - a.wins)
+        : rawPlayers;
+
+      const rankList: number[] = [];
+      if (groupComplete) {
+        for (let i = 0; i < sortedPlayers.length; i++) {
+          if (i === 0) {
+            rankList.push(1);
+          } else if (sortedPlayers[i].wins === sortedPlayers[i - 1].wins) {
+            rankList.push(rankList[i - 1]);
+          } else {
+            rankList.push(i + 1);
+          }
+        }
+      }
+
+      groups.push({
+        groupNumber: groupNum,
+        groupComplete,
+        players: sortedPlayers.map((p, i) => ({
+          ...p,
+          rank: groupComplete ? rankList[i] : null,
+        })),
+      });
+    }
+  }
+
+  // ── Eligibility display lines (left column) ───────────────────────────────
   const eligibilityLines: string[] = [];
   if (event.maxParticipants) eligibilityLines.push(`Max ${event.maxParticipants} players`);
   if (event.minRating) eligibilityLines.push(`Min rating: ${Math.round(event.minRating)}`);
@@ -158,8 +246,12 @@ export default async function EventDetailPage({ params }: Props) {
             </div>
             <p className="mt-1 text-sm text-text-2">
               {event.ratingCategory.name} ·{" "}
-              {isRoundRobin ? "Round Robin" : "Single Elimination"} ·{" "}
-              {FORMAT_LABEL[event.format] ?? event.format} · First to {event.gamePointTarget}
+              {isRoundRobin
+                ? "Round Robin"
+                : isRRToSE
+                  ? "Round Robin → Single Elimination"
+                  : "Single Elimination"}{" "}
+              · {FORMAT_LABEL[event.format] ?? event.format} · First to {event.gamePointTarget}
             </p>
             {(event as { startTime?: Date | null }).startTime && (
               <p className="mt-1 text-sm text-text-3">
@@ -175,21 +267,21 @@ export default async function EventDetailPage({ params }: Props) {
 
             {/* Bracket/standings + eligibility status row */}
             <div className="mt-3 flex items-center justify-between gap-4">
-              <div>
+              <div className="flex flex-wrap items-center gap-3">
+                {(isRoundRobin || (isRRToSE && hasBracket)) && (
+                  <Link
+                    href={`/tournaments/${id}/events/${eventId}/standings`}
+                    className="rounded-md bg-accent px-4 py-2 text-sm font-medium text-background transition-colors hover:bg-accent-dim"
+                  >
+                    View standings
+                  </Link>
+                )}
                 {hasBracket && !isRoundRobin && (
                   <Link
                     href={`/tournaments/${id}/events/${eventId}/bracket`}
                     className="rounded-md bg-accent px-4 py-2 text-sm font-medium text-background transition-colors hover:bg-accent-dim"
                   >
                     View bracket
-                  </Link>
-                )}
-                {isRoundRobin && (
-                  <Link
-                    href={`/tournaments/${id}/events/${eventId}/standings`}
-                    className="rounded-md bg-accent px-4 py-2 text-sm font-medium text-background transition-colors hover:bg-accent-dim"
-                  >
-                    View standings
                   </Link>
                 )}
               </div>
@@ -294,29 +386,97 @@ export default async function EventDetailPage({ params }: Props) {
         </div>
 
         {/* ── Right column ── */}
-        <div className="flex flex-col gap-6">
+        <div className="flex flex-col gap-8">
+
+          {/* Groups section — RR and RR_TO_SE grouped events */}
+          {groups.length > 0 && (
+            <section>
+              <h2 className="mb-3 text-base font-medium text-text-1">Groups</h2>
+              <div className="grid grid-cols-4 gap-3">
+                {groups.map((group) => (
+                  <div
+                    key={group.groupNumber}
+                    className="rounded-lg border border-border bg-surface p-3"
+                  >
+                    <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-text-3">
+                      Group {group.groupNumber}
+                    </p>
+                    <table className="w-full">
+                      <thead>
+                        <tr>
+                          {group.groupComplete && (
+                            <th className="pb-1 w-4 text-left text-xs font-medium text-text-3">#</th>
+                          )}
+                          <th className="pb-1 text-left text-xs font-medium text-text-3">Player</th>
+                          <th className="pb-1 text-right text-xs font-medium text-text-3">Rtg</th>
+                          <th className="pb-1 text-right text-xs font-medium text-text-3 whitespace-nowrap">W-L</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {group.players.map((p) => {
+                          const rank = p.rank;
+                          const isAdvancer =
+                            !!event.advancersPerGroup &&
+                            rank !== null &&
+                            rank <= event.advancersPerGroup;
+                          const rankColor =
+                            rank === 1
+                              ? "text-amber-400"
+                              : rank === 2
+                                ? "text-gray-400"
+                                : rank === 3
+                                  ? "text-orange-500"
+                                  : "text-text-3";
+                          return (
+                            <tr key={p.playerProfileId}>
+                              {group.groupComplete && (
+                                <td
+                                  className={`py-0.5 pr-1 text-xs ${rankColor} ${isAdvancer ? "font-bold" : ""}`}
+                                >
+                                  {rank}
+                                </td>
+                              )}
+                              <td className="py-0.5 pr-2 text-xs text-text-1 truncate max-w-0 w-full">
+                                {p.displayName}
+                              </td>
+                              <td className="py-0.5 pr-2 text-right text-xs text-text-3">
+                                {p.rating !== null ? Math.round(p.rating) : "—"}
+                              </td>
+                              <td
+                                className={`py-0.5 text-right text-xs whitespace-nowrap ${isAdvancer ? "font-semibold text-text-1" : "text-text-2"}`}
+                              >
+                                {p.wins}-{p.losses}
+                              </td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+                ))}
+              </div>
+            </section>
+          )}
+
+          {/* Matches section */}
           {isRegistered ? (
-            <>
-              <div>
-                <h2 className="mb-3 text-base font-medium text-text-1">Your Matches</h2>
-                <EventPlayerMatchList
-                  matches={playerMatches}
-                  viewerProfileId={playerProfileId!}
-                />
-              </div>
-            </>
+            <div>
+              <h2 className="mb-3 text-base font-medium text-text-1">Your Matches</h2>
+              <EventPlayerMatchList
+                matches={playerMatches}
+                viewerProfileId={playerProfileId!}
+              />
+            </div>
           ) : (
-            <>
-              <div>
-                <h2 className="mb-3 text-base font-medium text-text-1">
-                  Matches ({allMatches.length})
-                </h2>
-                <EventMatchesPreview
-                  matches={allMatches}
-                  viewAllHref={`/tournaments/${id}/events/${eventId}/matches`}
-                />
-              </div>
-            </>
+            <div>
+              <h2 className="mb-3 text-base font-medium text-text-1">
+                Matches ({allMatches.length})
+              </h2>
+              <EventMatchesPreview
+                matches={allMatches}
+                viewAllHref={`/tournaments/${id}/events/${eventId}/matches`}
+              />
+            </div>
           )}
 
         </div>
