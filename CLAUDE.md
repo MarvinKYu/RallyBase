@@ -21,10 +21,10 @@ Do this automatically for every shipped change — no need to ask.
 
 ## Project Status
 
-**Current version: v0.13.1.** The app is live on Vercel at https://rally-base.vercel.app. Next target is v0.14.0 (RR → SE Hybrid Event Type).
+**Current version: v0.14.2.** The app is live on Vercel at https://rally-base.vercel.app. Next target is v0.14.3 (placeholder SE bracket) or v0.15.0 (RallyBase Rating System).
 
 ### Upcoming
-- v0.14.0 — RR → SE Hybrid Event Type
+- v0.14.3 — Placeholder SE bracket for RR→SE events (computed cards before SE is generated)
 - v0.15.0 — RallyBase Rating System (new org + custom algorithm)
 - v0.16.0 — Tournament Templates
 
@@ -101,7 +101,9 @@ export async function addEntrantAction(eventId, tournamentId, formData): Promise
 - **Platform admin**: single account (test_user_1 / player #1) assigned `PLATFORM_ADMIN` role via `UserRole`. Can edit any profile, view all drafts, manage all tournaments.
 - **Org admin**: assigned per-org by platform admin via `/admin`. Stored in `OrgAdmin` table (separate from `UserRole`), scoped by `organizationId`.
 - **Player initial rating**: no `PlayerRating` row exists until after the first match or an admin sets one. `applyRatingResult` falls back to `DEFAULT_RATING = 1500` when no row is found.
-- **Multi-group RR events**: `Event.groupSize Int?` enables multi-group round robin. When set, `generateRoundRobinBracket` uses `assignGroups` (snake seeding) to distribute players, then builds one schedule per group. `getRoundRobinStandings(eventId, true)` returns `GroupedRoundRobinStandings[]`. `getEventPodium` returns `{first: null, second: null}` for multi-group events — no cross-group ranking until v0.14.0.
+- **Multi-group RR events**: `Event.groupSize Int?` enables multi-group round robin. When set, `generateRoundRobinBracket` uses `assignGroups` (snake seeding) to distribute players, then builds one schedule per group. `getRoundRobinStandings(eventId, true)` returns `GroupedRoundRobinStandings[]`.
+- **RR→SE hybrid events**: `EventFormat.RR_TO_SE` — group stage (RR) feeds into SE bracket. `Event.advancersPerGroup Int?` sets how many advance per group. `EventEntry.seed` is reused for SE seeding; `EventEntry.advancesToSE Boolean?` stores TD tie-resolution overrides. SE matches have `groupNumber = null`; RR matches have `groupNumber IS NOT NULL`. Auto-generate SE fires when last RR match completes. `getEventPodium` for RR_TO_SE uses SE-only matches. The bracket page only shows SE matches for RR_TO_SE events.
+- **Server action FormData rule**: when adding a new form field, always update BOTH `createEventAction` AND `updateEventAction` in `tournament.actions.ts` to extract the field via `formData.get(...)`. Missing either causes silent null storage with no error.
 
 ## Database Schema Groups
 
