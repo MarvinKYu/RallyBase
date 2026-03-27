@@ -6,12 +6,16 @@ import { MAX_GAMES } from "@/server/algorithms/match-validation";
 import { TdSubmitResultForm } from "@/components/matches/TdSubmitResultForm";
 import { tdDefaultMatchAction } from "@/server/actions/match.actions";
 
-type Props = { params: Promise<{ matchId: string }> };
+type Props = {
+  params: Promise<{ matchId: string }>;
+  searchParams: Promise<{ returnTo?: string }>;
+};
 
 export const metadata = { title: "TD: Record Result — RallyBase" };
 
-export default async function TdSubmitResultPage({ params }: Props) {
+export default async function TdSubmitResultPage({ params, searchParams }: Props) {
   const { matchId } = await params;
+  const { returnTo } = await searchParams;
   const { userId } = await auth();
   if (!userId) redirect("/sign-in");
 
@@ -30,11 +34,13 @@ export default async function TdSubmitResultPage({ params }: Props) {
   const isRRPhaseMatch =
     match.event.eventFormat === "ROUND_ROBIN" ||
     (match.event.eventFormat === "RR_TO_SE" && match.groupNumber !== null);
-  const backHref = isRRPhaseMatch
+  const defaultBackHref = isRRPhaseMatch
     ? match.event.eventFormat === "ROUND_ROBIN"
       ? `/tournaments/${tournamentId}/events/${eventId}/standings`
       : `/tournaments/${tournamentId}/events/${eventId}/manage`
     : `/tournaments/${tournamentId}/events/${eventId}/bracket`;
+  // Use returnTo if it's a valid internal path (starts with /), else fall back
+  const backHref = returnTo && returnTo.startsWith("/") ? returnTo : defaultBackHref;
 
   if (match.status === "COMPLETED") {
     redirect(backHref);

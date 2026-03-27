@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import { tdVoidMatchAction } from "@/server/actions/match.actions";
 
 type GameScore = {
@@ -42,6 +42,11 @@ export function ManageEventMatchList({
 }) {
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const pathname = usePathname();
+  const returnTo = searchParams.toString()
+    ? `${pathname}?${searchParams.toString()}`
+    : pathname;
 
   const toggle = (id: string) =>
     setExpanded((prev) => {
@@ -127,7 +132,7 @@ export function ManageEventMatchList({
                       match.player1Id &&
                       match.player2Id && (
                         <Link
-                          href={`/matches/${match.id}/td-submit`}
+                          href={`/matches/${match.id}/td-submit?returnTo=${encodeURIComponent(returnTo)}`}
                           className="text-xs font-medium text-accent hover:underline"
                           onClick={(e) => e.stopPropagation()}
                         >
