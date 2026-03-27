@@ -1,13 +1,19 @@
 # Planned features shortlist
 - TODO: Analyze and decide where to place into existing feature roadmap.
 
+## Mark winner with (D) for matches won by default
+
+## Text-color green for winner name for completed match cards in event detail/event manage pages
+
+## Groups visual fix in event detail page:
+- Same as the manage page (shipped in v0.14.8): single W-L column, rank # column for completed groups with gold/silver/bronze + advancer bold
+
+## Standings page dynamically update group member ordering to show highest at top of group
+ 
 ## Tournament flow reversal - option to move from "published" back to "draft"
 - Also fix: TD should be able to "start event" for new events added to in-progress tournaments. right now attempting that displays an error message saying the tournament has to be published.
 
 ## Birth year code for verification in case of only one phone
-
-## Way to toggle "keep me signed in" for Clerk?
-- Investigate
 
 ## Preview component-ify entrants and schedule
 
@@ -30,6 +36,11 @@
 - Can choose to be rated or unrated
 - Anyone in the group can add matches
 - Rank by W/L record
+
+## Add table assignment
+- TD allots table number range for event
+- Keep a list of assigned vs unassigned (free) tables
+- Auto-assign free tables to matches based on schedule
 
 ## Develop custom algorithm for rating in separate org (RB rating)
 - Factor in age of player/number of years active

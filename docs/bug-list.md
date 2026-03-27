@@ -1,9 +1,21 @@
 # Current bugs
 
+## Display groups on event detail page (for non-TD) as well
+- Also keep the view standings button on event detail page
+
+## RR vs SE stage separation in match dropdown for event card in tournament manage page
+
+## SE stage match sections should not display round 1, round 2, etc. 
+- Display appropriate name: round of 16/32/64/etc or quarterfinal, semifinal, final. 
+- This should apply to: matches dropdown for event card in tournament manage page, matches section in event manage page when bracket phase is selected, 
+
 ## RR -> SE "View Standings" button broken 
 - Tried to click on this button while group matches were still ongoing
 - /tournaments/[id]/events[id]/standings page tried to load for a second but failed
 - Redirected me to the player event view page.  
+- Investigate why? 
+
+## Group/round persisted state from event manage page is inconsistent
 
 ## Make gender and age display on public profile togglable 
 
@@ -31,16 +43,6 @@
 - Requires scheduled job. Deferred.
 
 # Fixed
-
-## Version 0.14.5
-
-### Entrants pagination showed "No unregistered players found" with pages remaining
-- Filtering out already-entered players happened after page fetch, so if all 10 players on page 1 were entered the display showed an empty state despite subsequent pages having eligible players. Fix: `searchPlayers` now accepts `excludeIds` and filters before pagination.
-
-### Manage event group/round selection reset on navigation
-- `sortBy`, `phase`, `matchPage`, and `groupsPage` state in `ManageEventRightSection` was lost when navigating to a TD submit page and back. v0.14.5 stored the state in URL search params but the td-submit redirect always went to the bare manage URL, losing those params. v0.14.7 fixed this by appending `?returnTo=<current-url>` to "Enter result" links and reading it in td-submit as `backHref`.
-
----
 
 ## Version 0.14.2
 

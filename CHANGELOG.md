@@ -10,6 +10,17 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 ---
 
+## [0.14.8] - 2026-03-27
+
+### Added
+- **Dynamic placeholder SE bracket** — placeholder slot labels update to actual player names once a group completes all its matches. `computeCompletedGroupRankings` tallies wins from the already-fetched match data and substitutes real names (e.g. "Alice" instead of "Group 1 — 1st") for completed groups; unfinished groups retain the label format.
+- **"View bracket" for RR→SE events** — the manage page now shows the "View bracket" button as soon as the RR schedule exists (`hasBracket`), not only after the SE stage is generated.
+
+### Changed
+- **Groups table visual overhaul** — when a group is complete: a `#` rank column appears at the left of each row (gold for 1st, silver for 2nd, bronze for 3rd, plain for others); advancers' rank numbers are bold; the separate W and L columns are merged into a single `W-L` column (e.g. "3-0"); players are sorted by wins descending; tied players share the same rank number (competition ranking).
+
+---
+
 ## [0.14.7] - 2026-03-27
 
 ### Fixed
