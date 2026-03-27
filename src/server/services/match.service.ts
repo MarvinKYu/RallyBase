@@ -196,8 +196,15 @@ export async function confirmMatchResult(
     matchId,
   });
 
-  // Auto-complete event if all matches are now done
-  if (match.event.status === "IN_PROGRESS") {
+  // RR → SE: auto-generate SE bracket when last RR group match completes
+  await tryAutoGenerateSEStage(match.eventId, match.event.eventFormat, match.groupNumber);
+
+  // Auto-complete event if all matches are now done.
+  // For RR_TO_SE events where the completed match is a group-stage (RR) match,
+  // skip — the SE bracket still needs to be played through.
+  const isRRPhaseMatch =
+    match.event.eventFormat === "RR_TO_SE" && match.groupNumber !== null;
+  if (match.event.status === "IN_PROGRESS" && !isRRPhaseMatch) {
     const remainingMatches = await countNonCompletedMatches(match.eventId);
     if (remainingMatches === 0) {
       await setEventStatus(match.eventId, "COMPLETED");
@@ -207,9 +214,6 @@ export async function confirmMatchResult(
       }
     }
   }
-
-  // RR → SE: auto-generate SE bracket when last RR group match completes
-  await tryAutoGenerateSEStage(match.eventId, match.event.eventFormat, match.groupNumber);
 
   return {
     success: true,
@@ -277,8 +281,15 @@ export async function tdSubmitMatch(params: TdSubmitParams): Promise<TdSubmitRes
     matchId,
   });
 
-  // Auto-complete event if all matches are now done
-  if (match.event.status === "IN_PROGRESS") {
+  // RR → SE: auto-generate SE bracket when last RR group match completes
+  await tryAutoGenerateSEStage(match.eventId, match.event.eventFormat, match.groupNumber);
+
+  // Auto-complete event if all matches are now done.
+  // For RR_TO_SE events where the completed match is a group-stage (RR) match,
+  // skip — the SE bracket still needs to be played through.
+  const isRRPhaseMatch =
+    match.event.eventFormat === "RR_TO_SE" && match.groupNumber !== null;
+  if (match.event.status === "IN_PROGRESS" && !isRRPhaseMatch) {
     const remainingMatches = await countNonCompletedMatches(match.eventId);
     if (remainingMatches === 0) {
       await setEventStatus(match.eventId, "COMPLETED");
@@ -288,9 +299,6 @@ export async function tdSubmitMatch(params: TdSubmitParams): Promise<TdSubmitRes
       }
     }
   }
-
-  // RR → SE: auto-generate SE bracket when last RR group match completes
-  await tryAutoGenerateSEStage(match.eventId, match.event.eventFormat, match.groupNumber);
 
   return {
     success: true,
