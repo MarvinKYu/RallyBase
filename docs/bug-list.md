@@ -1,5 +1,13 @@
 # Current bugs
 
+## RR -> SE "View Standings" button broken 
+- Tried to click on this button while group matches were still ongoing
+- /tournaments/[id]/events[id]/standings page tried to load for a second but failed
+- Redirected me to the player event view page.  
+
+## Persist selected group/round for matches display in event manage page
+- Navigating away (e.g. to a TD submit match page) then back to event manage page should show the same group/round that was last selected
+
 ## Make gender and age display on public profile togglable 
 
 ## Remove ability to edit date of birth
@@ -21,6 +29,16 @@
 - Requires scheduled job. Deferred.
 
 # Fixed
+
+## Version 0.14.2
+
+### `advancersPerGroup` never saved to database
+- `createEventAction` and `updateEventAction` both omitted `advancersPerGroup` when building the data object from FormData. The field existed in the form, Zod schema, service, and repository — but was never extracted from `formData`. Result: every RR→SE event was created with `advancersPerGroup = null`, causing "advancersPerGroup is not configured for this event" on SE generation.
+
+### RR_TO_SE event auto-completed after group stage
+- When the last group-stage match was confirmed, `countNonCompletedMatches` returned 0 (no SE matches yet) and the event was marked COMPLETED. The SE bracket auto-generate trigger then fired but `generateSEStage` threw (due to the above bug) and was silently swallowed. Fix: auto-complete is now skipped for group-phase matches in RR_TO_SE events; SE-phase match completion triggers it normally.
+
+---
 
 ## Version 0.14.1
 

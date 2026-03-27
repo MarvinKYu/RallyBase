@@ -10,6 +10,14 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 ---
 
+## [0.14.2] - 2026-03-26
+
+### Fixed
+- **`advancersPerGroup` never saved** — `createEventAction` and `updateEventAction` both failed to extract `advancersPerGroup` from the FormData, so it was always `undefined` and never persisted to the database. SE generation always threw "advancersPerGroup is not configured for this event".
+- **RR_TO_SE event auto-completed after group stage** — the match completion handler ran `countNonCompletedMatches` and marked the event COMPLETED when all RR matches were done, before the SE bracket was generated. For `RR_TO_SE` events, auto-complete now only fires on SE-phase matches (`groupNumber === null`). The SE auto-generate trigger also now runs before the auto-complete check so newly added SE matches are counted correctly.
+
+---
+
 ## [0.14.1] - 2026-03-26
 
 ### Fixed
