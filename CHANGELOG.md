@@ -10,6 +10,20 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 ---
 
+## [0.14.3] - 2026-03-27
+
+### Added
+- **Two-sided bracket layout** — bracket page redesigned with left/right halves converging at a centered Final. SVG connector lines (fork connectors for multi-match rounds, simple horizontal for 1-to-1) connect match cards across rounds. Round labels mirrored on both sides. Applies to pure SE and RR→SE hybrid events.
+
+### Fixed
+- **Bracket seeding algorithm** — `buildSingleEliminationBlueprint` now uses the standard recursive bracket seeding order (`[1,8,4,5,2,7,3,6]` for bracketSize=8) instead of the linear `p vs bracketSize-p+1` formula. Seeds 1 and 2 now land on opposite halves and meet only in the final. Generalizes for any bracket size.
+- **TD match submit redirect** — `tdSubmitResultAction` and `tdDefaultMatchAction` now redirect based on match context (`backHref`) rather than always redirecting to `/manage`. SE bracket matches now return to the bracket page after submission.
+
+### Changed
+- Match card score display: removed W/L labels, replaced with game-wins count highlighted green for the winner.
+
+---
+
 ## [0.14.2] - 2026-03-26
 
 ### Fixed
