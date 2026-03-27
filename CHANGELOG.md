@@ -10,6 +10,18 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 ---
 
+## [0.14.9] - 2026-03-27
+
+### Fixed
+- **Groups table spacing** — W-L column header and cells now have `whitespace-nowrap` so they don't wrap to two lines; rating cell gets `pr-2` so values don't run together with W-L.
+- **SE round labels in event manage page** — pure SE events now show "Final", "Semifinal", etc. instead of "Round 1", "Round 2" in the match section. Computed from max round in match data.
+- **SE round labels in tournament manage match dropdown** — `EventMatchList` now uses `getRoundLabel` for SE events and single-bracket events.
+- **RR/SE phase separation in tournament manage match dropdown** — RR→SE events show a "Round Robin Phase" header (with group subsections "Group 1", "Group 2", …) followed by a "Bracket Phase" header (with round subsections using proper labels). Multi-group RR events group by group number. Pure RR single-group keeps "Round N".
+- **Groups display on event detail page** — non-TD event detail page now shows the same groups grid as the manage page: rank # column (gold/silver/bronze, bold for advancers), combined W-L column, sorted by wins when complete.
+- **Standings + bracket buttons on event detail page** — "View standings" now shows for RR→SE events (when schedule exists); "View bracket" now shows for RR→SE events. Format string shows "Round Robin → Single Elimination" for RR→SE.
+
+---
+
 ## [0.14.8] - 2026-03-27
 
 ### Added

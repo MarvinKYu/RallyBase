@@ -1,12 +1,15 @@
 # Planned features shortlist
 - TODO: Analyze and decide where to place into existing feature roadmap.
 
+## Reformat non-TD view all matches for an event page
+- Two-column layout: RR phase matches in left column, SE phase matches in right column. 
+- RR phase matches: order by group and label subsections with "Group 1", "Group 2", etc.
+- SE phase matches: order by round descending (FINAL at top, then SEMIFINAL, etc) and label subsections with "Round of 16", "Quarterfinal", etc. 
+- Add search bar at top to filter matches by player name
+
 ## Mark winner with (D) for matches won by default
 
 ## Text-color green for winner name for completed match cards in event detail/event manage pages
-
-## Groups visual fix in event detail page:
-- Same as the manage page (shipped in v0.14.8): single W-L column, rank # column for completed groups with gold/silver/bronze + advancer bold
 
 ## Standings page dynamically update group member ordering to show highest at top of group
  

@@ -1,25 +1,17 @@
 # Current bugs
 
-## Display groups on event detail page (for non-TD) as well
-- Also keep the view standings button on event detail page
-
-## RR vs SE stage separation in match dropdown for event card in tournament manage page
-
-## SE stage match sections should not display round 1, round 2, etc. 
-- Display appropriate name: round of 16/32/64/etc or quarterfinal, semifinal, final. 
-- This should apply to: matches dropdown for event card in tournament manage page, matches section in event manage page when bracket phase is selected, 
-
-## RR -> SE "View Standings" button broken 
+## RR -> SE "View Standings" button broken
 - Tried to click on this button while group matches were still ongoing
 - /tournaments/[id]/events[id]/standings page tried to load for a second but failed
 - Redirected me to the player event view page.  
 - Investigate why? 
 
 ## Group/round persisted state from event manage page is inconsistent
+- Latency issue or logic issue? unclear- investigate
 
 ## Make gender and age display on public profile togglable 
 
-## Remove ability to edit date of birth
+## Remove player ability to edit date of birth in profile
 
 ## Display "USATT" and "Singles" as selected options for player search filters by default
 
@@ -43,6 +35,22 @@
 - Requires scheduled job. Deferred.
 
 # Fixed
+
+## Version 0.14.9
+
+### Groups spacing in manage event page
+- W-L header and cells now have `whitespace-nowrap`; rating cell gets `pr-2` so values don't run into the W-L column.
+
+### SE round labels in event manage page and tournament manage match dropdown
+- Pure SE events now use `getRoundLabel` ("Final", "Semifinal", etc.) instead of "Round N" in both the event manage page match section and the tournament manage page match dropdown.
+
+### RR/SE phase separation in tournament manage match dropdown
+- RR→SE events now show "Round Robin Phase" and "Bracket Phase" headers with appropriate subsections.
+
+### Groups display on event detail page (for non-TD)
+- Event detail page now shows the same groups grid as the manage page. View standings and View bracket buttons also added for RR→SE events.
+
+---
 
 ## Version 0.14.2
 
