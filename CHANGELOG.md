@@ -10,6 +10,15 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 ---
 
+## [0.14.4] - 2026-03-27
+
+### Added
+- **Multi-select add entrants** — TD entrants page now shows checkboxes for all unregistered players with a single "Add N players" submit button. Replaces the per-player "Add" button.
+- Already-entered players are filtered out server-side before rendering the search results list, so they disappear from the list after being added.
+- `prisma/seed-extra-players.ts`: one-time script to seed 24 additional demo players with USATT ratings distributed between 1000 and 2000.
+
+---
+
 ## [0.14.3] - 2026-03-27
 
 ### Added

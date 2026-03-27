@@ -37,9 +37,8 @@ Final polish and infrastructure pass before opening to the public.
 ### Mobile UI
 - Comprehensive mobile review: fix zoom-on-search-tap, layout overflow issues, and other small issues catalogued in bug-list.md.
 
-### Cron-based event auto-start
-- Tournaments and events automatically advance to IN_PROGRESS at their set `startTime`.
-- Requires Vercel Pro for sub-daily cron scheduling. Revisit when plan is upgraded.
+### DB reset
+- Remove all demo user and test match/tournament data. 
 
 ### Final polish
 - Audit all pages for consistency: status tags, empty states, error messages, loading states.

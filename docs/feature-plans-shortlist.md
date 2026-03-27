@@ -1,8 +1,6 @@
 # Planned features shortlist
 - TODO: Analyze and decide where to place into existing feature roadmap.
 
-## Multi-select add entrants for TD, only display non-registered players in paginated results
-
 ## Tournament flow reversal - option to move from "published" back to "draft"
 - Also fix: TD should be able to "start event" for new events added to in-progress tournaments. right now attempting that displays an error message saying the tournament has to be published.
 

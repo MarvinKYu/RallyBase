@@ -18,6 +18,11 @@
 
 ## Edit event -> Save changes should redirect back to manage event page
 
+## Void match in bracket should keep you on bracket page, not redirect to manage event page
+
+## Remove the "View all past (#) ->" button from past tournaments section on tournament search page
+- Align bottom between columns
+
 ## Mobile UI fix (ongoing list, needs comprehensive review)
 - Clicking into player search bar forces zoom in
 - Many other small issues currently undocumented
