@@ -22,6 +22,16 @@
 
 # Fixed
 
+## Version 0.14.1
+
+### Bracket page shows RR group matches in RR_TO_SE events
+- Bracket page was rendering all matches (including RR group-stage matches) for `RR_TO_SE` events. Now filters to SE-only matches (`groupNumber === null`) and shows "SE bracket not generated yet" if the SE stage hasn't been generated.
+
+### TD submit back nav goes to bracket instead of manage page
+- For RR-phase matches in `RR_TO_SE` events, the back link and COMPLETED redirect on the td-submit page navigated to the bracket page, which didn't show group matches. Now navigates to the manage event page instead.
+
+---
+
 ## Version 0.9.8
 
 ### New event on published tournament defaulted to DRAFT

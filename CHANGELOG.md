@@ -10,6 +10,15 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 ---
 
+## [0.14.1] - 2026-03-26
+
+### Fixed
+- **Bracket page shows RR group matches for RR_TO_SE events** — bracket page now filters to SE-only matches (`groupNumber === null`) for `RR_TO_SE` events; shows "SE bracket not generated yet" if SE stage hasn't been generated.
+- **TD submit back nav goes to bracket instead of manage** — for RR-phase matches in `RR_TO_SE` events, the back link and COMPLETED redirect on the td-submit page now navigate to the manage event page instead of the bracket page.
+- **Bracket page round labels** — bracket page now uses `getRoundLabel` (Final/Semifinal/Quarterfinal/Round of 16/…) instead of the limited inline function.
+
+---
+
 ## [0.14.0] - 2026-03-26
 
 ### Added
