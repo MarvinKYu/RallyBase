@@ -5,6 +5,7 @@ import { getEventDetail } from "@/server/services/tournament.service";
 import { getEventBracket } from "@/server/services/bracket.service";
 import { tdVoidMatchAction } from "@/server/actions/match.actions";
 import { getRoundLabel } from "@/lib/bracket-labels";
+import { bracketSeedOrder } from "@/server/algorithms/bracket";
 
 type Props = {
   params: Promise<{ id: string; eventId: string }>;
@@ -340,6 +341,131 @@ function BracketColumn({
   );
 }
 
+// ── Placeholder bracket (RR→SE pre-generation) ───────────────────────────────
+
+type PlaceholderSlot = { p1: string; p2: string };
+
+/**
+ * Maps a seed number to a human-readable label for the placeholder bracket.
+ * Uses the same inter-group snake seeding order as computeAdvancers.
+ */
+function seedToGroupLabel(seed: number, numGroups: number, numSlots: number): string {
+  if (seed > numSlots) return "BYE";
+  const rank = Math.ceil(seed / numGroups);
+  const idxInRank = (seed - 1) % numGroups;
+  // Odd ranks: ascending group order; even ranks: descending
+  const groupNum = rank % 2 === 1 ? idxInRank + 1 : numGroups - idxInRank;
+  const ordinal = rank === 1 ? "1st" : rank === 2 ? "2nd" : rank === 3 ? "3rd" : `${rank}th`;
+  return `Group ${groupNum} — ${ordinal}`;
+}
+
+/**
+ * Computes R1 slot labels and layout dimensions for the placeholder bracket.
+ * R1 slots carry group/rank labels; all higher rounds show "TBD".
+ */
+function computePlaceholderBracket(numGroups: number, advancersPerGroup: number) {
+  const numSlots = numGroups * advancersPerGroup;
+  const totalRounds = Math.ceil(Math.log2(numSlots));
+  const bracketSize = Math.pow(2, totalRounds);
+  const H = halfHeight(bracketSize);
+  const seedOrder = bracketSeedOrder(bracketSize);
+
+  // Left half: positions 1..(bracketSize/4); right half: (bracketSize/4)+1..(bracketSize/2)
+  const halfCount = (round: number) => bracketSize / Math.pow(2, round + 1);
+
+  function slotsForHalf(round: number, isLeft: boolean): PlaceholderSlot[] {
+    const count = halfCount(round);
+    if (round === 1) {
+      const offset = isLeft ? 0 : count;
+      return Array.from({ length: count }, (_, i) => {
+        const pos = offset + i; // 0-indexed position within R1
+        return {
+          p1: seedToGroupLabel(seedOrder[2 * pos], numGroups, numSlots),
+          p2: seedToGroupLabel(seedOrder[2 * pos + 1], numGroups, numSlots),
+        };
+      });
+    }
+    return Array.from({ length: count }, () => ({ p1: "TBD", p2: "TBD" }));
+  }
+
+  const finalSlot: PlaceholderSlot = { p1: "TBD", p2: "TBD" };
+
+  return { totalRounds, bracketSize, H, halfCount, slotsForHalf, finalSlot };
+}
+
+function PlaceholderCard({ p1, p2 }: PlaceholderSlot) {
+  const isBye = p2 === "BYE";
+  const isTBD = p1 === "TBD";
+  return (
+    <div
+      className="w-44 overflow-hidden rounded-md border border-border bg-surface shadow-sm"
+      style={{ height: CARD_H }}
+    >
+      <div className="flex items-center px-3 py-1.5 text-sm">
+        <span className="truncate text-text-2">{p1}</span>
+      </div>
+      <div className="border-t border-border-subtle" />
+      <div className="flex items-center px-3 py-1.5 text-sm">
+        <span className={`truncate ${isBye ? "italic text-text-3" : "text-text-2"}`}>{p2}</span>
+      </div>
+      <div className="flex items-center border-t border-border-subtle bg-elevated px-3 py-1">
+        <span className="text-[10px] uppercase tracking-wide text-text-3">
+          {isBye ? "bye" : isTBD ? "—" : "upcoming"}
+        </span>
+      </div>
+    </div>
+  );
+}
+
+function PlaceholderBracketColumn({
+  label,
+  labelVariant,
+  round,
+  slots,
+  H,
+  isCenter,
+}: {
+  label: string;
+  labelVariant: "default" | "final";
+  round: number;
+  slots: PlaceholderSlot[];
+  H: number;
+  isCenter: boolean;
+}) {
+  const factor = Math.pow(2, round - 1);
+  const paddingTop = isCenter ? (H - CARD_H) / 2 : ((factor - 1) * CARD_H) / 2;
+  const gap = isCenter ? 0 : (factor - 1) * CARD_H;
+
+  return (
+    <div className="flex shrink-0 flex-col" style={{ width: CARD_W }}>
+      <div style={{ height: LABEL_H }} className="flex items-end pb-3">
+        <p
+          className={`text-xs uppercase tracking-wide ${
+            labelVariant === "final"
+              ? "font-bold text-text-1"
+              : "font-medium text-text-3"
+          }`}
+        >
+          {label}
+        </p>
+      </div>
+      <div
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          height: H,
+          paddingTop,
+          gap,
+        }}
+      >
+        {slots.map((s, i) => (
+          <PlaceholderCard key={i} p1={s.p1} p2={s.p2} />
+        ))}
+      </div>
+    </div>
+  );
+}
+
 // ── Page ──────────────────────────────────────────────────────────────────────
 
 export default async function BracketPage({ params, searchParams }: Props) {
@@ -370,14 +496,123 @@ export default async function BracketPage({ params, searchParams }: Props) {
       : `/tournaments/${id}/events/${eventId}`;
 
   if (bracketMatches.length === 0) {
+    // For RR→SE: show placeholder bracket if RR has been generated
+    const rrMatchesExist = matches.length > 0;
+    const numGroups =
+      event.eventFormat === "RR_TO_SE" && rrMatchesExist
+        ? Math.max(
+            0,
+            ...event.eventEntries
+              .map((e) => e.groupNumber)
+              .filter((g): g is number => g !== null),
+          )
+        : 0;
+    const showPlaceholder =
+      event.eventFormat === "RR_TO_SE" &&
+      rrMatchesExist &&
+      numGroups > 0 &&
+      !!event.advancersPerGroup;
+
+    if (!showPlaceholder) {
+      return (
+        <main className="mx-auto max-w-2xl px-4 py-12">
+          <p className="text-sm text-text-2">
+            {event.eventFormat === "RR_TO_SE"
+              ? "SE bracket not generated yet — complete all group matches first."
+              : "No bracket generated yet."}
+          </p>
+          <Link href={backHref} className="mt-4 inline-block text-sm text-text-2 hover:text-text-1">
+            {from === "manage" ? "← Back to manage event" : "← Back to event"}
+          </Link>
+        </main>
+      );
+    }
+
+    const ph = computePlaceholderBracket(numGroups, event.advancersPerGroup!);
+    const leftRounds = Array.from({ length: ph.totalRounds - 1 }, (_, i) => i + 1);
+    const rightRounds = [...leftRounds].reverse();
+
     return (
-      <main className="mx-auto max-w-2xl px-4 py-12">
-        <p className="text-sm text-text-2">
-          {event.eventFormat === "RR_TO_SE"
-            ? "SE bracket not generated yet — complete all group matches first."
-            : "No bracket generated yet."}
-        </p>
-        <Link href={backHref} className="mt-4 inline-block text-sm text-text-2 hover:text-text-1">
+      <main className="px-6 py-12">
+        {/* Header */}
+        <div className="mb-8 space-y-1">
+          <p className="text-sm text-text-3">
+            <Link href={`/tournaments/${id}`} className="hover:text-text-2">
+              {event.tournament.name}
+            </Link>
+            {" / "}
+            <Link href={`/tournaments/${id}/events/${eventId}`} className="hover:text-text-2">
+              {event.name}
+            </Link>
+          </p>
+          <h1 className="text-2xl font-semibold text-text-1">Bracket</h1>
+          <p className="text-sm text-text-3">Group stage complete — SE bracket coming soon.</p>
+        </div>
+
+        {/* Placeholder bracket */}
+        <div className="overflow-x-auto pb-8">
+          <div className="flex items-start" style={{ minWidth: "max-content" }}>
+
+            {/* LEFT SIDE */}
+            {leftRounds.map((round, idx) => {
+              const isLastLeft = idx === leftRounds.length - 1;
+              const count = ph.halfCount(round);
+              return (
+                <div key={`l-${round}`} className="flex items-start">
+                  <PlaceholderBracketColumn
+                    label={getRoundLabel(round, ph.totalRounds)}
+                    labelVariant="default"
+                    round={round}
+                    slots={ph.slotsForHalf(round, true)}
+                    H={ph.H}
+                    isCenter={false}
+                  />
+                  {isLastLeft ? (
+                    <SimpleConnector H={ph.H} side="left" />
+                  ) : (
+                    <ForkConnector outerRound={round} outerCount={count} H={ph.H} side="left" />
+                  )}
+                </div>
+              );
+            })}
+
+            {/* FINAL */}
+            <PlaceholderBracketColumn
+              label="Final"
+              labelVariant="final"
+              round={ph.totalRounds}
+              slots={[ph.finalSlot]}
+              H={ph.H}
+              isCenter={true}
+            />
+
+            {/* RIGHT SIDE */}
+            {rightRounds.map((round, idx) => {
+              const isFirstRight = idx === 0;
+              const count = ph.halfCount(round);
+              return (
+                <div key={`r-${round}`} className="flex items-start">
+                  {isFirstRight ? (
+                    <SimpleConnector H={ph.H} side="right" />
+                  ) : (
+                    <ForkConnector outerRound={round} outerCount={count} H={ph.H} side="right" />
+                  )}
+                  <PlaceholderBracketColumn
+                    label={getRoundLabel(round, ph.totalRounds)}
+                    labelVariant="default"
+                    round={round}
+                    slots={ph.slotsForHalf(round, false)}
+                    H={ph.H}
+                    isCenter={false}
+                  />
+                </div>
+              );
+            })}
+
+          </div>
+        </div>
+
+        <Link href={backHref} className="text-sm text-text-2 transition-colors hover:text-text-1">
           {from === "manage" ? "← Back to manage event" : "← Back to event"}
         </Link>
       </main>
