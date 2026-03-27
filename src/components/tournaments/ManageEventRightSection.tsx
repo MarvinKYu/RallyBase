@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useMemo, useRef } from "react";
+import { useState, useMemo, useRef, useCallback } from "react";
+import { useSearchParams, useRouter, usePathname } from "next/navigation";
 import { ManageEventMatchList, type MatchRow } from "@/components/tournaments/ManageEventMatchList";
 import { getRoundLabel } from "@/lib/bracket-labels";
 
@@ -34,12 +35,41 @@ export function ManageEventRightSection({
   tournamentId: string;
   eventId: string;
 }) {
-  const [groupsPage, setGroupsPage] = useState(0);
-  const [sortBy, setSortBy] = useState<"group" | "round">(isGrouped ? "group" : "round");
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const pathname = usePathname();
+
+  const [groupsPage, setGroupsPage] = useState(() => {
+    const v = parseInt(searchParams.get("gp") ?? "1", 10);
+    return isNaN(v) ? 0 : Math.max(0, v - 1);
+  });
+  const [sortBy, setSortBy] = useState<"group" | "round">(() => {
+    const v = searchParams.get("sort");
+    if (v === "group" || v === "round") return v;
+    return isGrouped ? "group" : "round";
+  });
   // For RR→SE events with SE stage generated: which phase to display
-  const [phase, setPhase] = useState<"rr" | "se">("rr");
-  const [matchPage, setMatchPage] = useState(0);
+  const [phase, setPhase] = useState<"rr" | "se">(() => {
+    const v = searchParams.get("phase");
+    return v === "se" ? "se" : "rr";
+  });
+  const [matchPage, setMatchPage] = useState(() => {
+    const v = parseInt(searchParams.get("mp") ?? "1", 10);
+    return isNaN(v) ? 0 : Math.max(0, v - 1);
+  });
   const jumpRef = useRef<HTMLInputElement>(null);
+
+  const updateUrl = useCallback(
+    (updates: Record<string, string | null>) => {
+      const params = new URLSearchParams(searchParams.toString());
+      for (const [key, val] of Object.entries(updates)) {
+        if (val === null) params.delete(key);
+        else params.set(key, val);
+      }
+      router.replace(`${pathname}?${params.toString()}`, { scroll: false });
+    },
+    [searchParams, router, pathname],
+  );
 
   const showSEPhase = isRRToSE && seExists;
 
@@ -141,12 +171,14 @@ export function ManageEventRightSection({
     setSortBy(next);
     setMatchPage(0);
     if (jumpRef.current) jumpRef.current.value = "";
+    updateUrl({ sort: next, mp: null });
   }
 
   function handlePhaseChange(next: "rr" | "se") {
     setPhase(next);
     setMatchPage(0);
     if (jumpRef.current) jumpRef.current.value = "";
+    updateUrl({ phase: next === "rr" ? null : next, mp: null });
   }
 
   function jumpToPage(val: string) {
@@ -154,6 +186,7 @@ export function ManageEventRightSection({
     if (!isNaN(n) && n >= 1 && n <= totalMatchPages) {
       setMatchPage(n - 1);
       if (jumpRef.current) jumpRef.current.value = "";
+      updateUrl({ mp: String(n) });
     }
   }
 
@@ -214,7 +247,11 @@ export function ManageEventRightSection({
           {totalGroupPages > 1 && (
             <div className="mt-3 flex items-center gap-3">
               <button
-                onClick={() => setGroupsPage((p) => Math.max(0, p - 1))}
+                onClick={() => {
+                  const next = Math.max(0, groupsPage - 1);
+                  setGroupsPage(next);
+                  updateUrl({ gp: next === 0 ? null : String(next + 1) });
+                }}
                 disabled={groupsPage === 0}
                 className="rounded-md border border-border px-2 py-1 text-xs text-text-2 transition-colors hover:border-accent hover:text-text-1 disabled:opacity-40"
               >
@@ -224,7 +261,11 @@ export function ManageEventRightSection({
                 Page {groupsPage + 1} of {totalGroupPages}
               </span>
               <button
-                onClick={() => setGroupsPage((p) => Math.min(totalGroupPages - 1, p + 1))}
+                onClick={() => {
+                  const next = Math.min(totalGroupPages - 1, groupsPage + 1);
+                  setGroupsPage(next);
+                  updateUrl({ gp: String(next + 1) });
+                }}
                 disabled={groupsPage === totalGroupPages - 1}
                 className="rounded-md border border-border px-2 py-1 text-xs text-text-2 transition-colors hover:border-accent hover:text-text-1 disabled:opacity-40"
               >
@@ -286,8 +327,10 @@ export function ManageEventRightSection({
               <div className="mt-3 flex flex-wrap items-center gap-3">
                 <button
                   onClick={() => {
-                    setMatchPage((p) => Math.max(0, p - 1));
+                    const next = Math.max(0, safeMatchPage - 1);
+                    setMatchPage(next);
                     if (jumpRef.current) jumpRef.current.value = "";
+                    updateUrl({ mp: next === 0 ? null : String(next + 1) });
                   }}
                   disabled={safeMatchPage === 0}
                   className="rounded-md border border-border px-2.5 py-1 text-xs font-medium text-text-2 transition-colors hover:border-accent hover:text-text-1 disabled:opacity-40"
@@ -303,8 +346,10 @@ export function ManageEventRightSection({
 
                 <button
                   onClick={() => {
-                    setMatchPage((p) => Math.min(totalMatchPages - 1, p + 1));
+                    const next = Math.min(totalMatchPages - 1, safeMatchPage + 1);
+                    setMatchPage(next);
                     if (jumpRef.current) jumpRef.current.value = "";
+                    updateUrl({ mp: String(next + 1) });
                   }}
                   disabled={safeMatchPage === totalMatchPages - 1}
                   className="rounded-md border border-border px-2.5 py-1 text-xs font-medium text-text-2 transition-colors hover:border-accent hover:text-text-1 disabled:opacity-40"

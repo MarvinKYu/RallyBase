@@ -151,6 +151,7 @@ export interface PlayerSearchOptions {
   page?: number;
   pageSize?: number;
   sortRatingCategoryId?: string;
+  excludeIds?: string[];
 }
 
 export interface PlayerSearchResult {
@@ -205,7 +206,9 @@ export async function searchPlayers(
   const sortRatingCategoryId = options?.sortRatingCategoryId;
 
   const allPlayers = await searchProfiles({ query: q || undefined, ...filters });
-  const sorted = sortPlayerProfiles(allPlayers, sort, { rDir, lDir, fDir }, sortRatingCategoryId);
+  const excludeSet = options?.excludeIds ? new Set(options.excludeIds) : null;
+  const filtered = excludeSet ? allPlayers.filter((p) => !excludeSet.has(p.id)) : allPlayers;
+  const sorted = sortPlayerProfiles(filtered, sort, { rDir, lDir, fDir }, sortRatingCategoryId);
 
   const total = sorted.length;
   const totalPages = Math.max(1, Math.ceil(total / pageSize));

@@ -58,18 +58,16 @@ export default async function ManageEntrantsPage({ params, searchParams }: Props
       fDir: fDir as SortDir,
       page: parseInt(page, 10),
       sortRatingCategoryId: event.ratingCategoryId ?? undefined,
+      excludeIds: enteredIds,
     },
   );
 
-  const enteredSet = new Set(enteredIds);
-  const searchPlayers_ = searchResult.players
-    .filter((p) => !enteredSet.has(p.id))
-    .map((p) => ({
-      id: p.id,
-      displayName: p.displayName,
-      rating:
-        p.playerRatings.find((r) => r.ratingCategoryId === event.ratingCategoryId)?.rating ?? null,
-    }));
+  const searchPlayers_ = searchResult.players.map((p) => ({
+    id: p.id,
+    displayName: p.displayName,
+    rating:
+      p.playerRatings.find((r) => r.ratingCategoryId === event.ratingCategoryId)?.rating ?? null,
+  }));
 
   return (
     <main className="mx-auto max-w-5xl px-4 py-12">
@@ -105,7 +103,7 @@ export default async function ManageEntrantsPage({ params, searchParams }: Props
             <Suspense>
               <PlayerSortControls fields={["rating", "lastName", "firstName"]} />
             </Suspense>
-            {searchPlayers_.length === 0 ? (
+            {searchResult.players.length === 0 ? (
               <p className="text-sm text-text-2">
                 {q
                   ? `No unregistered players found for "${q}".`

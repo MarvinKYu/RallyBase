@@ -1,4 +1,5 @@
 import { notFound, redirect } from "next/navigation";
+import { Suspense } from "react";
 import Link from "next/link";
 import { auth } from "@clerk/nextjs/server";
 import type { EventStatus } from "@prisma/client";
@@ -332,17 +333,19 @@ export default async function ManageEventPage({ params }: Props) {
 
         {/* ── Right column ── */}
         <div>
-          <ManageEventRightSection
-            matches={serializedMatches}
-            entries={serializedEntries}
-            isGrouped={!!event.groupSize}
-            isRRToSE={isRRToSE}
-            seExists={seStatus?.seExists}
-            seTotalRounds={seStatus?.seTotalRounds}
-            totalMatches={totalMatches}
-            tournamentId={id}
-            eventId={eventId}
-          />
+          <Suspense>
+            <ManageEventRightSection
+              matches={serializedMatches}
+              entries={serializedEntries}
+              isGrouped={!!event.groupSize}
+              isRRToSE={isRRToSE}
+              seExists={seStatus?.seExists}
+              seTotalRounds={seStatus?.seTotalRounds}
+              totalMatches={totalMatches}
+              tournamentId={id}
+              eventId={eventId}
+            />
+          </Suspense>
         </div>
 
       </div>
