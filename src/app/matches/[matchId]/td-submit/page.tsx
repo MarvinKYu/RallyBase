@@ -23,14 +23,23 @@ export default async function TdSubmitResultPage({ params }: Props) {
     redirect(`/matches/${matchId}/submit`);
   }
 
-  if (match.status === "COMPLETED") {
-    redirect(
-      `/tournaments/${match.event.tournament.id}/events/${match.event.id}/bracket`,
-    );
-  }
-
   const tournamentId = match.event.tournament.id;
   const eventId = match.event.id;
+
+  // Determine where "back" goes based on format and match phase
+  const isRRPhaseMatch =
+    match.event.eventFormat === "ROUND_ROBIN" ||
+    (match.event.eventFormat === "RR_TO_SE" && match.groupNumber !== null);
+  const backHref = isRRPhaseMatch
+    ? match.event.eventFormat === "ROUND_ROBIN"
+      ? `/tournaments/${tournamentId}/events/${eventId}/standings`
+      : `/tournaments/${tournamentId}/events/${eventId}/manage`
+    : `/tournaments/${tournamentId}/events/${eventId}/bracket`;
+
+  if (match.status === "COMPLETED") {
+    redirect(backHref);
+  }
+
   const maxGames = MAX_GAMES[match.event.format] ?? 5;
   const player1Id = match.player1Id!;
   const player2Id = match.player2Id!;
@@ -44,11 +53,6 @@ export default async function TdSubmitResultPage({ params }: Props) {
 
   const defaultWinP1 = tdDefaultMatchAction.bind(null, matchId, tournamentId, eventId, player1Id);
   const defaultWinP2 = tdDefaultMatchAction.bind(null, matchId, tournamentId, eventId, player2Id);
-
-  const backHref =
-    match.event.eventFormat === "ROUND_ROBIN"
-      ? `/tournaments/${tournamentId}/events/${eventId}/standings`
-      : `/tournaments/${tournamentId}/events/${eventId}/bracket`;
 
   return (
     <main className="mx-auto max-w-lg px-4 py-16">

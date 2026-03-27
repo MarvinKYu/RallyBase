@@ -4,6 +4,7 @@ import { auth } from "@clerk/nextjs/server";
 import { getEventDetail } from "@/server/services/tournament.service";
 import { getEventBracket } from "@/server/services/bracket.service";
 import { tdVoidMatchAction } from "@/server/actions/match.actions";
+import { getRoundLabel } from "@/lib/bracket-labels";
 
 type Props = {
   params: Promise<{ id: string; eventId: string }>;
@@ -165,16 +166,27 @@ export default async function BracketPage({ params, searchParams }: Props) {
 
   const isTD = !!userId && event.tournament.createdByClerkId === userId;
 
-  if (matches.length === 0) {
+  // For RR_TO_SE: only show SE matches (groupNumber === null)
+  const bracketMatches =
+    event.eventFormat === "RR_TO_SE"
+      ? matches.filter((m) => m.groupNumber === null)
+      : matches;
+
+  const backHref =
+    from === "manage"
+      ? `/tournaments/${id}/events/${eventId}/manage`
+      : `/tournaments/${id}/events/${eventId}`;
+
+  if (bracketMatches.length === 0) {
     return (
       <main className="mx-auto max-w-2xl px-4 py-12">
-        <p className="text-sm text-text-2">No bracket generated yet.</p>
+        <p className="text-sm text-text-2">
+          {event.eventFormat === "RR_TO_SE"
+            ? "SE bracket not generated yet — complete all group matches first."
+            : "No bracket generated yet."}
+        </p>
         <Link
-          href={
-            from === "manage"
-              ? `/tournaments/${id}/events/${eventId}/manage`
-              : `/tournaments/${id}/events/${eventId}`
-          }
+          href={backHref}
           className="mt-4 inline-block text-sm text-text-2 hover:text-text-1"
         >
           {from === "manage" ? "← Back to manage event" : "← Back to event"}
@@ -185,20 +197,12 @@ export default async function BracketPage({ params, searchParams }: Props) {
 
   // Group matches by round
   const roundMap = new Map<number, BracketMatch[]>();
-  for (const m of matches) {
+  for (const m of bracketMatches) {
     if (!roundMap.has(m.round)) roundMap.set(m.round, []);
     roundMap.get(m.round)!.push(m);
   }
   const roundNumbers = [...roundMap.keys()].sort((a, b) => a - b);
   const totalRounds = roundNumbers[roundNumbers.length - 1];
-
-  // Round label helper
-  function roundLabel(round: number): string {
-    if (round === totalRounds) return "Final";
-    if (round === totalRounds - 1) return "Semifinal";
-    if (round === totalRounds - 2) return "Quarterfinal";
-    return `Round ${round}`;
-  }
 
   return (
     <main className="px-6 py-12">
@@ -234,7 +238,7 @@ export default async function BracketPage({ params, searchParams }: Props) {
           return (
             <div key={round} className="flex shrink-0 flex-col">
               <p className="mb-3 text-xs font-medium uppercase tracking-wide text-text-3">
-                {roundLabel(round)}
+                {getRoundLabel(round, totalRounds)}
               </p>
               <div
                 style={{
@@ -260,11 +264,7 @@ export default async function BracketPage({ params, searchParams }: Props) {
       </div>
 
       <Link
-        href={
-          from === "manage"
-            ? `/tournaments/${id}/events/${eventId}/manage`
-            : `/tournaments/${id}/events/${eventId}`
-        }
+        href={backHref}
         className="text-sm text-text-2 transition-colors hover:text-text-1"
       >
         {from === "manage" ? "← Back to manage event" : "← Back to event"}
