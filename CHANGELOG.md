@@ -10,6 +10,14 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 ---
 
+## [0.14.5] - 2026-03-27
+
+### Fixed
+- **Entrants pagination with filtering** — `searchPlayers` now accepts `excludeIds` and filters before pagination, so total/page counts correctly reflect unregistered players only. Previously, filtering happened after page fetch, causing "No unregistered players found" when all 10 players on a page were already entered despite remaining pages still having eligible players.
+- **Manage event group/round selection persistence** — selected sort mode (by group/round), phase (RR/SE), match page, and groups page are now stored in URL search params (`sort`, `phase`, `mp`, `gp`) via `useSearchParams` + `router.replace`. Navigating to a TD submit page and back restores the previous selection.
+
+---
+
 ## [0.14.4] - 2026-03-27
 
 ### Added

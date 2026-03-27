@@ -5,9 +5,6 @@
 - /tournaments/[id]/events[id]/standings page tried to load for a second but failed
 - Redirected me to the player event view page.  
 
-## Persist selected group/round for matches display in event manage page
-- Navigating away (e.g. to a TD submit match page) then back to event manage page should show the same group/round that was last selected
-
 ## Make gender and age display on public profile togglable 
 
 ## Remove ability to edit date of birth
@@ -34,6 +31,16 @@
 - Requires scheduled job. Deferred.
 
 # Fixed
+
+## Version 0.14.5
+
+### Entrants pagination showed "No unregistered players found" with pages remaining
+- Filtering out already-entered players happened after page fetch, so if all 10 players on page 1 were entered the display showed an empty state despite subsequent pages having eligible players. Fix: `searchPlayers` now accepts `excludeIds` and filters before pagination.
+
+### Manage event group/round selection reset on navigation
+- `sortBy`, `phase`, `matchPage`, and `groupsPage` state in `ManageEventRightSection` was lost when navigating to a TD submit page and back. Fix: state now stored in URL search params (`sort`, `phase`, `mp`, `gp`) and restored on re-render.
+
+---
 
 ## Version 0.14.2
 
