@@ -2,6 +2,20 @@
 
 ## Persist filled-out fields and selections chosen in create event page if error is thrown 
 
+## Throw error on event create page if # advancers > # players per group
+
+## Handle RR group formation for # of players not equal to multiple of alloted players per group
+- Take the max # of participants as hard ceiling (NEVER allow more signups) and REQUIRE M be a multiple of P where M = max # of participants in event and P = # players per group- throw error on event creation page if this requirement not met
+- Form N = M/P groups
+- Follow snake-style group assignment
+- EX: 13 players out of 16 allotted in 4 players per group: 
+    - Let players be (in order of descending rating): A, B, C, D, E, F, G, H, I, J, K, L, M
+    - Follow snake-style seeding: group #s should be: 1, 2, 3, 4, 4, 3, 2, 1, 1, 2, 3, 4, 4. 
+    - Groups are as follows: 1: (A, H, I), 2: (B, G, J), 3: (C, F, K), 4: (D, E, L, M)
+
+## Fix advancement seeding algorithm to optimize for players from same groups meeting as late as possible
+
+
 ## RR -> SE "View Standings" button broken
 - Tried to click on this button while group matches were still ongoing
 - /tournaments/[id]/events[id]/standings page tried to load for a second but failed

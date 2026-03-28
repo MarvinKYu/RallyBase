@@ -1,6 +1,10 @@
 # Planned features shortlist
 - TODO: Analyze and decide where to place into existing feature roadmap.
 
+## Stack semifinal and final match cards in a single column for brackets with round of 16 or more:
+- Semifinal 1 (from left half) on top of final on top of semifinal 2 (from right half)
+- Update connecting lines
+
 ## Reformat non-TD view all matches for an event page
 - Two-column layout: RR phase matches in left column, SE phase matches in right column. 
 - RR phase matches: order by group and label subsections with "Group 1", "Group 2", etc.
