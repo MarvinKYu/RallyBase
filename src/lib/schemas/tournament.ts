@@ -26,7 +26,7 @@ export const createEventSchema = z.object({
     .enum(["SINGLE_ELIMINATION", "ROUND_ROBIN", "RR_TO_SE"])
     .default("SINGLE_ELIMINATION"),
   groupSize: z.coerce.number().int().min(3).max(6).optional().or(z.literal("")),
-  advancersPerGroup: z.coerce.number().int().min(1).optional().or(z.literal("")),
+  advancersPerGroup: z.coerce.number().int().min(1).max(2).optional().or(z.literal("")),
   gamePointTarget: z.coerce
     .number()
     .int()
@@ -64,7 +64,7 @@ export const updateEventSchema = z.object({
     .max(100, "Name must be 100 characters or fewer"),
   format: z.enum(["BEST_OF_3", "BEST_OF_5", "BEST_OF_7"]),
   groupSize: z.coerce.number().int().min(3).max(6).optional().or(z.literal("")),
-  advancersPerGroup: z.coerce.number().int().min(1).optional().or(z.literal("")),
+  advancersPerGroup: z.coerce.number().int().min(1).max(2).optional().or(z.literal("")),
   gamePointTarget: z.coerce
     .number()
     .int()

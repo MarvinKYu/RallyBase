@@ -45,8 +45,15 @@ describe("computeAdvancers", () => {
     });
   });
 
-  describe("2 advancers per group, 4 groups — ascending seeding", () => {
-    // 4 groups × 2 advancers = 8 players in SE bracket
+  describe("2 advancers per group, 4 groups — half-zone constrained seeding", () => {
+    // 4 groups × 2 advancers = 8 players in SE bracket (B=8, no byes)
+    // bracketSeedOrder(8) = [1,8,4,5,2,7,3,6]
+    // Upper half seeds: {1,4,5,8}  Lower half seeds: {2,3,6,7}
+    // Winners: G1W=1(upper), G2W=2(lower), G3W=3(lower), G4W=4(upper)
+    // Runner-up pool seeds 5–8: upper={5,8}, lower={6,7}
+    // Runners-up descending (G4→G1):
+    //   G4R: G4W upper → needs lower → 6   G3R: G3W lower → needs upper → 5
+    //   G2R: G2W lower → needs upper → 8   G1R: G1W upper → needs lower → 7
     const groups = [
       g(1, [
         s("g1p1", "G1 P1", 3, 1),
@@ -80,7 +87,7 @@ describe("computeAdvancers", () => {
       expect(result.advancers).toHaveLength(8);
     });
 
-    it("rank 1 (odd) seeds 1–4 in ascending group order", () => {
+    it("rank 1 seeds 1–4 in ascending group order", () => {
       const result = computeAdvancers(groups, 2, new Map());
       if (!result.ok) throw new Error("expected ok");
       const rank1 = result.advancers.filter((a) => a.groupRank === 1);
@@ -88,12 +95,29 @@ describe("computeAdvancers", () => {
       expect(rank1.map((a) => a.seSeed)).toEqual([1, 2, 3, 4]);
     });
 
-    it("rank 2 seeds 5–8 in ascending group order (same as rank 1)", () => {
+    it("rank 2 seeds assigned via half-zone constraint, no same-group R1 pairing", () => {
       const result = computeAdvancers(groups, 2, new Map());
       if (!result.ok) throw new Error("expected ok");
-      const rank2 = result.advancers.filter((a) => a.groupRank === 2);
-      expect(rank2.map((a) => a.playerProfileId)).toEqual(["g1p2", "g2p2", "g3p2", "g4p2"]);
-      expect(rank2.map((a) => a.seSeed)).toEqual([5, 6, 7, 8]);
+      const advancers = result.advancers;
+
+      // Verify seed assignments: G3R=5, G4R=6, G1R=7, G2R=8
+      const byId = new Map(advancers.map((a) => [a.playerProfileId, a]));
+      expect(byId.get("g3p2")!.seSeed).toBe(5);
+      expect(byId.get("g4p2")!.seSeed).toBe(6);
+      expect(byId.get("g1p2")!.seSeed).toBe(7);
+      expect(byId.get("g2p2")!.seSeed).toBe(8);
+
+      // Verify no R1 same-group pairings in bracketSeedOrder(8) = [1,8,4,5,2,7,3,6]
+      // R1 pairs: (seed1,seed8), (seed4,seed5), (seed2,seed7), (seed3,seed6)
+      const seedToGroup = new Map(advancers.map((a) => [a.seSeed, a.groupNumber]));
+      const r1Pairs = [[1, 8], [4, 5], [2, 7], [3, 6]];
+      for (const [s1, s2] of r1Pairs) {
+        const g1 = seedToGroup.get(s1);
+        const g2 = seedToGroup.get(s2);
+        if (g1 !== undefined && g2 !== undefined) {
+          expect(g1).not.toBe(g2);
+        }
+      }
     });
   });
 

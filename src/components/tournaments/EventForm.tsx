@@ -205,13 +205,10 @@ export function EventForm({
           >
             <option value="1">1 player advances per group</option>
             <option value="2">2 players advance per group</option>
-            <option value="3">3 players advance per group</option>
-            <option value="4">4 players advance per group</option>
-            <option value="5">5 players advance per group</option>
           </select>
           <p className="text-xs text-text-3">
             Must be less than the group size. Players are seeded into the bracket using
-            inter-group snake seeding.
+            constrained half-zone placement to avoid same-group R1 pairings.
           </p>
           {state?.fieldErrors?.advancersPerGroup && (
             <p className="text-sm text-red-400">{state.fieldErrors.advancersPerGroup[0]}</p>
