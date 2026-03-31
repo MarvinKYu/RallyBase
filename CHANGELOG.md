@@ -10,6 +10,14 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 ---
 
+## [0.15.2] - 2026-03-31
+
+### Fixed
+- **RR group count now uses `maxParticipants / groupSize` instead of `Math.ceil(n / groupSize)`** — when `maxParticipants` is set, the configured number of groups is determined by `M/P`, not the current registrant count. A 16-slot / 4-group event with 13 registrants now correctly generates 4 groups (snake-distributing remaining players as in the spec example). `assignGroups` accepts an optional `totalGroups` override; `generateRoundRobinBracket` passes it when `maxParticipants` is available.
+- **Event creation/edit validation** — creating or editing a group-based event with `maxParticipants` set now returns a field error if `maxParticipants` is not a multiple of `groupSize`, enforcing that the group count is always a whole number.
+
+---
+
 ## [0.15.1] - 2026-03-31
 
 ### Fixed

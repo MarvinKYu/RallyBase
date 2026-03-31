@@ -4,15 +4,6 @@
 
 ## Throw error on event create page if # advancers > # players per group
 
-## Handle RR group formation for # of players not equal to multiple of alloted players per group
-- Take the max # of participants (if set) as hard ceiling (NEVER allow more signups) and REQUIRE M be a multiple of P where M = max # of participants in event and P = # players per group- throw error on event creation page if this requirement not met
-- Form N = M/P groups
-- Follow snake-style group assignment
-- EX: 13 players out of 16 allotted in 4 players per group: 
-    - Let players be (in order of descending rating): A, B, C, D, E, F, G, H, I, J, K, L, M
-    - Follow snake-style seeding: group #s should be: 1, 2, 3, 4, 4, 3, 2, 1, 1, 2, 3, 4, 4. 
-    - Groups are as follows: 1: (A, H, I), 2: (B, G, J), 3: (C, F, K), 4: (D, E, L, M)
-
 ## RR -> SE "View Standings" button broken
 - Tried to click on this button while group matches were still ongoing
 - /tournaments/[id]/events[id]/standings page tried to load for a second but failed
@@ -48,6 +39,13 @@
 - Requires scheduled job. Deferred.
 
 # Fixed
+
+## Version 0.15.2
+
+### RR group count with non-full registration
+- When `maxParticipants` is set, group count is now `M/P` (not `Math.ceil(n/P)`). A 16-slot/4-group event with 13 registrants generates 4 groups; snake seeding distributes the 13 players correctly. Validation added at event create/edit: `maxParticipants % groupSize` must be 0.
+
+---
 
 ## Version 0.15.1
 
