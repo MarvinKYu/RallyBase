@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma";
-import { calculateMatchElo, DEFAULT_RATING } from "@/server/algorithms/elo";
+import { DEFAULT_RATING } from "@/server/algorithms/elo";
+import { getAlgorithmForOrg } from "@/server/algorithms/rating-algorithm";
 import {
   findPlayerRatingsByProfileId,
   findPlayerRatingByCategory,
@@ -49,9 +50,13 @@ export async function applyRatingResult(
 ): Promise<ApplyRatingResultOutput> {
   const { winnerProfileId, loserProfileId, ratingCategoryId, matchId } = params;
 
-  const [winnerRating, loserRating] = await Promise.all([
+  const [winnerRating, loserRating, ratingCategory] = await Promise.all([
     findPlayerRatingByCategory(winnerProfileId, ratingCategoryId),
     findPlayerRatingByCategory(loserProfileId, ratingCategoryId),
+    prisma.ratingCategory.findUnique({
+      where: { id: ratingCategoryId },
+      select: { organization: { select: { slug: true } } },
+    }),
   ]);
 
   const winnerBefore = winnerRating?.rating ?? DEFAULT_RATING;
@@ -59,12 +64,14 @@ export async function applyRatingResult(
   const winnerGamesPlayed = winnerRating?.gamesPlayed ?? 0;
   const loserGamesPlayed = loserRating?.gamesPlayed ?? 0;
 
-  const { winner, loser } = calculateMatchElo(
-    winnerBefore,
-    loserBefore,
+  const orgSlug = ratingCategory?.organization.slug ?? "";
+  const algorithm = getAlgorithmForOrg(orgSlug);
+  const { winner, loser } = algorithm.calcMatchResult({
+    winnerRating: winnerBefore,
+    loserRating: loserBefore,
     winnerGamesPlayed,
     loserGamesPlayed,
-  );
+  });
 
   await prisma.$transaction(async (tx) => {
     // Upsert winner rating snapshot

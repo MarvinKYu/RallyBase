@@ -5,8 +5,11 @@ import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import {
   isPlatformAdmin,
+  isOrgAdminForOrg,
   assignOrgAdmin,
   removeOrgAdmin,
+  assignTournamentCreator,
+  removeTournamentCreator,
   adminSetPlayerRating,
   adminAddInitialRating,
 } from "@/server/services/admin.service";
@@ -76,6 +79,49 @@ export async function assignOrgAdminAction(
 
   await assignOrgAdmin(profile.userId, organizationId);
   redirect(`/admin`);
+}
+
+// organizationId is pre-bound via .bind()
+export async function assignTournamentCreatorAction(
+  organizationId: string,
+  _prevState: AdminActionState,
+  formData: FormData,
+): Promise<AdminActionState> {
+  const { userId } = await auth();
+  if (!userId) return { error: "Not authenticated." };
+
+  const authorized = (await isPlatformAdmin(userId)) || (await isOrgAdminForOrg(userId, organizationId));
+  if (!authorized) return { error: "Not authorized." };
+
+  const playerNumber = parseInt(formData.get("playerNumber") as string, 10);
+  if (isNaN(playerNumber)) return { error: "Invalid player number." };
+
+  const profile = await prisma.playerProfile.findUnique({
+    where: { playerNumber },
+    select: { userId: true },
+  });
+  if (!profile) return { error: `No player found with number ${playerNumber}.` };
+
+  await assignTournamentCreator(profile.userId, organizationId);
+  redirect("/admin");
+}
+
+// allowlistEntryId is pre-bound via .bind()
+export async function removeTournamentCreatorAction(allowlistEntryId: string): Promise<void> {
+  const { userId } = await auth();
+  if (!userId) redirect("/sign-in");
+
+  const entry = await prisma.tournamentCreatorAllowlist.findUnique({
+    where: { id: allowlistEntryId },
+    select: { organizationId: true },
+  });
+  if (!entry) throw new Error("Allowlist entry not found.");
+
+  const authorized = (await isPlatformAdmin(userId!)) || (await isOrgAdminForOrg(userId!, entry.organizationId));
+  if (!authorized) throw new Error("Not authorized.");
+
+  await removeTournamentCreator(allowlistEntryId);
+  redirect("/admin");
 }
 
 // orgAdminId is pre-bound via .bind()

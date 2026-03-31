@@ -1,7 +1,7 @@
 import { auth } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { getOrganizations } from "@/server/services/tournament.service";
+import { getOrgsForTournamentCreation } from "@/server/services/admin.service";
 import { TournamentForm } from "@/components/tournaments/TournamentForm";
 
 export const metadata = { title: "New Tournament — RallyBase" };
@@ -10,7 +10,7 @@ export default async function NewTournamentPage() {
   const { userId } = await auth();
   if (!userId) redirect("/sign-in");
 
-  const organizations = await getOrganizations();
+  const organizations = await getOrgsForTournamentCreation(userId);
 
   return (
     <main className="mx-auto max-w-lg px-4 py-16">

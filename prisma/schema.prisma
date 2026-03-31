@@ -17,9 +17,10 @@ model User {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  playerProfile PlayerProfile?
-  userRoles     UserRole[]
-  orgAdmins     OrgAdmin[]
+  playerProfile              PlayerProfile?
+  userRoles                  UserRole[]
+  orgAdmins                  OrgAdmin[]
+  tournamentCreatorAllowlist TournamentCreatorAllowlist[]
 }
 
 model PlayerProfile {
@@ -76,10 +77,11 @@ model Organization {
   slug      String   @unique
   createdAt DateTime @default(now())
 
-  disciplines      Discipline[]
-  ratingCategories RatingCategory[]
-  tournaments      Tournament[]
-  orgAdmins        OrgAdmin[]
+  disciplines                Discipline[]
+  ratingCategories           RatingCategory[]
+  tournaments                Tournament[]
+  orgAdmins                  OrgAdmin[]
+  tournamentCreatorAllowlist TournamentCreatorAllowlist[]
 }
 
 model Discipline {
@@ -109,6 +111,18 @@ model RatingCategory {
 }
 
 model OrgAdmin {
+  id             String   @id @default(cuid())
+  userId         String
+  organizationId String
+  createdAt      DateTime @default(now())
+
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, organizationId])
+}
+
+model TournamentCreatorAllowlist {
   id             String   @id @default(cuid())
   userId         String
   organizationId String

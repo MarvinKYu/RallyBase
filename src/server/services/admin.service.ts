@@ -123,6 +123,125 @@ export async function removeOrgAdmin(orgAdminId: string) {
   return prisma.orgAdmin.delete({ where: { id: orgAdminId } });
 }
 
+// ── Tournament creator allowlist ───────────────────────────────────────────────
+
+/**
+ * Returns true if the given user is authorized to create tournaments in the given org.
+ * Authorized when: platform admin, OR org admin for the org, OR on the allowlist,
+ * OR the org slug is "rallybase" (open to all authenticated users).
+ */
+export async function canCreateTournamentInOrg(clerkId: string, organizationId: string): Promise<boolean> {
+  if (await isPlatformAdmin(clerkId)) return true;
+  if (await isOrgAdminForOrg(clerkId, organizationId)) return true;
+
+  const org = await prisma.organization.findUnique({
+    where: { id: organizationId },
+    select: { slug: true },
+  });
+  if (org?.slug === "rallybase") return true;
+
+  const user = await findUserByClerkId(clerkId);
+  if (!user) return false;
+  const entry = await prisma.tournamentCreatorAllowlist.findUnique({
+    where: { userId_organizationId: { userId: user.id, organizationId } },
+    select: { id: true },
+  });
+  return !!entry;
+}
+
+/**
+ * Returns the orgs the given user is authorized to create tournaments in.
+ * Platform admin → all orgs. Others → org admin orgs + allowlisted orgs + RallyBase.
+ */
+export async function getOrgsForTournamentCreation(clerkId: string) {
+  if (await isPlatformAdmin(clerkId)) {
+    return prisma.organization.findMany({ orderBy: { name: "asc" } });
+  }
+
+  const user = await findUserByClerkId(clerkId);
+  if (!user) return [];
+
+  const [orgAdminRows, allowlistRows, rallybaseOrg] = await Promise.all([
+    prisma.orgAdmin.findMany({ where: { userId: user.id }, select: { organizationId: true } }),
+    prisma.tournamentCreatorAllowlist.findMany({ where: { userId: user.id }, select: { organizationId: true } }),
+    prisma.organization.findUnique({ where: { slug: "rallybase" }, select: { id: true } }),
+  ]);
+
+  const orgIds = new Set([
+    ...orgAdminRows.map((r) => r.organizationId),
+    ...allowlistRows.map((r) => r.organizationId),
+    ...(rallybaseOrg ? [rallybaseOrg.id] : []),
+  ]);
+
+  if (orgIds.size === 0) return [];
+  return prisma.organization.findMany({
+    where: { id: { in: Array.from(orgIds) } },
+    orderBy: { name: "asc" },
+  });
+}
+
+const adminPageUserSelect = {
+  id: true,
+  name: true,
+  email: true,
+  playerProfile: { select: { id: true, displayName: true, playerNumber: true } },
+} as const;
+
+const adminPageOrgInclude = {
+  orgAdmins: {
+    include: { user: { select: adminPageUserSelect } },
+    orderBy: { createdAt: "asc" as const },
+  },
+  tournamentCreatorAllowlist: {
+    include: { user: { select: adminPageUserSelect } },
+    orderBy: { createdAt: "asc" as const },
+  },
+} as const;
+
+/**
+ * Returns orgs and admin/allowlist data for the admin dashboard page.
+ * Platform admins see all orgs; org admins see only their managed orgs.
+ */
+export async function listOrgsForAdminPage(clerkId: string) {
+  const platformAdmin = await isPlatformAdmin(clerkId);
+
+  if (platformAdmin) {
+    const orgs = await prisma.organization.findMany({
+      orderBy: { name: "asc" },
+      include: adminPageOrgInclude,
+    });
+    return { platformAdmin: true as const, orgs };
+  }
+
+  const user = await findUserByClerkId(clerkId);
+  if (!user) return { platformAdmin: false as const, orgs: [] };
+
+  const managed = await prisma.orgAdmin.findMany({
+    where: { userId: user.id },
+    select: { organizationId: true },
+  });
+  if (managed.length === 0) return { platformAdmin: false as const, orgs: [] };
+
+  const orgs = await prisma.organization.findMany({
+    where: { id: { in: managed.map((r) => r.organizationId) } },
+    orderBy: { name: "asc" },
+    include: adminPageOrgInclude,
+  });
+  return { platformAdmin: false as const, orgs };
+}
+
+export async function assignTournamentCreator(targetUserId: string, organizationId: string) {
+  return prisma.tournamentCreatorAllowlist.upsert({
+    where: { userId_organizationId: { userId: targetUserId, organizationId } },
+    update: {},
+    create: { userId: targetUserId, organizationId },
+  });
+}
+
+export async function removeTournamentCreator(allowlistEntryId: string) {
+  return prisma.tournamentCreatorAllowlist.delete({ where: { id: allowlistEntryId } });
+}
+
 // ── Rating admin ───────────────────────────────────────────────────────────────
 
 export async function adminAddInitialRating(

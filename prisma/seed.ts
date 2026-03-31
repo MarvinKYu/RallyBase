@@ -184,6 +184,24 @@ async function main() {
     create: { organizationId: nctta.id, disciplineId: ncttaSingles.id, name: "NCTTA Singles" },
   });
 
+  const rallybase = await prisma.organization.upsert({
+    where: { slug: "rallybase" },
+    update: {},
+    create: { name: "RallyBase", slug: "rallybase" },
+  });
+
+  const rallybaseSingles = await prisma.discipline.upsert({
+    where: { organizationId_name: { organizationId: rallybase.id, name: "Singles" } },
+    update: {},
+    create: { organizationId: rallybase.id, name: "Singles" },
+  });
+
+  await prisma.ratingCategory.upsert({
+    where: { organizationId_disciplineId: { organizationId: rallybase.id, disciplineId: rallybaseSingles.id } },
+    update: {},
+    create: { organizationId: rallybase.id, disciplineId: rallybaseSingles.id, name: "RallyBase Singles" },
+  });
+
   console.log("Seeded organizations, disciplines, and rating categories");
 
   // ── Demo data guard ─────────────────────────────────────────────────────────────────

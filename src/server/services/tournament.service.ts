@@ -39,7 +39,7 @@ import {
 } from "@/server/repositories/tournament.repository";
 import { generateBracket } from "@/server/services/bracket.service";
 import { findPlayerRatingByCategory } from "@/server/repositories/rating.repository";
-import { isAuthorizedAsTD } from "@/server/services/admin.service";
+import { isAuthorizedAsTD, canCreateTournamentInOrg } from "@/server/services/admin.service";
 
 const TOURNAMENT_STATUS_ORDER: TournamentStatus[] = [
   "DRAFT",
@@ -123,6 +123,10 @@ export async function createTournament(
   }
 
   const { organizationId, name, location, startDate, endDate, startTime, withdrawDeadline } = parsed.data;
+
+  if (createdByClerkId && !(await canCreateTournamentInOrg(createdByClerkId, organizationId))) {
+    return { error: "You are not authorized to create tournaments in this organization." };
+  }
 
   try {
     const tournament = await dbCreateTournament({
