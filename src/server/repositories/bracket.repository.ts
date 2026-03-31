@@ -46,6 +46,13 @@ export async function updateMatchSlot(
 
 // ── RR → SE helpers ────────────────────────────────────────────────────────────
 
+/** Count all RR matches (groupNumber IS NOT NULL) for an event. */
+export async function countRRMatches(eventId: string) {
+  return prisma.match.count({
+    where: { eventId, groupNumber: { not: null } },
+  });
+}
+
 /** Count RR matches (groupNumber IS NOT NULL) that are not yet COMPLETED. */
 export async function countIncompleteRRMatches(eventId: string) {
   return prisma.match.count({

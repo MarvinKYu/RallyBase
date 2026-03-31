@@ -13,6 +13,7 @@ import type { TiedGroup } from "@/server/algorithms/advancer";
 import {
   findMatchesByEventId,
   countMatchesByEventId,
+  countRRMatches,
   countIncompleteRRMatches,
   countSEMatches,
   countActiveSEMatches,
@@ -526,14 +527,17 @@ export interface SEStageStatus {
  * Used by the manage event page to decide what controls to render.
  */
 export async function checkSEStageStatus(eventId: string): Promise<SEStageStatus> {
-  const [incompleteRR, seMatchCount, activeSECount, seTotalRounds] = await Promise.all([
+  const [rrMatchCount, incompleteRR, seMatchCount, activeSECount, seTotalRounds] = await Promise.all([
+    countRRMatches(eventId),
     countIncompleteRRMatches(eventId),
     countSEMatches(eventId),
     countActiveSEMatches(eventId),
     findSETotalRounds(eventId),
   ]);
 
-  const rrComplete = incompleteRR === 0;
+  // Only true when a schedule has been generated AND every RR match is finished.
+  // An event with no schedule (rrMatchCount === 0) must not be treated as RR-complete.
+  const rrComplete = rrMatchCount > 0 && incompleteRR === 0;
   const seExists = seMatchCount > 0;
   const seCanRegenerate = seExists && activeSECount === 0;
 
