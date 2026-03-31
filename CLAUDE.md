@@ -21,7 +21,7 @@ Do this automatically for every shipped change — no need to ask.
 
 ## Project Status
 
-**Current version: v0.14.10.** The app is live on Vercel at https://rally-base.vercel.app. Next target is v0.15.0 (RallyBase Rating System).
+**Current version: v0.14.11.** The app is live on Vercel at https://rally-base.vercel.app. Next target is v0.15.0 (RallyBase Rating System).
 
 ### Upcoming
 - v0.15.0 — RallyBase Rating System (new org + custom algorithm)
@@ -101,7 +101,7 @@ export async function addEntrantAction(eventId, tournamentId, formData): Promise
 - **Org admin**: assigned per-org by platform admin via `/admin`. Stored in `OrgAdmin` table (separate from `UserRole`), scoped by `organizationId`.
 - **Player initial rating**: no `PlayerRating` row exists until after the first match or an admin sets one. `applyRatingResult` falls back to `DEFAULT_RATING = 1500` when no row is found.
 - **Multi-group RR events**: `Event.groupSize Int?` enables multi-group round robin. When set, `generateRoundRobinBracket` uses `assignGroups` (snake seeding) to distribute players, then builds one schedule per group. `getRoundRobinStandings(eventId, true)` returns `GroupedRoundRobinStandings[]`.
-- **RR→SE hybrid events**: `EventFormat.RR_TO_SE` — group stage (RR) feeds into SE bracket. `Event.advancersPerGroup Int?` sets how many advance per group. `EventEntry.seed` is reused for SE seeding; `EventEntry.advancesToSE Boolean?` stores TD tie-resolution overrides. SE matches have `groupNumber = null`; RR matches have `groupNumber IS NOT NULL`. Auto-generate SE fires when last RR match completes. `getEventPodium` for RR_TO_SE uses SE-only matches. The bracket page only shows SE matches for RR_TO_SE events. Inter-group seeding uses **ascending order for all ranks** (NOT snake): seeds 1–N = group winners, seeds N+1–2N = group runners-up (both in ascending group order). This ensures `bracketSeedOrder` never pairs same-group players in R1.
+- **RR→SE hybrid events**: `EventFormat.RR_TO_SE` — group stage (RR) feeds into SE bracket. `Event.advancersPerGroup Int?` (max 2; A≥3 deferred post-v1.0.0) sets how many advance per group. `EventEntry.seed` is reused for SE seeding; `EventEntry.advancesToSE Boolean?` stores TD tie-resolution overrides. SE matches have `groupNumber = null`; RR matches have `groupNumber IS NOT NULL`. Auto-generate SE fires when last RR match completes. `getEventPodium` for RR_TO_SE uses SE-only matches. The bracket page only shows SE matches for RR_TO_SE events. **Seeding (A=1)**: seeds 1–G in ascending group order. **Seeding (A=2)**: winners get seeds 1–G ascending; runners-up get seeds G+1–2G using constrained half-zone placement — each runner-up assigned to the opposite bracket half from their group's winner (greedy, descending group order for strength ordering). Guaranteed satisfiable for any G: `bracketSeedOrder(nextPowerOf2(2G))` upper/lower halves each contain exactly G seeds from [1,2G]. Implemented in `src/server/algorithms/advancer.ts`; uses `bracketSeedOrder` from `bracket.ts` and helpers `nextPowerOf2`/`buildHalfMap`.
 - **Server action FormData rule**: when adding a new form field, always update BOTH `createEventAction` AND `updateEventAction` in `tournament.actions.ts` to extract the field via `formData.get(...)`. Missing either causes silent null storage with no error.
 
 ## Database Schema Groups
