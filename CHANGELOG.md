@@ -10,6 +10,14 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 ---
 
+## [0.14.11] - 2026-03-30
+
+### Fixed
+- **RR→SE seeding — constrained half-zone placement** — replaced the sequential ascending seed assignment with a greedy bracket-half algorithm. Winners are assigned seeds 1..G in ascending group order. Runners-up are assigned seeds G+1..2G using a half-zone constraint: each runner-up is placed in the bracket half opposite their group's winner, guaranteeing no same-group R1 pairing for any valid number of groups (fixes the 3-group×2-advancer case where G3W and G3R were paired in R1 under the old approach). Runners-up are processed in descending group order to approximate snake-seeding strength ordering. The greedy assignment is always satisfiable for any G without backtracking.
+- **advancersPerGroup restricted to 1–2** — Zod schema now enforces `max(2)` and EventForm select now shows only options 1 and 2. A≥3 support is deferred to post-v1.0.0.
+
+---
+
 ## [0.14.10] - 2026-03-27
 
 ### Fixed

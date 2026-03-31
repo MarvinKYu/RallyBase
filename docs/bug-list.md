@@ -13,7 +13,6 @@
     - Follow snake-style seeding: group #s should be: 1, 2, 3, 4, 4, 3, 2, 1, 1, 2, 3, 4, 4. 
     - Groups are as follows: 1: (A, H, I), 2: (B, G, J), 3: (C, F, K), 4: (D, E, L, M)
 
-## Fix advancement seeding algorithm to optimize for players from same groups meeting as late as possible
 
 
 ## RR -> SE "View Standings" button broken
