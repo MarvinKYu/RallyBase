@@ -6,7 +6,7 @@
 - Update connecting lines
 
 ## Reformat non-TD view all matches for an event page
-- Two-column layout: RR phase matches in left column, SE phase matches in right column. 
+- Two-column layout: All RR phase matches scrollable in left column, All SE phase matches scrollable in right column. 
 - RR phase matches: order by group and label subsections with "Group 1", "Group 2", etc.
 - SE phase matches: order by round descending (FINAL at top, then SEMIFINAL, etc) and label subsections with "Round of 16", "Quarterfinal", etc. 
 - Add search bar at top to filter matches by player name
