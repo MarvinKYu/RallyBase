@@ -18,9 +18,11 @@ import { MIN_RR_PLAYERS, MAX_RR_PLAYERS } from "@/server/algorithms/round-robin"
 /**
  * Assigns players to groups using snake seeding based on ratings.
  *
- * @param playerIds - Player profile IDs in any order
- * @param ratings   - Corresponding ratings (same index as playerIds)
- * @param groupSize - Target max players per group (3–6)
+ * @param playerIds   - Player profile IDs in any order
+ * @param ratings     - Corresponding ratings (same index as playerIds)
+ * @param groupSize   - Target max players per group (3–6)
+ * @param totalGroups - Override for group count; use maxParticipants/groupSize when set.
+ *                      Defaults to Math.ceil(n / groupSize).
  * @returns Array of groups; each group is an array of playerProfileIds
  * @throws If groupSize is out of range or any group would be too small
  */
@@ -28,6 +30,7 @@ export function assignGroups(
   playerIds: string[],
   ratings: number[],
   groupSize: number,
+  totalGroups?: number,
 ): string[][] {
   if (groupSize < MIN_RR_PLAYERS || groupSize > MAX_RR_PLAYERS) {
     throw new Error(
@@ -36,7 +39,7 @@ export function assignGroups(
   }
 
   const n = playerIds.length;
-  const numGroups = Math.ceil(n / groupSize);
+  const numGroups = totalGroups ?? Math.ceil(n / groupSize);
 
   // Validate that every group will have at least MIN_RR_PLAYERS
   const minGroupSize = Math.floor(n / numGroups);

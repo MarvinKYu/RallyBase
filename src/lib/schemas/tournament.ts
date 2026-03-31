@@ -15,31 +15,47 @@ export const createTournamentSchema = z.object({
 
 export type CreateTournamentInput = z.infer<typeof createTournamentSchema>;
 
-export const createEventSchema = z.object({
-  ratingCategoryId: z.string().min(1, "Rating category is required"),
-  name: z
-    .string()
-    .min(2, "Name must be at least 2 characters")
-    .max(100, "Name must be 100 characters or fewer"),
-  format: z.enum(["BEST_OF_3", "BEST_OF_5", "BEST_OF_7"]),
-  eventFormat: z
-    .enum(["SINGLE_ELIMINATION", "ROUND_ROBIN", "RR_TO_SE"])
-    .default("SINGLE_ELIMINATION"),
-  groupSize: z.coerce.number().int().min(3).max(6).optional().or(z.literal("")),
-  advancersPerGroup: z.coerce.number().int().min(1).max(2).optional().or(z.literal("")),
-  gamePointTarget: z.coerce
-    .number()
-    .int()
-    .pipe(z.union([z.literal(11), z.literal(21)])),
-  // Eligibility settings (all optional)
-  maxParticipants: z.coerce.number().int().positive().optional().or(z.literal("")),
-  minRating: z.coerce.number().positive().optional().or(z.literal("")),
-  maxRating: z.coerce.number().positive().optional().or(z.literal("")),
-  minAge: z.coerce.number().int().positive().optional().or(z.literal("")),
-  maxAge: z.coerce.number().int().positive().optional().or(z.literal("")),
-  allowedGender: z.enum(["MALE", "FEMALE"]).optional().or(z.literal("")),
-  startTime: z.string().optional().or(z.literal("")),
-});
+export const createEventSchema = z
+  .object({
+    ratingCategoryId: z.string().min(1, "Rating category is required"),
+    name: z
+      .string()
+      .min(2, "Name must be at least 2 characters")
+      .max(100, "Name must be 100 characters or fewer"),
+    format: z.enum(["BEST_OF_3", "BEST_OF_5", "BEST_OF_7"]),
+    eventFormat: z
+      .enum(["SINGLE_ELIMINATION", "ROUND_ROBIN", "RR_TO_SE"])
+      .default("SINGLE_ELIMINATION"),
+    groupSize: z.coerce.number().int().min(3).max(6).optional().or(z.literal("")),
+    advancersPerGroup: z.coerce.number().int().min(1).max(2).optional().or(z.literal("")),
+    gamePointTarget: z.coerce
+      .number()
+      .int()
+      .pipe(z.union([z.literal(11), z.literal(21)])),
+    // Eligibility settings (all optional)
+    maxParticipants: z.coerce.number().int().positive().optional().or(z.literal("")),
+    minRating: z.coerce.number().positive().optional().or(z.literal("")),
+    maxRating: z.coerce.number().positive().optional().or(z.literal("")),
+    minAge: z.coerce.number().int().positive().optional().or(z.literal("")),
+    maxAge: z.coerce.number().int().positive().optional().or(z.literal("")),
+    allowedGender: z.enum(["MALE", "FEMALE"]).optional().or(z.literal("")),
+    startTime: z.string().optional().or(z.literal("")),
+  })
+  .superRefine((data, ctx) => {
+    const isGroupBased = data.eventFormat === "ROUND_ROBIN" || data.eventFormat === "RR_TO_SE";
+    if (
+      isGroupBased &&
+      data.groupSize &&
+      data.maxParticipants &&
+      data.maxParticipants % data.groupSize !== 0
+    ) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["maxParticipants"],
+        message: `Max participants must be a multiple of group size (${data.groupSize})`,
+      });
+    }
+  });
 
 export type CreateEventInput = z.infer<typeof createEventSchema>;
 

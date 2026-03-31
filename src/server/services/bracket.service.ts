@@ -307,7 +307,9 @@ async function generateRoundRobinBracket(
           ?.rating ?? 1500,
     );
     const playerIds = eventEntries.map((e) => e.playerProfileId);
-    const groups = assignGroups(playerIds, ratings, groupSize);
+    const totalGroups =
+      event.maxParticipants != null ? event.maxParticipants / groupSize : undefined;
+    const groups = assignGroups(playerIds, ratings, groupSize, totalGroups);
 
     await prisma.$transaction(async (tx) => {
       for (let gi = 0; gi < groups.length; gi++) {

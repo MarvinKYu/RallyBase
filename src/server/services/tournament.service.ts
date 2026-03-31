@@ -245,6 +245,14 @@ export async function updateEvent(
   const isGroupBased =
     event.eventFormat === "ROUND_ROBIN" || event.eventFormat === "RR_TO_SE";
 
+  if (isGroupBased && groupSize && maxParticipants && maxParticipants % groupSize !== 0) {
+    return {
+      fieldErrors: {
+        maxParticipants: [`Max participants must be a multiple of group size (${groupSize})`],
+      },
+    };
+  }
+
   try {
     await updateEventById(eventId, {
       name,
