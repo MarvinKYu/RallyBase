@@ -5,15 +5,13 @@
 ## Throw error on event create page if # advancers > # players per group
 
 ## Handle RR group formation for # of players not equal to multiple of alloted players per group
-- Take the max # of participants as hard ceiling (NEVER allow more signups) and REQUIRE M be a multiple of P where M = max # of participants in event and P = # players per group- throw error on event creation page if this requirement not met
+- Take the max # of participants (if set) as hard ceiling (NEVER allow more signups) and REQUIRE M be a multiple of P where M = max # of participants in event and P = # players per group- throw error on event creation page if this requirement not met
 - Form N = M/P groups
 - Follow snake-style group assignment
 - EX: 13 players out of 16 allotted in 4 players per group: 
     - Let players be (in order of descending rating): A, B, C, D, E, F, G, H, I, J, K, L, M
     - Follow snake-style seeding: group #s should be: 1, 2, 3, 4, 4, 3, 2, 1, 1, 2, 3, 4, 4. 
     - Groups are as follows: 1: (A, H, I), 2: (B, G, J), 3: (C, F, K), 4: (D, E, L, M)
-
-
 
 ## RR -> SE "View Standings" button broken
 - Tried to click on this button while group matches were still ongoing
@@ -50,6 +48,13 @@
 - Requires scheduled job. Deferred.
 
 # Fixed
+
+## Version 0.15.1
+
+### RR_TO_SE manage page stack overflow on fresh events (A≥2)
+- Creating an RR_TO_SE event with `advancersPerGroup = 2` and navigating to its manage page threw `RangeError: Maximum call stack size exceeded`. Root cause: `countIncompleteRRMatches` returns 0 for a brand-new event with no schedule, making `rrComplete = true` vacuously. This triggered `computeAdvancers([], 2, ...)` → `numGroups=0` → `nextPowerOf2(0)=1` → `bracketSeedOrder(1)` which halves indefinitely (1→0.5→0.25…) and never hits the base case. Fix: added `countRRMatches` repository fn; `rrComplete` now requires `rrMatchCount > 0 && incompleteRR === 0`.
+
+---
 
 ## Version 0.14.10
 

@@ -10,6 +10,13 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 ---
 
+## [0.15.1] - 2026-03-31
+
+### Fixed
+- **RR_TO_SE manage page stack overflow on fresh events** — `checkSEStageStatus` treated a newly-created event with no schedule (zero matches) as "RR complete" because `countIncompleteRRMatches` returns 0 for an empty event. This caused `computeAdvancers` to be called with empty standings, producing `numGroups=0 → nextPowerOf2(0)=1 → bracketSeedOrder(1)` which recurses infinitely (halving 1→0.5→0.25…, never reaching the base case of 2), crashing the Node.js process with a `RangeError: Maximum call stack size exceeded`. Fix: added `countRRMatches` repository function; `rrComplete` now requires both `rrMatchCount > 0` and `incompleteRR === 0`.
+
+---
+
 ## [0.15.0] - 2026-03-31
 
 ### Added
