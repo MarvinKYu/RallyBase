@@ -1,20 +1,5 @@
 # Planned Features Roadmap
 
-## v0.15.0 — RallyBase Rating System
-
-> Plan mode: **No** — primarily data/config (new org + rating categories seeded) and a permission policy change. No new algorithm modules; Elo is already isolated. The org admin allowlist addition is scoped to existing patterns.
-
-### Add new org: RallyBase 
-- Anyone can access 
-- Default rating system for all competition formats
-- Experiment with custom algorithm
-
-### Gate USATT and NCTTA tournament creation to org admin and org-admin allowlist
-- Give org admins ability to grant tournament creation in their org to specific users
-- Platform admin can still create any tournament and grant tournament creation for any org to anyone
-
----
-
 ## v0.16.0 — Tournament Templates
 
 > Plan mode: **Yes** — new schema (templates table + event templates), new service functions, and changes to tournament creation flow and UI. Schema design decisions affect the whole feature; upfront plan avoids mid-implementation pivots.

@@ -10,6 +10,17 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 ---
 
+## [0.15.0] - 2026-03-31
+
+### Added
+- **RallyBase org** — new organization seeded with slug `rallybase`, Singles discipline, and "RallyBase Singles" rating category. Open to all authenticated users for tournament creation (no allowlist entry required).
+- **Rating algorithm abstraction** — new `src/server/algorithms/rating-algorithm.ts` defines a `RatingAlgorithm` interface and `getAlgorithmForOrg(orgSlug)` dispatcher. All orgs use Elo today; the RallyBase custom algorithm can be dropped in later by adding a case for `"rallybase"`. `rating.service.ts` now calls the dispatcher instead of importing `calculateMatchElo` directly.
+- **Tournament creation gating** — USATT and NCTTA orgs are now restricted: only platform admin, org admin, or users on the `TournamentCreatorAllowlist` can create tournaments there. RallyBase is open to all.
+- **TournamentCreatorAllowlist** — new DB table (migration `20260331000000`) and admin UI for managing per-org approved tournament creators. Org admins can manage their own org's list; platform admin manages all orgs.
+- **Admin page expanded** — now accessible to org admins (was platform admin only). Each org card shows an "Org Admins" section (platform admin only) and a "Tournament Creators" section (all admins, scoped to their org).
+
+---
+
 ## [0.14.11] - 2026-03-30
 
 ### Fixed
