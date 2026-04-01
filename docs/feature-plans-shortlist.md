@@ -27,7 +27,7 @@
 ## Historical ratings preservation
 - When looking at past tournament results, player ratings displayed should be the ratings at the time of the event start, and not display their current rating.
 
-## For players: think about display vs actual name + edge cases
+## For players: think about displayed name vs actual name + edge cases
 
 # Long-term ideas
 - Notes for things we could do in the future

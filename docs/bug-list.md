@@ -1,5 +1,12 @@
 # Current bugs
 
+## Placeholder bracket seeding is incorrect
+- Bracket shown with placeholders (e.g. Group 1- 1st, Group 3-2nd, etc.) shows incorrect seeding 
+- After manually "generate bracket" button after all group-stage matches complete: generated bracket is correct
+- However, manually generating bracket makes event marked as completed and results (1st/2nd) show up, even though the bracket hasn't been completed yet 
+- Event progress bar shows as full when all group-stage matches complete but bracket not generated yet, then after manually generating bracket, bar updates to no longer show as full
+- Maybe separate into two bars? Group stage bar and a bracket stage bar. Tie the event status to both bars being complete before auto-marking event as complete and displaying winner/runner-up. 
+
 ## Persist filled-out fields and selections chosen in create event page if error is thrown 
 
 ## Throw error on event create page if # advancers > # players per group
