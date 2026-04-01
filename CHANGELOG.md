@@ -10,6 +10,21 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 ---
 
+## [0.15.5] - 2026-04-01
+
+### Added
+- **SF/Final stacking for 16+ player brackets** — for brackets with `totalRounds ≥ 4`, the semifinal and final match cards are stacked vertically in a single center column (SF Left → Final → SF Right) with vertical connector lines. Saves significant horizontal space compared to the flat layout.
+- **Bracket centering** — all bracket sizes now render centered within the page (both flat and stacked layouts, including the RR→SE placeholder bracket).
+- **Default-win `(D)` indicator** — match cards on the bracket page and completed match rows in the standings schedule now append `(D)` to the winner's name for matches won by default. Bracket card footer also shows "default" as the status text.
+
+### Changed
+- **"Generate bracket" → "Start bracket"** — the SE stage generation button in the RR→SE manage page now reads "Start bracket" (distinguishes it from the initial "Generate schedule" button).
+- **"View Standings" → "View Groups"** — the button label on the event manage page and event detail page now says "View groups" for all RR and RR→SE events.
+- **Standings page: 4-column grid layout** — for grouped (multi-group) events, the standings page is now a viewport-filling 4-column grid. Each group card shows the standings table on top and a scrollable match schedule below. No-scroll design fits 8 groups in 2 rows of 4.
+- **Standings page title** — renamed from "Standings" to "Group Standings and Matches".
+
+---
+
 ## [0.15.4] - 2026-04-01
 
 ### Fixed
