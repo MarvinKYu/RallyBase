@@ -10,6 +10,13 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 ---
 
+## [0.15.4] - 2026-04-01
+
+### Fixed
+- **RR_TO_SE "View Standings" button always redirected** — the standings page guard `if (event.eventFormat !== "ROUND_ROBIN") redirect(...)` sent all RR_TO_SE events to the event detail page. Fixed by also permitting `RR_TO_SE`. SE phase matches (`groupNumber = null`) are filtered out so only the group stage schedule appears.
+
+---
+
 ## [0.15.3] - 2026-04-01
 
 ### Fixed

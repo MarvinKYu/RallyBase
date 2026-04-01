@@ -4,12 +4,6 @@
 
 ## Throw error on event create page if # advancers > # players per group
 
-## RR -> SE "View Standings" button broken
-- Tried to click on this button while group matches were still ongoing
-- /tournaments/[id]/events[id]/standings page tried to load for a second but failed
-- Redirected me to the player event view page.  
-- Investigate why? 
-
 ## Group/round persisted state from event manage page is inconsistent
 - Latency issue or logic issue? unclear- investigate
 
@@ -39,6 +33,14 @@
 - Requires scheduled job. Deferred.
 
 # Fixed
+
+## Version 0.15.4
+
+### RR_TO_SE "View Standings" button always redirected
+- Standings page had `if (event.eventFormat !== "ROUND_ROBIN") redirect(...)` — RR_TO_SE events always bounced to the event detail page.
+- Fix: also permit `RR_TO_SE`. SE phase matches filtered out so only group stage schedule appears.
+
+---
 
 ## Version 0.15.3
 
