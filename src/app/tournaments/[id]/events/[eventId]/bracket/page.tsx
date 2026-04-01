@@ -64,6 +64,7 @@ function MatchCard({
   isTD: boolean;
 }) {
   const isBye = match.player2Id === null && match.status === "COMPLETED";
+  const isDefault = !!match.isDefault;
 
   const p1 = match.player1?.displayName ?? "TBD";
   const p2 = match.player2?.displayName ?? (isBye ? "BYE" : "TBD");
@@ -73,10 +74,10 @@ function MatchCard({
   const p1IsTBD = !match.player1;
   const p2IsTBD = !match.player2 && !isBye;
 
-  const p1GameWins = isCompleted
+  const p1GameWins = isCompleted && !isDefault
     ? match.matchGames.filter((g) => g.player1Points > g.player2Points).length
     : null;
-  const p2GameWins = isCompleted
+  const p2GameWins = isCompleted && !isDefault
     ? match.matchGames.filter((g) => g.player2Points > g.player1Points).length
     : null;
 
@@ -92,7 +93,7 @@ function MatchCard({
             p1Wins ? "font-semibold text-text-1" : p1IsTBD ? "text-text-2" : "text-text-2"
           }`}
         >
-          {p1}
+          {p1}{isDefault && p1Wins ? " (D)" : ""}
         </span>
         {isCompleted && p1GameWins !== null && (
           <span className={`ml-2 shrink-0 text-xs font-bold ${p1Wins ? "text-accent" : "text-text-3"}`}>
@@ -114,7 +115,7 @@ function MatchCard({
                   : "text-text-2"
           }`}
         >
-          {p2}
+          {p2}{isDefault && p2Wins ? " (D)" : ""}
         </span>
         {isCompleted && p2GameWins !== null && (
           <span className={`ml-2 shrink-0 text-xs font-bold ${p2Wins ? "text-accent" : "text-text-3"}`}>
@@ -125,7 +126,7 @@ function MatchCard({
       {/* Footer: status + actions */}
       <div className="flex items-center justify-between border-t border-border-subtle bg-elevated px-3 py-1">
         <span className="text-[10px] uppercase tracking-wide text-text-3">
-          {isBye ? "bye" : match.status.toLowerCase().replace(/_/g, " ")}
+          {isBye ? "bye" : isDefault ? "default" : match.status.toLowerCase().replace(/_/g, " ")}
         </span>
         <div className="flex gap-2">
           {/* Player actions */}
@@ -338,6 +339,75 @@ function BracketColumn({
             isTD={isTD}
           />
         ))}
+      </div>
+    </div>
+  );
+}
+
+// ── Stacked bracket center column ────────────────────────────────────────────
+
+function StackedCenterColumn({
+  sfLeftMatch,
+  finalMatch,
+  sfRightMatch,
+  H,
+  tournamentId,
+  eventId,
+  isTD,
+}: {
+  sfLeftMatch: BracketMatch | undefined;
+  finalMatch: BracketMatch | undefined;
+  sfRightMatch: BracketMatch | undefined;
+  H: number;
+  tournamentId: string;
+  eventId: string;
+  isTD: boolean;
+}) {
+  const sfTopOffset = H / 2 - CARD_H / 2;
+  const finalTopOffset = H - CARD_H / 2;
+  const sfBotOffset = (3 * H) / 2 - CARD_H / 2;
+  const conn1Top = sfTopOffset + CARD_H;
+  const conn1H = finalTopOffset - conn1Top;
+  const conn2Top = finalTopOffset + CARD_H;
+  const conn2H = sfBotOffset - conn2Top;
+
+  return (
+    <div className="shrink-0" style={{ position: "relative", width: CARD_W, height: 2 * H + LABEL_H }}>
+      <div style={{ height: LABEL_H }} className="flex items-end pb-3">
+        <p className="text-xs font-bold uppercase tracking-wide text-text-1">Final</p>
+      </div>
+      <div style={{ position: "absolute", top: LABEL_H + sfTopOffset, left: 0, width: CARD_W }}>
+        {sfLeftMatch ? (
+          <MatchCard match={sfLeftMatch} tournamentId={tournamentId} eventId={eventId} isTD={isTD} />
+        ) : (
+          <div className="w-44 overflow-hidden rounded-md border border-border bg-surface shadow-sm" style={{ height: CARD_H }} />
+        )}
+      </div>
+      <svg
+        className="text-border"
+        style={{ position: "absolute", top: LABEL_H + conn1Top, left: Math.floor(CARD_W / 2), width: 1, height: conn1H, display: "block" }}
+      >
+        <line x1={0.5} y1={0} x2={0.5} y2={conn1H} stroke="currentColor" strokeWidth={1} />
+      </svg>
+      <div style={{ position: "absolute", top: LABEL_H + finalTopOffset, left: 0, width: CARD_W }}>
+        {finalMatch ? (
+          <MatchCard match={finalMatch} tournamentId={tournamentId} eventId={eventId} isTD={isTD} />
+        ) : (
+          <div className="w-44 overflow-hidden rounded-md border border-border bg-surface shadow-sm" style={{ height: CARD_H }} />
+        )}
+      </div>
+      <svg
+        className="text-border"
+        style={{ position: "absolute", top: LABEL_H + conn2Top, left: Math.floor(CARD_W / 2), width: 1, height: conn2H, display: "block" }}
+      >
+        <line x1={0.5} y1={0} x2={0.5} y2={conn2H} stroke="currentColor" strokeWidth={1} />
+      </svg>
+      <div style={{ position: "absolute", top: LABEL_H + sfBotOffset, left: 0, width: CARD_W }}>
+        {sfRightMatch ? (
+          <MatchCard match={sfRightMatch} tournamentId={tournamentId} eventId={eventId} isTD={isTD} />
+        ) : (
+          <div className="w-44 overflow-hidden rounded-md border border-border bg-surface shadow-sm" style={{ height: CARD_H }} />
+        )}
       </div>
     </div>
   );
@@ -650,7 +720,7 @@ export default async function BracketPage({ params, searchParams }: Props) {
 
         {/* Placeholder bracket */}
         <div className="overflow-x-auto pb-8">
-          <div className="flex items-start" style={{ minWidth: "max-content" }}>
+          <div className="mx-auto flex w-fit items-start">
 
             {/* LEFT SIDE */}
             {leftRounds.map((round, idx) => {
@@ -755,6 +825,120 @@ export default async function BracketPage({ params, searchParams }: Props) {
 
   // ── Render ────────────────────────────────────────────────────────────────
 
+  const bracketHeader = (
+    <div className="mb-8 space-y-1">
+      <p className="text-sm text-text-3">
+        <Link href={`/tournaments/${id}`} className="hover:text-text-2">
+          {event.tournament.name}
+        </Link>
+        {" / "}
+        <Link href={`/tournaments/${id}/events/${eventId}`} className="hover:text-text-2">
+          {event.name}
+        </Link>
+      </p>
+      <div className="flex items-center justify-between">
+        <h1 className="text-2xl font-semibold text-text-1">Bracket</h1>
+        {isTD && (
+          <span className="rounded-md border border-accent/30 px-2 py-0.5 text-xs text-accent">
+            TD view
+          </span>
+        )}
+      </div>
+    </div>
+  );
+
+  const backLink = (
+    <Link
+      href={backHref}
+      className="text-sm text-text-2 transition-colors hover:text-text-1"
+    >
+      {from === "manage" ? "← Back to manage event" : "← Back to event"}
+    </Link>
+  );
+
+  if (totalRounds >= 4) {
+    const sfRound = totalRounds - 1;
+    const leftStackedRounds = Array.from({ length: totalRounds - 2 }, (_, i) => i + 1);
+    const rightStackedRounds = [...leftStackedRounds].reverse();
+    const sfLeftMatch = leftMatches(sfRound)[0];
+    const sfRightMatch = rightMatches(sfRound)[0];
+    const leftWidth = (totalRounds - 2) * (CARD_W + CONN_W);
+    const totalWidth = 2 * leftWidth + CARD_W;
+
+    return (
+      <main className="px-6 py-12">
+        {bracketHeader}
+        <div className="overflow-x-auto pb-8">
+          <div className="flex min-w-full justify-center">
+            <div style={{ position: "relative", width: totalWidth, height: 2 * H + LABEL_H }}>
+
+              {/* Left side */}
+              <div style={{ position: "absolute", top: 0, left: 0, display: "flex", alignItems: "flex-start" }}>
+                {leftStackedRounds.map((round) => {
+                  const count = leftHalfCount(round);
+                  return (
+                    <div key={`l-${round}`} className="flex items-start">
+                      <BracketColumn
+                        label={getRoundLabel(round, totalRounds)}
+                        labelVariant="default"
+                        round={round}
+                        matches={leftMatches(round)}
+                        H={H}
+                        isCenter={false}
+                        tournamentId={id}
+                        eventId={eventId}
+                        isTD={isTD}
+                      />
+                      <ForkConnector outerRound={round} outerCount={count} H={H} side="left" />
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Stacked center */}
+              <div style={{ position: "absolute", top: 0, left: leftWidth }}>
+                <StackedCenterColumn
+                  sfLeftMatch={sfLeftMatch}
+                  finalMatch={finalMatch}
+                  sfRightMatch={sfRightMatch}
+                  H={H}
+                  tournamentId={id}
+                  eventId={eventId}
+                  isTD={isTD}
+                />
+              </div>
+
+              {/* Right side */}
+              <div style={{ position: "absolute", top: H, left: leftWidth + CARD_W, display: "flex", alignItems: "flex-start" }}>
+                {rightStackedRounds.map((round) => {
+                  const count = leftHalfCount(round);
+                  return (
+                    <div key={`r-${round}`} className="flex items-start">
+                      <ForkConnector outerRound={round} outerCount={count} H={H} side="right" />
+                      <BracketColumn
+                        label={getRoundLabel(round, totalRounds)}
+                        labelVariant="default"
+                        round={round}
+                        matches={rightMatches(round)}
+                        H={H}
+                        isCenter={false}
+                        tournamentId={id}
+                        eventId={eventId}
+                        isTD={isTD}
+                      />
+                    </div>
+                  );
+                })}
+              </div>
+
+            </div>
+          </div>
+        </div>
+        {backLink}
+      </main>
+    );
+  }
+
   return (
     <main className="px-6 py-12">
       {/* Header */}
@@ -780,7 +964,7 @@ export default async function BracketPage({ params, searchParams }: Props) {
 
       {/* Bracket */}
       <div className="overflow-x-auto pb-8">
-        <div className="flex items-start" style={{ minWidth: "max-content" }}>
+        <div className="mx-auto flex w-fit items-start">
 
           {/* ── LEFT SIDE ── */}
           {leftRounds.map((round, idx) => {

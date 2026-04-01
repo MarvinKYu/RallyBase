@@ -11,6 +11,7 @@ export type SerializedMatch = {
   player1Id: string | null;
   player2Id: string | null;
   winnerId: string | null;
+  isDefault?: boolean;
   player1: { id: string; displayName: string } | null;
   player2: { id: string; displayName: string } | null;
   matchGames: { gameNumber: number; player1Points: number; player2Points: number }[];
@@ -21,11 +22,13 @@ export function StandingsSchedule({
   isTD,
   tournamentId,
   eventId,
+  compact = false,
 }: {
   rounds: Array<{ round: number; matches: SerializedMatch[] }>;
   isTD: boolean;
   tournamentId: string;
   eventId: string;
+  compact?: boolean;
 }) {
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
 
@@ -37,20 +40,20 @@ export function StandingsSchedule({
     });
 
   return (
-    <div className="space-y-6">
+    <div className={compact ? "space-y-2" : "space-y-6"}>
       {rounds.map(({ round, matches }) => (
         <div key={round}>
-          <p className="mb-2 text-xs font-medium uppercase tracking-wide text-text-3">
+          <p className={`${compact ? "mb-1 px-2 pt-2" : "mb-2"} text-xs font-medium uppercase tracking-wide text-text-3`}>
             Round {round}
           </p>
-          <ul className="overflow-hidden rounded-lg border border-border">
+          <ul className={compact ? "border-t border-border-subtle" : "overflow-hidden rounded-lg border border-border"}>
             {matches.map((match) => {
               const isExpanded = expanded.has(match.id);
               const hasScores = match.matchGames.length > 0;
 
               return (
                 <li key={match.id} className="border-b border-border-subtle last:border-b-0">
-                  <div className="flex items-center justify-between bg-surface px-4 py-3">
+                  <div className={`flex items-center justify-between bg-surface ${compact ? "px-2 py-1.5" : "px-4 py-3"}`}>
                     <div className="flex items-center gap-3">
                       <span
                         className={`text-sm ${
@@ -59,7 +62,7 @@ export function StandingsSchedule({
                             : "text-text-2"
                         }`}
                       >
-                        {match.player1?.displayName ?? "TBD"}
+                        {match.player1?.displayName ?? "TBD"}{match.isDefault && match.winnerId === match.player1Id ? " (D)" : ""}
                       </span>
                       <span className="text-xs text-text-3">vs</span>
                       <span
@@ -69,7 +72,7 @@ export function StandingsSchedule({
                             : "text-text-2"
                         }`}
                       >
-                        {match.player2?.displayName ?? "TBD"}
+                        {match.player2?.displayName ?? "TBD"}{match.isDefault && match.winnerId === match.player2Id ? " (D)" : ""}
                       </span>
                     </div>
                     <div className="flex items-center gap-3">
@@ -133,7 +136,7 @@ export function StandingsSchedule({
 
                   {/* Expanded per-game scores */}
                   {isExpanded && hasScores && (
-                    <div className="border-t border-border-subtle bg-elevated px-4 pb-3 pt-2">
+                    <div className={`border-t border-border-subtle bg-elevated ${compact ? "px-2 pb-2 pt-1" : "px-4 pb-3 pt-2"}`}>
                       <div className="space-y-1">
                         {match.matchGames.map((g) => (
                           <div key={g.gameNumber} className="flex items-center gap-3 text-xs">

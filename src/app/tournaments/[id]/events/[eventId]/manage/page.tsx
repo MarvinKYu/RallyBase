@@ -167,13 +167,13 @@ export default async function ManageEventPage({ params }: Props) {
 
           {/* Bracket / standings links */}
           <div className="flex flex-wrap items-center gap-3">
-            {/* View standings — RR and RR_TO_SE (once RR matches exist) */}
+            {/* View groups — RR and RR_TO_SE (once RR matches exist) */}
             {(isRoundRobin || (isRRToSE && hasBracket)) && (
               <Link
                 href={`/tournaments/${id}/events/${eventId}/standings?from=manage`}
                 className="rounded-md bg-accent px-4 py-2 text-sm font-medium text-background transition-colors hover:bg-accent-dim"
               >
-                View standings
+                View groups
               </Link>
             )}
             {/* View bracket — pure SE or RR_TO_SE SE stage */}
@@ -317,7 +317,7 @@ export default async function ManageEventPage({ params }: Props) {
                 type="submit"
                 className="rounded-md bg-accent px-4 py-2 text-sm font-medium text-background transition-colors hover:bg-accent-dim"
               >
-                Generate bracket
+                Start bracket
               </button>
             </form>
           )}
