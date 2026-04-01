@@ -31,12 +31,17 @@ export default async function StandingsPage({ params, searchParams }: Props) {
   ]);
 
   if (!event) notFound();
-  if (event.eventFormat !== "ROUND_ROBIN") redirect(`/tournaments/${id}/events/${eventId}`);
+  if (event.eventFormat !== "ROUND_ROBIN" && event.eventFormat !== "RR_TO_SE") redirect(`/tournaments/${id}/events/${eventId}`);
 
   const isGrouped = !!event.groupSize;
   const standingsData = isGrouped
     ? await getRoundRobinStandings(eventId, true)
     : await getRoundRobinStandings(eventId);
+
+  // For RR_TO_SE: exclude SE phase matches (groupNumber = null) from the schedule
+  const rrMatches = event.eventFormat === "RR_TO_SE"
+    ? matches.filter((m) => (m as typeof m & { groupNumber?: number | null }).groupNumber !== null)
+    : matches;
 
   const isTD = !!userId && event.tournament.createdByClerkId === userId;
 
@@ -66,7 +71,7 @@ export default async function StandingsPage({ params, searchParams }: Props) {
   };
 
   const groupMatchMap = new Map<number | null, Map<number, SerializedMatch[]>>();
-  for (const m of matches) {
+  for (const m of rrMatches) {
     const gNum = (m as typeof m & { groupNumber?: number | null }).groupNumber ?? null;
     if (!groupMatchMap.has(gNum)) groupMatchMap.set(gNum, new Map());
     const roundMap = groupMatchMap.get(gNum)!;
@@ -134,7 +139,7 @@ export default async function StandingsPage({ params, searchParams }: Props) {
               </section>
             )}
 
-            {matches.length === 0 ? (
+            {rrMatches.length === 0 ? (
               <p className="text-sm text-text-2">No matches generated yet.</p>
             ) : (
               <section>
