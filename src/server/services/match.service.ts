@@ -17,7 +17,11 @@ import {
   countNonCompletedEvents,
   setTournamentStatus,
 } from "@/server/repositories/tournament.repository";
-import { countIncompleteRRMatches } from "@/server/repositories/bracket.repository";
+import {
+  countIncompleteRRMatches,
+  countSEMatches,
+  countNonCompletedSEMatches,
+} from "@/server/repositories/bracket.repository";
 import { generateSEStage } from "@/server/services/bracket.service";
 import { prisma } from "@/lib/prisma";
 
@@ -197,16 +201,13 @@ export async function confirmMatchResult(
   });
 
   // RR → SE: auto-generate SE bracket when last RR group match completes
-  await tryAutoGenerateSEStage(match.eventId, match.event.eventFormat, match.groupNumber);
+  await tryAutoGenerateSEStage(match.eventId, match.event.eventFormat);
 
   // Auto-complete event if all matches are now done.
-  // For RR_TO_SE events where the completed match is a group-stage (RR) match,
-  // skip — the SE bracket still needs to be played through.
-  const isRRPhaseMatch =
-    match.event.eventFormat === "RR_TO_SE" && match.groupNumber !== null;
-  if (match.event.status === "IN_PROGRESS" && !isRRPhaseMatch) {
-    const remainingMatches = await countNonCompletedMatches(match.eventId);
-    if (remainingMatches === 0) {
+  // For RR_TO_SE events: only complete once the SE bracket exists and is fully played.
+  if (match.event.status === "IN_PROGRESS") {
+    const shouldComplete = await checkEventComplete(match.eventId, match.event.eventFormat);
+    if (shouldComplete) {
       await setEventStatus(match.eventId, "COMPLETED");
       const remainingEvents = await countNonCompletedEvents(match.event.tournament.id);
       if (remainingEvents === 0) {
@@ -282,16 +283,13 @@ export async function tdSubmitMatch(params: TdSubmitParams): Promise<TdSubmitRes
   });
 
   // RR → SE: auto-generate SE bracket when last RR group match completes
-  await tryAutoGenerateSEStage(match.eventId, match.event.eventFormat, match.groupNumber);
+  await tryAutoGenerateSEStage(match.eventId, match.event.eventFormat);
 
   // Auto-complete event if all matches are now done.
-  // For RR_TO_SE events where the completed match is a group-stage (RR) match,
-  // skip — the SE bracket still needs to be played through.
-  const isRRPhaseMatch =
-    match.event.eventFormat === "RR_TO_SE" && match.groupNumber !== null;
-  if (match.event.status === "IN_PROGRESS" && !isRRPhaseMatch) {
-    const remainingMatches = await countNonCompletedMatches(match.eventId);
-    if (remainingMatches === 0) {
+  // For RR_TO_SE events: only complete once the SE bracket exists and is fully played.
+  if (match.event.status === "IN_PROGRESS") {
+    const shouldComplete = await checkEventComplete(match.eventId, match.event.eventFormat);
+    if (shouldComplete) {
       await setEventStatus(match.eventId, "COMPLETED");
       const remainingEvents = await countNonCompletedEvents(match.event.tournament.id);
       if (remainingEvents === 0) {
@@ -343,8 +341,8 @@ export async function tdDefaultMatch(params: {
   });
 
   if (match.event.status === "IN_PROGRESS") {
-    const remainingMatches = await countNonCompletedMatches(match.eventId);
-    if (remainingMatches === 0) {
+    const shouldComplete = await checkEventComplete(match.eventId, match.event.eventFormat);
+    if (shouldComplete) {
       await setEventStatus(match.eventId, "COMPLETED");
       const remainingEvents = await countNonCompletedEvents(match.event.tournament.id);
       if (remainingEvents === 0) {
@@ -417,12 +415,14 @@ export async function tdVoidMatch(matchId: string): Promise<TdVoidResult> {
 async function tryAutoGenerateSEStage(
   eventId: string,
   eventFormat: string,
-  matchGroupNumber: number | null,
 ): Promise<void> {
-  // Only applies to RR_TO_SE events and RR-phase matches (groupNumber IS NOT NULL)
-  if (eventFormat !== "RR_TO_SE" || matchGroupNumber === null) return;
+  if (eventFormat !== "RR_TO_SE") return;
 
   try {
+    // Skip if SE bracket already exists (idempotent guard)
+    const seCount = await countSEMatches(eventId);
+    if (seCount > 0) return;
+
     const incompleteRR = await countIncompleteRRMatches(eventId);
     if (incompleteRR > 0) return;
 
@@ -431,4 +431,21 @@ async function tryAutoGenerateSEStage(
   } catch {
     // Silently ignore — TD will see the state on the manage page
   }
+}
+
+/**
+ * Returns true if the event should be auto-completed.
+ * For RR_TO_SE: requires the SE bracket to exist and have no incomplete matches.
+ * For all other formats: requires no incomplete matches at all.
+ */
+async function checkEventComplete(eventId: string, eventFormat: string): Promise<boolean> {
+  if (eventFormat === "RR_TO_SE") {
+    const [seTotal, seIncomplete] = await Promise.all([
+      countSEMatches(eventId),
+      countNonCompletedSEMatches(eventId),
+    ]);
+    return seTotal > 0 && seIncomplete === 0;
+  }
+  const remaining = await countNonCompletedMatches(eventId);
+  return remaining === 0;
 }

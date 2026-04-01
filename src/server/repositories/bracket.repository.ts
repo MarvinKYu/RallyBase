@@ -71,6 +71,13 @@ export async function countSEMatches(eventId: string) {
   });
 }
 
+/** Count SE matches (groupNumber IS NULL) that are not yet COMPLETED. */
+export async function countNonCompletedSEMatches(eventId: string) {
+  return prisma.match.count({
+    where: { eventId, groupNumber: null, status: { not: MatchStatus.COMPLETED } },
+  });
+}
+
 /**
  * Count SE matches that are IN_PROGRESS or COMPLETED (i.e. already played).
  * Used to guard against re-generating an in-flight SE bracket.

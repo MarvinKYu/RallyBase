@@ -76,6 +76,14 @@ export default async function ManageEventPage({ params }: Props) {
   const completedMatches = event.matches.filter((m) => m.status === "COMPLETED").length;
   const progressPct = totalMatches > 0 ? Math.round((completedMatches / totalMatches) * 100) : 0;
 
+  // For RR_TO_SE: split progress into group stage + bracket stage
+  const rrMatches = isRRToSE ? event.matches.filter((m) => m.groupNumber !== null) : [];
+  const seMatchesForProgress = isRRToSE ? event.matches.filter((m) => m.groupNumber === null) : [];
+  const rrCompleted = rrMatches.filter((m) => m.status === "COMPLETED").length;
+  const seCompletedCount = seMatchesForProgress.filter((m) => m.status === "COMPLETED").length;
+  const rrPct = rrMatches.length > 0 ? Math.round((rrCompleted / rrMatches.length) * 100) : 0;
+  const sePct = seMatchesForProgress.length > 0 ? Math.round((seCompletedCount / seMatchesForProgress.length) * 100) : 0;
+
   const serializedMatches: MatchRow[] = event.matches.map((m) => ({
     id: m.id,
     round: m.round,
@@ -225,21 +233,60 @@ export default async function ManageEventPage({ params }: Props) {
           </div>
 
           {/* Progress bar */}
-          {totalMatches > 0 && (
-            <div>
-              <p className="mb-1.5 text-xs text-text-3">Event progress</p>
-              <div className="group relative">
-                <div className="h-2 w-full overflow-hidden rounded-full bg-border">
-                  <div
-                    className="h-full rounded-full bg-green-500 transition-all"
-                    style={{ width: `${progressPct}%` }}
-                  />
+          {isRRToSE ? (
+            rrMatches.length > 0 && (
+              <div className="flex flex-col gap-2">
+                <div>
+                  <p className="mb-1.5 text-xs text-text-3">Group stage progress</p>
+                  <div className="group relative">
+                    <div className="h-2 w-full overflow-hidden rounded-full bg-border">
+                      <div
+                        className="h-full rounded-full bg-green-500 transition-all"
+                        style={{ width: `${rrPct}%` }}
+                      />
+                    </div>
+                    <div className="absolute bottom-full left-0 mb-2 hidden whitespace-nowrap rounded border border-border bg-surface px-2 py-1 text-xs text-text-1 shadow group-hover:block">
+                      {rrCompleted} / {rrMatches.length} group matches completed
+                    </div>
+                  </div>
                 </div>
-                <div className="absolute bottom-full left-0 mb-2 hidden whitespace-nowrap rounded border border-border bg-surface px-2 py-1 text-xs text-text-1 shadow group-hover:block">
-                  {completedMatches} / {totalMatches} matches completed
+                <div>
+                  <p className="mb-1.5 text-xs text-text-3">Bracket stage progress</p>
+                  {seMatchesForProgress.length > 0 ? (
+                    <div className="group relative">
+                      <div className="h-2 w-full overflow-hidden rounded-full bg-border">
+                        <div
+                          className="h-full rounded-full bg-green-500 transition-all"
+                          style={{ width: `${sePct}%` }}
+                        />
+                      </div>
+                      <div className="absolute bottom-full left-0 mb-2 hidden whitespace-nowrap rounded border border-border bg-surface px-2 py-1 text-xs text-text-1 shadow group-hover:block">
+                        {seCompletedCount} / {seMatchesForProgress.length} bracket matches completed
+                      </div>
+                    </div>
+                  ) : (
+                    <p className="text-xs text-text-3">Not started</p>
+                  )}
                 </div>
               </div>
-            </div>
+            )
+          ) : (
+            totalMatches > 0 && (
+              <div>
+                <p className="mb-1.5 text-xs text-text-3">Event progress</p>
+                <div className="group relative">
+                  <div className="h-2 w-full overflow-hidden rounded-full bg-border">
+                    <div
+                      className="h-full rounded-full bg-green-500 transition-all"
+                      style={{ width: `${progressPct}%` }}
+                    />
+                  </div>
+                  <div className="absolute bottom-full left-0 mb-2 hidden whitespace-nowrap rounded border border-border bg-surface px-2 py-1 text-xs text-text-1 shadow group-hover:block">
+                    {completedMatches} / {totalMatches} matches completed
+                  </div>
+                </div>
+              </div>
+            )
           )}
 
           {/* Generate schedule / bracket */}

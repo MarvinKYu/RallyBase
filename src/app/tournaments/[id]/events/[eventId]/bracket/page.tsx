@@ -6,6 +6,8 @@ import { getEventBracket } from "@/server/services/bracket.service";
 import { tdVoidMatchAction } from "@/server/actions/match.actions";
 import { getRoundLabel } from "@/lib/bracket-labels";
 import { bracketSeedOrder } from "@/server/algorithms/bracket";
+import { computeAdvancers } from "@/server/algorithms/advancer";
+import type { GroupedRoundRobinStandings } from "@/server/services/bracket.service";
 
 type Props = {
   params: Promise<{ id: string; eventId: string }>;
@@ -387,29 +389,67 @@ function computeCompletedGroupRankings(
 }
 
 /**
+ * Builds a map of seSeed → {groupNum, rank} using the real computeAdvancers algorithm
+ * fed with synthetic standings (no actual DB data needed).
+ * This ensures A=2 runner-up placement matches the actual constrained half-zone seeding.
+ */
+function buildPlaceholderSeedInfo(
+  numGroups: number,
+  advancersPerGroup: number,
+): Map<number, { g: number; r: number }> {
+  const fakeStandings: GroupedRoundRobinStandings[] = Array.from(
+    { length: numGroups },
+    (_, gi) => ({
+      groupNumber: gi + 1,
+      standings: Array.from({ length: advancersPerGroup + 1 }, (_, ri) => ({
+        playerProfileId: `ph:${gi + 1}:${ri + 1}`,
+        displayName: `Group ${gi + 1} — ${ri + 1}`,
+        wins: advancersPerGroup - ri,
+        losses: ri,
+        gamesWon: 0,
+        gamesLost: 0,
+        pointsFor: 0,
+        pointsAgainst: 0,
+        rank: ri + 1,
+        tied: false,
+      })),
+    }),
+  );
+
+  const result = computeAdvancers(fakeStandings, advancersPerGroup, new Map());
+  if (!result.ok) return new Map();
+
+  return new Map(
+    result.advancers.map((a) => {
+      const parts = a.playerProfileId.split(":");
+      return [a.seSeed, { g: Number(parts[1]), r: Number(parts[2]) }];
+    }),
+  );
+}
+
+/**
  * Maps a seed number to a human-readable label for the placeholder bracket.
- * Uses the same ascending inter-group ordering as computeAdvancers (all ranks ascending).
+ * Uses buildPlaceholderSeedInfo (backed by computeAdvancers) for correct A=2 placement.
  * When a group is fully complete, uses actual player names instead of generic labels.
  */
 function seedToGroupLabel(
   seed: number,
-  numGroups: number,
   numSlots: number,
+  seedInfo: Map<number, { g: number; r: number }>,
   completedGroups: Map<number, string[]>,
 ): string {
   if (seed > numSlots) return "BYE";
-  const rank = Math.ceil(seed / numGroups);
-  const idxInRank = (seed - 1) % numGroups;
-  // All ranks use ascending group order (same as computeAdvancers)
-  const groupNum = idxInRank + 1;
+  const info = seedInfo.get(seed);
+  if (!info) return "TBD";
+  const { g, r } = info;
 
-  const groupRanking = completedGroups.get(groupNum);
-  if (groupRanking && groupRanking[rank - 1]) {
-    return groupRanking[rank - 1];
+  const groupRanking = completedGroups.get(g);
+  if (groupRanking && groupRanking[r - 1]) {
+    return groupRanking[r - 1];
   }
 
-  const ordinal = rank === 1 ? "1st" : rank === 2 ? "2nd" : rank === 3 ? "3rd" : `${rank}th`;
-  return `Group ${groupNum} — ${ordinal}`;
+  const ordinal = r === 1 ? "1st" : r === 2 ? "2nd" : r === 3 ? "3rd" : `${r}th`;
+  return `Group ${g} — ${ordinal}`;
 }
 
 /**
@@ -426,6 +466,7 @@ function computePlaceholderBracket(
   const bracketSize = Math.pow(2, totalRounds);
   const H = halfHeight(bracketSize);
   const seedOrder = bracketSeedOrder(bracketSize);
+  const seedInfo = buildPlaceholderSeedInfo(numGroups, advancersPerGroup);
 
   // Left half: positions 1..(bracketSize/4); right half: (bracketSize/4)+1..(bracketSize/2)
   const halfCount = (round: number) => bracketSize / Math.pow(2, round + 1);
@@ -437,8 +478,8 @@ function computePlaceholderBracket(
       return Array.from({ length: count }, (_, i) => {
         const pos = offset + i; // 0-indexed position within R1
         return {
-          p1: seedToGroupLabel(seedOrder[2 * pos], numGroups, numSlots, completedGroups),
-          p2: seedToGroupLabel(seedOrder[2 * pos + 1], numGroups, numSlots, completedGroups),
+          p1: seedToGroupLabel(seedOrder[2 * pos], numSlots, seedInfo, completedGroups),
+          p2: seedToGroupLabel(seedOrder[2 * pos + 1], numSlots, seedInfo, completedGroups),
         };
       });
     }
