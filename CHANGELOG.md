@@ -10,6 +10,16 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 ---
 
+## [0.15.3] - 2026-04-01
+
+### Fixed
+- **RR_TO_SE premature event auto-complete** — when an RR match's `groupNumber` was null (stale data), `isRRPhaseMatch` evaluated to false and the event was auto-completed with no SE bracket generated. Root cause: auto-complete guard and `tryAutoGenerateSEStage` both relied on `match.groupNumber` to distinguish RR vs. SE phase. Fix: replaced the `groupNumber`-based guard with `checkEventComplete()` which uses `countSEMatches`/`countNonCompletedSEMatches` — for RR_TO_SE, the event only auto-completes when the SE bracket exists and is fully played through. `tryAutoGenerateSEStage` now uses `countSEMatches > 0` to skip re-generation instead of checking `matchGroupNumber`.
+- **`tdDefaultMatch` missing RR_TO_SE guard** — the default-win path had no equivalent guard, so defaulting the last RR match in an RR_TO_SE event would also prematurely complete the event. Fixed with the same `checkEventComplete()` helper.
+- **Placeholder bracket seeding wrong for A=2** — the `seedToGroupLabel` helper used a simple modular formula that gave ascending group order for all ranks. For A=2, runners-up use constrained half-zone placement (descending group order, opposite bracket half from their group winner), which the formula did not reproduce. Fix: replaced with `buildPlaceholderSeedInfo()` which calls `computeAdvancers` on synthetic standings to produce the exact seed→(group, rank) mapping used by the real SE generation.
+- **Progress bar shows 100% after group stage before SE bracket generated** — for RR_TO_SE events the single progress bar reached 100% when all RR matches completed but before SE bracket was generated, then dropped once SE matches were added. Fix: replaced with two separate bars — "Group stage progress" and "Bracket stage progress" — the latter showing "Not started" until the SE bracket is generated.
+
+---
+
 ## [0.15.2] - 2026-03-31
 
 ### Fixed

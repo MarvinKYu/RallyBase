@@ -1,12 +1,5 @@
 # Current bugs
 
-## Placeholder bracket seeding is incorrect
-- Bracket shown with placeholders (e.g. Group 1- 1st, Group 3-2nd, etc.) shows incorrect seeding 
-- After manually "generate bracket" button after all group-stage matches complete: generated bracket is correct
-- However, manually generating bracket makes event marked as completed and results (1st/2nd) show up, even though the bracket hasn't been completed yet 
-- Event progress bar shows as full when all group-stage matches complete but bracket not generated yet, then after manually generating bracket, bar updates to no longer show as full
-- Maybe separate into two bars? Group stage bar and a bracket stage bar. Tie the event status to both bars being complete before auto-marking event as complete and displaying winner/runner-up. 
-
 ## Persist filled-out fields and selections chosen in create event page if error is thrown 
 
 ## Throw error on event create page if # advancers > # players per group
@@ -46,6 +39,22 @@
 - Requires scheduled job. Deferred.
 
 # Fixed
+
+## Version 0.15.3
+
+### RR_TO_SE event auto-completes before SE bracket is generated
+- When `match.groupNumber` was null on an RR match (stale data), `isRRPhaseMatch = false` and the event was auto-completed with no SE bracket. `tdDefaultMatch` also had no equivalent guard.
+- Fix: replaced `groupNumber`-based guard with `checkEventComplete()` — for RR_TO_SE, requires SE bracket to exist and be fully played. `tryAutoGenerateSEStage` now guards with `countSEMatches > 0` instead of `matchGroupNumber === null`.
+
+### Placeholder bracket seeding incorrect for A=2
+- `seedToGroupLabel` used a simple modular formula (ascending group order for all ranks). For A=2, runners-up use constrained half-zone placement, which the formula did not reproduce.
+- Fix: replaced with `buildPlaceholderSeedInfo()` calling `computeAdvancers` on synthetic standings for the exact same seed→(group, rank) mapping.
+
+### Progress bar shows 100% after group stage before SE bracket generated
+- Single bar reached 100% when all RR matches completed but before SE bracket was added. After SE bracket generated, bar dropped.
+- Fix: for RR_TO_SE events, replaced with two bars — "Group stage progress" and "Bracket stage progress" (shows "Not started" until SE bracket is generated).
+
+---
 
 ## Version 0.15.2
 
