@@ -21,10 +21,9 @@ Do this automatically for every shipped change — no need to ask.
 
 ## Project Status
 
-**Current version: v0.14.11.** The app is live on Vercel at https://rally-base.vercel.app. Next target is v0.15.0 (RallyBase Rating System).
+**Current version: v0.15.2.** The app is live on Vercel at https://rally-base.vercel.app. Next target is v0.16.0 (Tournament Templates) or continued bug fixes.
 
 ### Upcoming
-- v0.15.0 — RallyBase Rating System (new org + custom algorithm)
 - v0.16.0 — Tournament Templates
 
 ## Tech Stack
@@ -99,14 +98,17 @@ export async function addEntrantAction(eventId, tournamentId, formData): Promise
 - **TD authorization**: `isAuthorizedAsTD(clerkId, tournament)` in `admin.service.ts` is the single source of truth for TD access — returns true for tournament creator, platform admin, or org admin for that tournament's org. Use this everywhere instead of direct `createdByClerkId` comparisons.
 - **Platform admin**: single account (test_user_1 / player #1) assigned `PLATFORM_ADMIN` role via `UserRole`. Can edit any profile, view all drafts, manage all tournaments.
 - **Org admin**: assigned per-org by platform admin via `/admin`. Stored in `OrgAdmin` table (separate from `UserRole`), scoped by `organizationId`.
+- **Tournament creation gating**: `canCreateTournamentInOrg(clerkId, organizationId)` in `admin.service.ts` — returns true for platform admin, org admin, `TournamentCreatorAllowlist` entry, or org slug === `"rallybase"`. `createTournament` enforces this before writing to DB. `getOrgsForTournamentCreation(clerkId)` returns filtered org list for the new-tournament page.
+- **TournamentCreatorAllowlist**: DB table mirroring `OrgAdmin` pattern (unique on `(userId, organizationId)`). Managed by platform admin or org admin via `/admin`. Actions: `assignTournamentCreatorAction`, `removeTournamentCreatorAction`.
+- **Rating algorithm abstraction**: `RatingAlgorithm` interface + `getAlgorithmForOrg(orgSlug)` dispatcher in `src/server/algorithms/rating-algorithm.ts`. All orgs currently return the Elo adapter. To plug in a custom RallyBase algorithm, add a case for `"rallybase"` in the dispatcher.
 - **Player initial rating**: no `PlayerRating` row exists until after the first match or an admin sets one. `applyRatingResult` falls back to `DEFAULT_RATING = 1500` when no row is found.
-- **Multi-group RR events**: `Event.groupSize Int?` enables multi-group round robin. When set, `generateRoundRobinBracket` uses `assignGroups` (snake seeding) to distribute players, then builds one schedule per group. `getRoundRobinStandings(eventId, true)` returns `GroupedRoundRobinStandings[]`.
+- **Multi-group RR events**: `Event.groupSize Int?` enables multi-group round robin. When set, `generateRoundRobinBracket` uses `assignGroups` (snake seeding) to distribute players, then builds one schedule per group. `getRoundRobinStandings(eventId, true)` returns `GroupedRoundRobinStandings[]`. Group count = `maxParticipants / groupSize` when `maxParticipants` is set; otherwise `Math.ceil(n / groupSize)`. `createEventSchema` enforces `maxParticipants % groupSize === 0` via `.superRefine()` when both fields are present.
 - **RR→SE hybrid events**: `EventFormat.RR_TO_SE` — group stage (RR) feeds into SE bracket. `Event.advancersPerGroup Int?` (max 2; A≥3 deferred post-v1.0.0) sets how many advance per group. `EventEntry.seed` is reused for SE seeding; `EventEntry.advancesToSE Boolean?` stores TD tie-resolution overrides. SE matches have `groupNumber = null`; RR matches have `groupNumber IS NOT NULL`. Auto-generate SE fires when last RR match completes. `getEventPodium` for RR_TO_SE uses SE-only matches. The bracket page only shows SE matches for RR_TO_SE events. **Seeding (A=1)**: seeds 1–G in ascending group order. **Seeding (A=2)**: winners get seeds 1–G ascending; runners-up get seeds G+1–2G using constrained half-zone placement — each runner-up assigned to the opposite bracket half from their group's winner (greedy, descending group order for strength ordering). Guaranteed satisfiable for any G: `bracketSeedOrder(nextPowerOf2(2G))` upper/lower halves each contain exactly G seeds from [1,2G]. Implemented in `src/server/algorithms/advancer.ts`; uses `bracketSeedOrder` from `bracket.ts` and helpers `nextPowerOf2`/`buildHalfMap`.
 - **Server action FormData rule**: when adding a new form field, always update BOTH `createEventAction` AND `updateEventAction` in `tournament.actions.ts` to extract the field via `formData.get(...)`. Missing either causes silent null storage with no error.
 
 ## Database Schema Groups
 
-- Identity: `users`, `player_profiles`, `roles`, `user_roles`, `org_admins`
+- Identity: `users`, `player_profiles`, `roles`, `user_roles`, `org_admins`, `tournament_creator_allowlists`
 - Organizations: `organizations`, `disciplines`, `rating_categories`
 - Ratings: `player_ratings`, `rating_transactions`
 - Tournaments: `tournaments`, `events`, `event_entries`
@@ -154,4 +156,5 @@ Submitted scores live in `match_result_submission_games`. Official scores are on
 - **Existing live tournaments default to DRAFT**: any tournaments created before v0.6.0 without a `createdByClerkId` have `status = 'DRAFT'` and won't appear in the public list. Run `UPDATE "Tournament" SET status = 'PUBLISHED' WHERE "createdByClerkId" IS NULL;` on the production DB after deploying v0.6.0.
 - **Timezone limitation**: `datetime-local` inputs are stored as UTC. `toLocaleString()` on the client converts to browser local time. UTC labels added as mitigation; proper timezone handling is future work.
 - **`prisma migrate dev` unavailable**: non-interactive terminal requires writing migration SQL manually and applying via `prisma db execute --file <path> --schema prisma/schema.prisma`.
+- **`checkSEStageStatus` vacuous rrComplete**: `countIncompleteRRMatches` returns 0 for events with no schedule at all. `rrComplete` is guarded by `rrMatchCount > 0 && incompleteRR === 0` — do not revert this to just `incompleteRR === 0` or a fresh RR_TO_SE event will stack-overflow via `bracketSeedOrder(1)` infinite recursion.
 
