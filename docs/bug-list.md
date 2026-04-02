@@ -1,30 +1,16 @@
 # Current bugs
 
-## Bracket center column should be labeled "Semifinals/Final"
-
-## Allow players to confirm own submission if birth year confirmation is enabled 
-
-## Persist filled-out fields and selections chosen in create event page if error is thrown 
-
 ## Throw error on event create page if # advancers > # players per group
+- Save for later when we implement # advancers = 3, 4. 
 
 ## Group/round persisted state from event manage page is inconsistent
 - Latency issue or logic issue? unclear- investigate
 
-## Display "USATT" and "Singles" as selected options for player search filters by default
-
-## Add back player number in player search but format UI to have consistent spacing
-
-## Edit event -> Save changes should redirect back to manage event page
-
-## Void match in bracket should keep you on bracket page, not redirect to manage event page
-
-## Remove the "View all past (#) ->" button from past tournaments section on tournament search page
-- Align bottom between columns
-
-## Mobile UI fix (ongoing list, needs comprehensive review)
+## Mobile UI fixes (ongoing list, needs comprehensive review)
 - Clicking into player search bar forces zoom in
-- Many other small issues currently undocumented
+- Groups: display one per row when phone is vertical, two per row when phone is horizontal
+- Fix spacing inside groups tables
+- Bracket scrolling broken for brackets with round of 16: cannot swipe to show left-half round of 16 matches
 
 ## Tournaments and events should automatically start at their set startTime
 - Cron-based time-triggered auto-start requires Vercel Pro for sub-daily scheduling. Deferred until plan upgrade.

@@ -1,32 +1,6 @@
 # Planned features shortlist
 - TODO: Analyze and decide where to place into existing feature roadmap.
 
-## Stack semifinal and final match cards in a single column for brackets with round of 16 or more:
-- Semifinal 1 (from left half) on top of final on top of semifinal 2 (from right half)
-- Update connecting lines
-
-## Reformat non-TD view all matches for an event page
-- Two-column layout: All RR phase matches scrollable in left column, All SE phase matches scrollable in right column. 
-- RR phase matches: order by group and label subsections with "Group 1", "Group 2", etc.
-- SE phase matches: order by round descending (FINAL at top, then SEMIFINAL, etc) and label subsections with "Round of 16", "Quarterfinal", etc. 
-- Add search bar at top to filter matches by player name
-
-## Mark winner with (D) for matches won by default
-
-## Text-color green for winner name for completed match cards in event detail/event manage pages
-
-## Standings page dynamically update group member ordering to show highest at top of group
- 
-## Tournament flow reversal - option to move from "published" back to "draft"
-- Also fix: TD should be able to "start event" for new events added to in-progress tournaments. right now attempting that displays an error message saying the tournament has to be published.
-
-## Birth year code for verification in case of only one phone
-
-## Preview component-ify entrants and schedule
-
-## Historical ratings preservation
-- When looking at past tournament results, player ratings displayed should be the ratings at the time of the event start, and not display their current rating.
-
 ## For players: think about displayed name vs actual name + edge cases
 
 # Long-term ideas
@@ -67,5 +41,3 @@
 ## UI/UX upgrade with https://github.com/nextlevelbuilder/ui-ux-pro-max-skill
 
 ## NotebookLM integration for creating visuals to explain the app
-
-## Security check for all user input

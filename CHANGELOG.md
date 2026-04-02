@@ -10,6 +10,16 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 ---
 
+## [0.16.1] - 2026-04-02
+
+### Added
+- **RR→SE match list reformat** — the "All Matches" page for `RR_TO_SE` events now displays a two-column layout: Round Robin matches (left, grouped by group with "Group N" subsection labels) and Single Elimination matches (right, ordered by round descending with "Final" / "Semifinals" / "Quarterfinals" / "Round of 16" labels). A search bar at the top filters both columns by player name. If the SE bracket has not yet been generated, the right column shows "SE bracket not yet generated". Non-RR_TO_SE events retain the existing flat list.
+
+### Fixed
+- **Birth year self-confirm blocked** — `confirmMatchResult` now allows the submitting player to confirm their own submission when the tournament uses `BIRTH_YEAR` verification (by correctly entering the opponent's birth year). For `BOTH` verification, self-confirm is also allowed but only via the birth year check — the code check is skipped for self-confirmers to prevent confirming via a code the submitter already holds. `CODE`-only tournaments still block self-confirm.
+
+---
+
 ## [0.16.0] - 2026-04-01
 
 ### Added
