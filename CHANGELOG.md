@@ -10,6 +10,13 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 ---
 
+## [0.15.6] - 2026-04-01
+
+### Fixed
+- **Stacked bracket layout was skewed** — the previous implementation used absolute positioning with the left side at `top:0` and the right side at `top:H`, producing an asymmetric L-shape. The correct layout has both left and right columns spanning the full `2H` height with doubled spacing. Fix: introduced `stackingFactor=2^round` (instead of `2^(round-1)`) for columns and connectors in the stacked path, and replaced the per-SF connectors with `StackingConnector` (draws two horizontal lines at `H/2` and `3H/2`). `BracketColumn` and `ForkConnector` now accept an optional `stackingFactor` prop.
+
+---
+
 ## [0.15.5] - 2026-04-01
 
 ### Added
