@@ -163,6 +163,7 @@ export default async function EventDetailPage({ params }: Props) {
     round: m.round,
     groupNumber: m.groupNumber,
     status: m.status,
+    isDefault: m.isDefault,
     player1Id: m.player1Id,
     player2Id: m.player2Id,
     winnerId: m.winnerId,
@@ -352,29 +353,45 @@ export default async function EventDetailPage({ params }: Props) {
             {event.eventEntries.length === 0 ? (
               <p className="text-sm text-text-2">No entrants yet.</p>
             ) : (
-              <ul className="overflow-hidden rounded-lg border border-border">
-                {event.eventEntries.map((entry) => {
-                  const rating = entry.playerProfile.playerRatings.find(
-                    (r) => r.ratingCategoryId === event.ratingCategoryId,
-                  );
-                  return (
-                    <li
-                      key={entry.id}
-                      className="flex items-center justify-between border-b border-border-subtle bg-surface px-4 py-3 last:border-b-0"
-                    >
-                      <Link
-                        href={`/profile/${entry.playerProfileId}`}
-                        className="text-sm font-medium text-text-1 transition-colors hover:underline"
-                      >
-                        {entry.playerProfile.displayName}
-                      </Link>
-                      <span className="text-sm text-text-2">
-                        {rating ? Math.round(rating.rating) : "Unrated"}
-                      </span>
-                    </li>
-                  );
-                })}
-              </ul>
+              <div className="max-h-96 overflow-y-auto">
+                <ul className="overflow-hidden rounded-lg border border-border">
+                  {event.eventEntries
+                    .slice()
+                    .sort((a, b) => {
+                      const aRating = a.playerProfile.playerRatings.find(
+                        (r) => r.ratingCategoryId === event.ratingCategoryId,
+                      )?.rating;
+                      const bRating = b.playerProfile.playerRatings.find(
+                        (r) => r.ratingCategoryId === event.ratingCategoryId,
+                      )?.rating;
+                      if (aRating === undefined && bRating === undefined) return 0;
+                      if (aRating === undefined) return 1;
+                      if (bRating === undefined) return -1;
+                      return bRating - aRating;
+                    })
+                    .map((entry) => {
+                      const rating = entry.playerProfile.playerRatings.find(
+                        (r) => r.ratingCategoryId === event.ratingCategoryId,
+                      );
+                      return (
+                        <li
+                          key={entry.id}
+                          className="flex items-center justify-between border-b border-border-subtle bg-surface px-4 py-3 last:border-b-0"
+                        >
+                          <Link
+                            href={`/profile/${entry.playerProfileId}`}
+                            className="text-sm font-medium text-text-1 transition-colors hover:underline"
+                          >
+                            {entry.playerProfile.displayName}
+                          </Link>
+                          <span className="text-sm text-text-2">
+                            {rating ? Math.round(rating.rating) : "Unrated"}
+                          </span>
+                        </li>
+                      );
+                    })}
+                </ul>
+              </div>
             )}
           </section>
 

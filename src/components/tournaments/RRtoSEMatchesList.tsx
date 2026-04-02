@@ -73,7 +73,7 @@ export function RRtoSEMatchesList({
                   {rrMatches
                     .filter((match) => match.groupNumber === groupNumber)
                     .map((match) => (
-                      <EventMatchRow key={match.id} match={match} />
+                      <EventMatchRow key={match.id} match={match} showStatus={false} />
                     ))}
                 </ul>
               </div>
@@ -97,7 +97,7 @@ export function RRtoSEMatchesList({
                   {seMatches
                     .filter((match) => match.round === round)
                     .map((match) => (
-                      <EventMatchRow key={match.id} match={match} />
+                      <EventMatchRow key={match.id} match={match} showStatus={false} />
                     ))}
                 </ul>
               </div>

@@ -26,6 +26,7 @@ import { isAuthorizedAsTD } from "@/server/services/admin.service";
 export type TournamentActionState = {
   error?: string;
   fieldErrors?: Record<string, string[]>;
+  fields?: Record<string, string>;
 } | null;
 
 export async function createTournamentAction(
@@ -146,12 +147,15 @@ export async function createEventAction(
   _prevState: TournamentActionState,
   formData: FormData,
 ): Promise<TournamentActionState> {
+  const fields = Object.fromEntries(
+    [...formData.entries()].filter(([, v]) => typeof v === "string"),
+  ) as Record<string, string>;
   const { userId } = await auth();
-  if (!userId) return { error: "You must be signed in to create an event." };
+  if (!userId) return { error: "You must be signed in to create an event.", fields };
 
   const tournament = await getTournamentDetail(tournamentId);
-  if (!tournament) return { error: "Tournament not found." };
-  if (!(await isAuthorizedAsTD(userId, tournament))) return { error: "Not authorized to add events." };
+  if (!tournament) return { error: "Tournament not found.", fields };
+  if (!(await isAuthorizedAsTD(userId, tournament))) return { error: "Not authorized to add events.", fields };
 
   const data = {
     ratingCategoryId: formData.get("ratingCategoryId") as string,
@@ -171,8 +175,8 @@ export async function createEventAction(
   };
 
   const result = await createEvent(tournamentId, data);
-  if ("fieldErrors" in result) return { fieldErrors: result.fieldErrors };
-  if ("error" in result) return { error: result.error };
+  if ("fieldErrors" in result) return { fieldErrors: result.fieldErrors, fields };
+  if ("error" in result) return { error: result.error, fields };
 
   redirect(`/tournaments/${tournamentId}/events/${result.event.id}/manage`);
 }

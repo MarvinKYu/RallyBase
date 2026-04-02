@@ -90,7 +90,7 @@ function MatchCard({
       <div className="flex items-center justify-between px-3 py-1.5 text-sm">
         <span
           className={`truncate ${
-            p1Wins ? "font-semibold text-text-1" : p1IsTBD ? "text-text-2" : "text-text-2"
+            p1Wins ? "font-semibold text-green-400" : p1IsTBD ? "text-text-2" : "text-text-2"
           }`}
         >
           {p1}{isDefault && p1Wins ? " (D)" : ""}
@@ -107,7 +107,7 @@ function MatchCard({
         <span
           className={`truncate ${
             p2Wins
-              ? "font-semibold text-text-1"
+              ? "font-semibold text-green-400"
               : isBye
                 ? "italic text-text-3"
                 : p2IsTBD
@@ -406,7 +406,7 @@ function StackedCenterColumn({
   return (
     <div className="shrink-0" style={{ position: "relative", width: CARD_W, height: 2 * H + LABEL_H }}>
       <div style={{ height: LABEL_H }} className="flex items-end pb-3">
-        <p className="text-xs font-bold uppercase tracking-wide text-text-1">Final</p>
+        <p className="text-xs font-bold uppercase tracking-wide text-text-1">Semifinals / Final</p>
       </div>
       <div style={{ position: "absolute", top: LABEL_H + sfTopOffset, left: 0, width: CARD_W }}>
         {sfLeftMatch ? (

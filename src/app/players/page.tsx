@@ -41,7 +41,14 @@ export default async function PlayersPage({ searchParams }: Props) {
   } = await searchParams;
 
   const organizations = await getOrganizations();
-  const ratingCategories = org ? await getRatingCategoriesForOrg(org) : [];
+  const usattOrg = organizations.find((o) => o.name === "USATT");
+  const defaultOrgId = usattOrg?.id ?? "";
+  const defaultRatingCategories = defaultOrgId && !org
+    ? await getRatingCategoriesForOrg(defaultOrgId)
+    : [];
+  const ratingCategories = org ? await getRatingCategoriesForOrg(org) : defaultRatingCategories;
+  const defaultDisciplineId =
+    defaultRatingCategories.find((c) => c.name.toLowerCase().includes("singles"))?.id ?? "";
 
   // Determine the rating category to display and sort by:
   // - Both org + discipline set → that discipline
@@ -49,25 +56,17 @@ export default async function PlayersPage({ searchParams }: Props) {
   // - Neither → USATT Singles (or first USATT category)
   let sortRatingCategoryId: string | undefined = discipline || undefined;
   if (!sortRatingCategoryId) {
-    if (org) {
+    if (org || defaultOrgId) {
       sortRatingCategoryId =
         ratingCategories.find((c) => c.name.toLowerCase().includes("singles"))?.id ??
         ratingCategories[0]?.id;
-    } else {
-      const usattOrg = organizations.find((o) => o.name === "USATT");
-      if (usattOrg) {
-        const usattCategories = await getRatingCategoriesForOrg(usattOrg.id);
-        sortRatingCategoryId =
-          usattCategories.find((c) => c.name.toLowerCase().includes("singles"))?.id ??
-          usattCategories[0]?.id;
-      }
     }
   }
 
   const { players, total, totalPages, page: currentPage } = await searchPlayers(
     q,
     {
-      organizationId: org || undefined,
+      organizationId: org || defaultOrgId || undefined,
       ratingCategoryId: discipline || undefined,
       gender: gender ? (gender as Gender) : undefined,
       minAge: minAge ? parseInt(minAge, 10) : undefined,
@@ -97,6 +96,8 @@ export default async function PlayersPage({ searchParams }: Props) {
           <PlayerSearchForm
             organizations={organizations}
             ratingCategories={ratingCategories}
+            defaultOrgId={defaultOrgId}
+            defaultDisciplineId={defaultDisciplineId}
           />
         </Suspense>
 
@@ -120,10 +121,11 @@ export default async function PlayersPage({ searchParams }: Props) {
                 <li key={p.id}>
                   <Link
                     href={`/profile/${p.id}`}
-                    className="flex items-center justify-between border-b border-border-subtle bg-surface px-4 py-3 transition-colors last:border-b-0 hover:bg-surface-hover"
+                    className="flex items-center gap-3 border-b border-border-subtle bg-surface px-4 py-3 transition-colors last:border-b-0 hover:bg-surface-hover"
                   >
-                    <span className="text-sm font-medium text-text-1">{p.displayName}</span>
-                    <span className="text-xs text-text-3">
+                    <span className="w-10 shrink-0 text-xs text-text-3">#{p.playerNumber}</span>
+                    <span className="flex-1 text-sm font-medium text-text-1">{p.displayName}</span>
+                    <span className="shrink-0 text-xs text-text-3">
                       {rating ? Math.round(rating.rating) : "Unrated"}
                     </span>
                   </Link>

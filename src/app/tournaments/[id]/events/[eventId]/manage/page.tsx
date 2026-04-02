@@ -89,6 +89,7 @@ export default async function ManageEventPage({ params }: Props) {
     round: m.round,
     groupNumber: m.groupNumber ?? null,
     status: m.status,
+    isDefault: m.isDefault,
     player1Id: m.player1Id,
     player2Id: m.player2Id,
     winnerId: m.winnerId,

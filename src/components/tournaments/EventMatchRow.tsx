@@ -7,6 +7,7 @@ export type SerializedEventMatch = {
   round: number;
   groupNumber: number | null;
   status: string;
+  isDefault: boolean;
   player1Id: string | null;
   player2Id: string | null;
   winnerId: string | null;
@@ -22,12 +23,20 @@ const STATUS_LABEL: Record<string, string> = {
   COMPLETED: "Completed",
 };
 
-export function EventMatchRow({ match }: { match: SerializedEventMatch }) {
+export function EventMatchRow({
+  match,
+  showStatus = true,
+}: {
+  match: SerializedEventMatch;
+  showStatus?: boolean;
+}) {
   const [expanded, setExpanded] = useState(false);
 
   const hasScores = match.matchGames.length > 0;
-  const p1Name = match.player1?.displayName ?? "TBD";
-  const p2Name = match.player2?.displayName ?? "TBD";
+  const p1Wins = match.winnerId !== null && match.winnerId === match.player1Id;
+  const p2Wins = match.winnerId !== null && match.winnerId === match.player2Id;
+  const p1Name = `${match.player1?.displayName ?? "TBD"}${match.isDefault && p1Wins ? " (D)" : ""}`;
+  const p2Name = `${match.player2?.displayName ?? "TBD"}${match.isDefault && p2Wins ? " (D)" : ""}`;
   const p1Bold = match.winnerId !== null && match.winnerId === match.player1Id;
   const p2Bold = match.winnerId !== null && match.winnerId === match.player2Id;
 
@@ -42,13 +51,15 @@ export function EventMatchRow({ match }: { match: SerializedEventMatch }) {
         )}
         <div className="flex min-w-0 flex-1 flex-wrap items-center gap-2">
           <span className="text-sm text-text-1">
-            <span className={p1Bold ? "font-semibold" : ""}>{p1Name}</span>
+            <span className={p1Bold ? "font-semibold text-green-400" : ""}>{p1Name}</span>
             {" vs "}
-            <span className={p2Bold ? "font-semibold" : ""}>{p2Name}</span>
+            <span className={p2Bold ? "font-semibold text-green-400" : ""}>{p2Name}</span>
           </span>
-          <span className="rounded-full border border-border bg-surface px-2 py-0.5 text-xs text-text-3">
-            {STATUS_LABEL[match.status] ?? match.status}
-          </span>
+          {showStatus !== false && (
+            <span className="rounded-full border border-border bg-surface px-2 py-0.5 text-xs text-text-3">
+              {STATUS_LABEL[match.status] ?? match.status}
+            </span>
+          )}
         </div>
         <span className="shrink-0 text-xs text-text-3">R{match.round}</span>
       </div>

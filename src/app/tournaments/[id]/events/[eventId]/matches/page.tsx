@@ -29,6 +29,7 @@ export default async function EventMatchesPage({ params }: Props) {
     round: m.round,
     groupNumber: m.groupNumber,
     status: m.status,
+    isDefault: m.isDefault,
     player1Id: m.player1Id,
     player2Id: m.player2Id,
     winnerId: m.winnerId,
@@ -66,7 +67,7 @@ export default async function EventMatchesPage({ params }: Props) {
         ) : (
           <ul className="overflow-hidden rounded-lg border border-border">
             {matches.map((m) => (
-              <EventMatchRow key={m.id} match={m} />
+              <EventMatchRow key={m.id} match={m} showStatus={false} />
             ))}
           </ul>
         )}

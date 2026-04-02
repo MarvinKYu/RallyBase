@@ -9,9 +9,13 @@ type RatingCategory = { id: string; name: string };
 export function PlayerSearchForm({
   organizations,
   ratingCategories,
+  defaultOrgId,
+  defaultDisciplineId,
 }: {
   organizations: Organization[];
   ratingCategories: RatingCategory[];
+  defaultOrgId?: string;
+  defaultDisciplineId?: string;
 }) {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -59,7 +63,7 @@ export function PlayerSearchForm({
 
       <div className="grid grid-cols-3 gap-2 sm:grid-cols-5">
         <select
-          defaultValue={org}
+          defaultValue={org || defaultOrgId}
           onChange={(e) => pushParams({ org: e.target.value, discipline: "" })}
           className="rounded-md border border-border bg-elevated px-3 py-2 text-sm text-text-1 shadow-sm focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
         >
@@ -70,7 +74,7 @@ export function PlayerSearchForm({
         </select>
 
         <select
-          defaultValue={discipline}
+          defaultValue={discipline || defaultDisciplineId}
           onChange={(e) => pushParams({ discipline: e.target.value })}
           className="rounded-md border border-border bg-elevated px-3 py-2 text-sm text-text-1 shadow-sm focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
         >

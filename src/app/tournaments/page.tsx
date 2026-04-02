@@ -29,12 +29,8 @@ type Props = {
 
 function TournamentPreviewList({
   tournaments,
-  viewAllHref,
-  viewAllLabel,
 }: {
   tournaments: Tournament[];
-  viewAllHref: string;
-  viewAllLabel: string;
 }) {
   const preview = tournaments.slice(0, 5);
   return (
@@ -69,14 +65,6 @@ function TournamentPreviewList({
               </li>
             ))}
           </ul>
-          {tournaments.length > 5 && (
-            <Link
-              href={viewAllHref}
-              className="mt-2 block text-sm text-accent hover:underline"
-            >
-              {viewAllLabel} ({tournaments.length}) →
-            </Link>
-          )}
         </>
       )}
     </>
@@ -150,8 +138,6 @@ export default async function TournamentsPage({ searchParams }: Props) {
             </div>
             <TournamentPreviewList
               tournaments={upcoming}
-              viewAllHref="/tournaments/upcoming"
-              viewAllLabel="View all upcoming"
             />
           </section>
 
@@ -167,8 +153,6 @@ export default async function TournamentsPage({ searchParams }: Props) {
               </div>
               <TournamentPreviewList
                 tournaments={past}
-                viewAllHref="/tournaments/past"
-                viewAllLabel="View all past"
               />
             </section>
           )}
@@ -187,32 +171,34 @@ export default async function TournamentsPage({ searchParams }: Props) {
             {items.length === 0 ? (
               <p className="text-sm text-text-2">No tournaments found.</p>
             ) : (
-              <ul className="overflow-hidden rounded-lg border border-border">
-                {items.map((t) => (
-                  <li key={t.id}>
-                    <Link
-                      href={`/tournaments/${t.id}`}
-                      className="flex items-center justify-between border-b border-border-subtle bg-surface px-4 py-3 transition-colors last:border-b-0 hover:bg-surface-hover"
-                    >
-                      <div className="min-w-0">
-                        <p className="text-sm font-medium text-text-1">{t.name}</p>
-                        <p className="text-xs text-text-3">
-                          {t.organization.name}
-                          {t.location ? ` · ${t.location}` : ""}
-                        </p>
-                      </div>
-                      <div className="ml-3 shrink-0 text-right">
-                        <p className="text-xs text-text-2">
-                          {new Date(t.startDate).toLocaleDateString()}
-                        </p>
-                        <p className="text-xs text-text-3">
-                          {t.events.length} event{t.events.length !== 1 ? "s" : ""}
-                        </p>
-                      </div>
-                    </Link>
-                  </li>
-                ))}
-              </ul>
+              <div className="max-h-[28rem] overflow-y-auto">
+                <ul className="overflow-hidden rounded-lg border border-border">
+                  {items.map((t) => (
+                    <li key={t.id}>
+                      <Link
+                        href={`/tournaments/${t.id}`}
+                        className="flex items-center justify-between border-b border-border-subtle bg-surface px-4 py-3 transition-colors last:border-b-0 hover:bg-surface-hover"
+                      >
+                        <div className="min-w-0">
+                          <p className="text-sm font-medium text-text-1">{t.name}</p>
+                          <p className="text-xs text-text-3">
+                            {t.organization.name}
+                            {t.location ? ` · ${t.location}` : ""}
+                          </p>
+                        </div>
+                        <div className="ml-3 shrink-0 text-right">
+                          <p className="text-xs text-text-2">
+                            {new Date(t.startDate).toLocaleDateString()}
+                          </p>
+                          <p className="text-xs text-text-3">
+                            {t.events.length} event{t.events.length !== 1 ? "s" : ""}
+                          </p>
+                        </div>
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </div>
             )}
             <Suspense>
               <TournamentPagination

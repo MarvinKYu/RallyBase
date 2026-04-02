@@ -16,6 +16,7 @@ export type MatchRow = {
   round: number;
   groupNumber?: number | null;
   status: "PENDING" | "IN_PROGRESS" | "AWAITING_CONFIRMATION" | "COMPLETED";
+  isDefault?: boolean;
   player1Id: string | null;
   player2Id: string | null;
   winnerId: string | null;
@@ -84,6 +85,8 @@ export function ManageEventMatchList({
             const isInProgress = match.status === "IN_PROGRESS";
             const isWinner1 = match.status === "COMPLETED" && match.winnerId === match.player1Id;
             const isWinner2 = match.status === "COMPLETED" && match.winnerId === match.player2Id;
+            const player1Name = `${match.player1?.displayName ?? "TBD"}${match.isDefault && isWinner1 ? " (D)" : ""}`;
+            const player2Name = `${match.player2?.displayName ?? (isBye ? "BYE" : "TBD")}${match.isDefault && isWinner2 ? " (D)" : ""}`;
 
             return (
               <div key={match.id} className="border-t border-border-subtle first:border-t-0">
@@ -106,12 +109,12 @@ export function ManageEventMatchList({
                       </span>
                     )}
                     <p className="text-sm text-text-1">
-                      <span className={isWinner1 ? "font-semibold text-text-1" : ""}>
-                        {match.player1?.displayName ?? "TBD"}
+                      <span className={isWinner1 ? "font-semibold text-green-400" : ""}>
+                        {player1Name}
                       </span>
                       {" vs. "}
-                      <span className={isWinner2 ? "font-semibold text-text-1" : ""}>
-                        {match.player2?.displayName ?? (isBye ? "BYE" : "TBD")}
+                      <span className={isWinner2 ? "font-semibold text-green-400" : ""}>
+                        {player2Name}
                       </span>
                     </p>
                   </div>

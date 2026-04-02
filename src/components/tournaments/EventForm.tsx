@@ -89,6 +89,7 @@ export function EventForm({
           <select
             id="ratingCategoryId"
             name="ratingCategoryId"
+            defaultValue={state?.fields?.["ratingCategoryId"] ?? ""}
             className="w-full rounded-md border border-border bg-elevated px-3 py-2 text-sm text-text-1 shadow-sm focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
           >
             <option value="">Select a rating category…</option>
@@ -112,7 +113,7 @@ export function EventForm({
           id="name"
           name="name"
           type="text"
-          defaultValue={defaultValues?.name}
+          defaultValue={isEditMode ? defaultValues?.name : state?.fields?.["name"] ?? undefined}
           placeholder="e.g. U1800 Singles"
           className="w-full rounded-md border border-border bg-elevated px-3 py-2 text-sm text-text-1 placeholder:text-text-3 shadow-sm focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
         />
@@ -142,7 +143,7 @@ export function EventForm({
           <select
             id="eventFormat"
             name="eventFormat"
-            defaultValue="SINGLE_ELIMINATION"
+            defaultValue={state?.fields?.["eventFormat"] ?? "SINGLE_ELIMINATION"}
             onChange={(e) => setSelectedEventFormat(e.target.value)}
             className="w-full rounded-md border border-border bg-elevated px-3 py-2 text-sm text-text-1 shadow-sm focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
           >
@@ -170,7 +171,7 @@ export function EventForm({
           <select
             id="groupSize"
             name="groupSize"
-            defaultValue={String(defaultValues?.groupSize ?? "")}
+            defaultValue={state?.fields?.["groupSize"] ?? String(defaultValues?.groupSize ?? "")}
             className="w-full rounded-md border border-border bg-elevated px-3 py-2 text-sm text-text-1 shadow-sm focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
           >
             {(selectedEventFormat === "ROUND_ROBIN" ||
@@ -200,7 +201,7 @@ export function EventForm({
           <select
             id="advancersPerGroup"
             name="advancersPerGroup"
-            defaultValue={String(defaultValues?.advancersPerGroup ?? "1")}
+            defaultValue={state?.fields?.["advancersPerGroup"] ?? String(defaultValues?.advancersPerGroup ?? "1")}
             className="w-full rounded-md border border-border bg-elevated px-3 py-2 text-sm text-text-1 shadow-sm focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
           >
             <option value="1">1 player advances per group</option>
@@ -224,7 +225,7 @@ export function EventForm({
           <select
             id="format"
             name="format"
-            defaultValue={defaultValues?.format ?? "BEST_OF_5"}
+            defaultValue={isEditMode ? defaultValues?.format ?? "BEST_OF_5" : state?.fields?.["format"] ?? "BEST_OF_5"}
             className="w-full rounded-md border border-border bg-elevated px-3 py-2 text-sm text-text-1 shadow-sm focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
           >
             <option value="BEST_OF_3">Best of 3</option>
@@ -240,7 +241,7 @@ export function EventForm({
           <select
             id="gamePointTarget"
             name="gamePointTarget"
-            defaultValue={String(defaultValues?.gamePointTarget ?? 11)}
+            defaultValue={isEditMode ? String(defaultValues?.gamePointTarget ?? 11) : state?.fields?.["gamePointTarget"] ?? "11"}
             className="w-full rounded-md border border-border bg-elevated px-3 py-2 text-sm text-text-1 shadow-sm focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
           >
             <option value="11">First to 11</option>
@@ -261,7 +262,7 @@ export function EventForm({
           id="startTime"
           name="startTime"
           type="datetime-local"
-          defaultValue={defaultValues?.startTime}
+          defaultValue={isEditMode ? defaultValues?.startTime : state?.fields?.["startTime"] ?? undefined}
           className="w-full rounded-md border border-border bg-elevated px-3 py-2 text-sm text-text-1 shadow-sm focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
         />
       </div>
@@ -292,7 +293,7 @@ export function EventForm({
                   name="maxParticipants"
                   type="number"
                   min="2"
-                  defaultValue={defaultValues?.maxParticipants ?? undefined}
+                  defaultValue={isEditMode ? defaultValues?.maxParticipants ?? undefined : state?.fields?.["maxParticipants"] ?? undefined}
                   placeholder="e.g. 8"
                   className="w-full rounded-md border border-border bg-surface px-3 py-2 text-sm text-text-1 placeholder:text-text-3 shadow-sm focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
                 />
@@ -305,7 +306,7 @@ export function EventForm({
                 <select
                   id="allowedGender"
                   name="allowedGender"
-                  defaultValue={defaultValues?.allowedGender ?? ""}
+                  defaultValue={isEditMode ? defaultValues?.allowedGender ?? "" : state?.fields?.["allowedGender"] ?? ""}
                   className="w-full rounded-md border border-border bg-surface px-3 py-2 text-sm text-text-1 shadow-sm focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
                 >
                   <option value="">No restriction</option>
@@ -323,7 +324,7 @@ export function EventForm({
                   id="minRating"
                   name="minRating"
                   type="number"
-                  defaultValue={defaultValues?.minRating ?? undefined}
+                  defaultValue={isEditMode ? defaultValues?.minRating ?? undefined : state?.fields?.["minRating"] ?? undefined}
                   placeholder="e.g. 1200"
                   className="w-full rounded-md border border-border bg-surface px-3 py-2 text-sm text-text-1 placeholder:text-text-3 shadow-sm focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
                 />
@@ -337,7 +338,7 @@ export function EventForm({
                   id="maxRating"
                   name="maxRating"
                   type="number"
-                  defaultValue={defaultValues?.maxRating ?? undefined}
+                  defaultValue={isEditMode ? defaultValues?.maxRating ?? undefined : state?.fields?.["maxRating"] ?? undefined}
                   placeholder="e.g. 1800"
                   className="w-full rounded-md border border-border bg-surface px-3 py-2 text-sm text-text-1 placeholder:text-text-3 shadow-sm focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
                 />
@@ -353,7 +354,7 @@ export function EventForm({
                   name="minAge"
                   type="number"
                   min="1"
-                  defaultValue={defaultValues?.minAge ?? undefined}
+                  defaultValue={isEditMode ? defaultValues?.minAge ?? undefined : state?.fields?.["minAge"] ?? undefined}
                   placeholder="e.g. 18"
                   className="w-full rounded-md border border-border bg-surface px-3 py-2 text-sm text-text-1 placeholder:text-text-3 shadow-sm focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
                 />
@@ -368,7 +369,7 @@ export function EventForm({
                   name="maxAge"
                   type="number"
                   min="1"
-                  defaultValue={defaultValues?.maxAge ?? undefined}
+                  defaultValue={isEditMode ? defaultValues?.maxAge ?? undefined : state?.fields?.["maxAge"] ?? undefined}
                   placeholder="e.g. 18"
                   className="w-full rounded-md border border-border bg-surface px-3 py-2 text-sm text-text-1 placeholder:text-text-3 shadow-sm focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
                 />
