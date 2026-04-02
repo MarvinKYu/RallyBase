@@ -273,7 +273,7 @@ export default async function EventDetailPage({ params }: Props) {
                     href={`/tournaments/${id}/events/${eventId}/standings`}
                     className="rounded-md bg-accent px-4 py-2 text-sm font-medium text-background transition-colors hover:bg-accent-dim"
                   >
-                    View standings
+                    View groups
                   </Link>
                 )}
                 {hasBracket && !isRoundRobin && (

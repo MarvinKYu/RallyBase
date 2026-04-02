@@ -58,6 +58,27 @@ export async function adminAddInitialRatingAction(
   redirect(`/admin/players/${profileId}`);
 }
 
+// profileId is pre-bound via .bind()
+export async function adminSetDobAction(
+  profileId: string,
+  _prevState: AdminActionState,
+  formData: FormData,
+): Promise<AdminActionState> {
+  const { userId } = await auth();
+  if (!userId || !(await isPlatformAdmin(userId))) return { error: "Not authorized." };
+
+  const birthDate = (formData.get("birthDate") as string)?.trim();
+  if (!birthDate) {
+    await prisma.playerProfile.update({ where: { id: profileId }, data: { birthDate: null } });
+  } else {
+    const parsed = new Date(birthDate);
+    if (isNaN(parsed.getTime())) return { error: "Invalid date." };
+    await prisma.playerProfile.update({ where: { id: profileId }, data: { birthDate: parsed } });
+  }
+
+  redirect(`/admin/players/${profileId}`);
+}
+
 // organizationId is pre-bound via .bind()
 export async function assignOrgAdminAction(
   organizationId: string,

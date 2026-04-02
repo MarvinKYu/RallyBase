@@ -98,9 +98,9 @@ export default async function ProfilePage({ params }: Props) {
                 </h1>
                 <span className="text-sm text-text-3">#{profile.playerNumber}</span>
               </div>
-              {(profile.gender || profile.birthDate) && (
+              {(profile.showGender || profile.showAge) && (
                 <div className="shrink-0 text-right text-sm text-text-3">
-                  {profile.gender && (
+                  {profile.showGender && profile.gender && (
                     <p>
                       {profile.gender === "MALE" ? "Male"
                         : profile.gender === "FEMALE" ? "Female"
@@ -108,7 +108,7 @@ export default async function ProfilePage({ params }: Props) {
                         : "Prefer not to say"}
                     </p>
                   )}
-                  {profile.birthDate && (
+                  {profile.showAge && profile.birthDate && (
                     <p>Age {computeAge(profile.birthDate)}</p>
                   )}
                 </div>

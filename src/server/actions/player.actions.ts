@@ -16,6 +16,8 @@ export async function createProfileAction(
   const data = {
     displayName: formData.get("displayName") as string,
     bio: (formData.get("bio") as string) || undefined,
+    gender: formData.get("gender") as string,
+    birthDate: formData.get("birthDate") as string,
   };
 
   const result = await createPlayerProfile(data);
@@ -39,7 +41,8 @@ export async function updateProfileAction(
     displayName: formData.get("displayName") as string,
     bio: (formData.get("bio") as string) || undefined,
     gender: (formData.get("gender") as string) || undefined,
-    birthDate: (formData.get("birthDate") as string) || undefined,
+    showGender: formData.get("showGender") === "true",
+    showAge: formData.get("showAge") === "true",
   };
 
   const result = await updatePlayerProfile(profileId, userId, data);

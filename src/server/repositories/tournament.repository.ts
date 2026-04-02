@@ -163,6 +163,7 @@ export async function createTournament(data: {
   endDate?: Date;
   startTime?: Date;
   withdrawDeadline?: Date;
+  verificationMethod?: "CODE" | "BIRTH_YEAR" | "BOTH";
 }) {
   return prisma.tournament.create({ data });
 }
@@ -244,6 +245,7 @@ export async function updateTournamentById(
     endDate?: Date | null;
     startTime?: Date | null;
     withdrawDeadline?: Date | null;
+    verificationMethod?: "CODE" | "BIRTH_YEAR" | "BOTH";
   },
 ) {
   return prisma.tournament.update({ where: { id }, data });

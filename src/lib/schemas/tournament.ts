@@ -11,6 +11,7 @@ export const createTournamentSchema = z.object({
   endDate: z.string().optional(),
   startTime: z.string().optional().or(z.literal("")),
   withdrawDeadline: z.string().optional().or(z.literal("")),
+  verificationMethod: z.enum(["CODE", "BIRTH_YEAR", "BOTH"]).default("CODE"),
 });
 
 export type CreateTournamentInput = z.infer<typeof createTournamentSchema>;
@@ -69,6 +70,7 @@ export const updateTournamentSchema = z.object({
   endDate: z.string().optional(),
   startTime: z.string().optional().or(z.literal("")),
   withdrawDeadline: z.string().optional().or(z.literal("")),
+  verificationMethod: z.enum(["CODE", "BIRTH_YEAR", "BOTH"]).default("CODE"),
 });
 
 export type UpdateTournamentInput = z.infer<typeof updateTournamentSchema>;

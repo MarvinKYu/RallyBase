@@ -2,7 +2,7 @@ import { validateMatchSubmission } from "@/server/algorithms/match-validation";
 import { winnerSlotInNextMatch } from "@/server/algorithms/bracket";
 import {
   findMatchById,
-  findSubmissionByCode,
+  findPendingSubmissionByMatchId,
   createSubmission,
   confirmSubmission,
   directCompleteMatch,
@@ -126,7 +126,8 @@ export async function submitMatchResult(
 
 export interface ConfirmResultParams {
   matchId: string;
-  confirmationCode: string;
+  confirmationCode?: string;
+  birthYear?: string;
   confirmingProfileId: string;
 }
 
@@ -137,16 +138,30 @@ export type ConfirmResultResult =
 export async function confirmMatchResult(
   params: ConfirmResultParams,
 ): Promise<ConfirmResultResult> {
-  const { matchId, confirmationCode, confirmingProfileId } = params;
+  const { matchId, confirmationCode, birthYear, confirmingProfileId } = params;
 
-  const submission = await findSubmissionByCode(confirmationCode);
-  if (!submission) return { error: "Invalid confirmation code" };
-  if (submission.matchId !== matchId) return { error: "This code is not for this match" };
-  if (submission.status !== "PENDING") {
-    return { error: "This submission has already been processed" };
-  }
+  const submission = await findPendingSubmissionByMatchId(matchId);
+  if (!submission) return { error: "No pending submission found for this match" };
 
   const match = submission.match;
+  const verificationMethod = match.event.tournament.verificationMethod;
+
+  // Verify via the method(s) the tournament requires
+  if (verificationMethod === "CODE" || verificationMethod === "BOTH") {
+    if (!confirmationCode) return { error: "Confirmation code is required" };
+    if (submission.confirmationCode !== confirmationCode) return { error: "Invalid confirmation code" };
+  }
+  if (verificationMethod === "BIRTH_YEAR" || verificationMethod === "BOTH") {
+    if (!birthYear) return { error: "Birth year is required" };
+    // The confirmer must enter the OPPONENT's birth year
+    const opponent =
+      submission.submittedById === match.player1Id ? match.player2 : match.player1;
+    if (!opponent?.birthDate) {
+      return { error: "Opponent's date of birth is not on file — cannot verify by birth year" };
+    }
+    const opponentYear = new Date(opponent.birthDate).getUTCFullYear().toString();
+    if (birthYear !== opponentYear) return { error: "Incorrect birth year" };
+  }
 
   // The confirmer must be the opposing player — not the one who submitted
   if (submission.submittedById === confirmingProfileId) {

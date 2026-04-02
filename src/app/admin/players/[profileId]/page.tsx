@@ -3,13 +3,15 @@ import Link from "next/link";
 import { auth } from "@clerk/nextjs/server";
 import {
   isAdminUser,
+  isPlatformAdmin,
   getAllRatingCategories,
   getAdminManagedOrgIds,
 } from "@/server/services/admin.service";
 import { getPlayerProfile } from "@/server/services/player.service";
 import { AdminRatingForm } from "@/components/admin/AdminRatingForm";
 import { AdminAddRatingForm } from "@/components/admin/AdminAddRatingForm";
-import { adminSetRatingAction, adminAddInitialRatingAction } from "@/server/actions/admin.actions";
+import { adminSetRatingAction, adminAddInitialRatingAction, adminSetDobAction } from "@/server/actions/admin.actions";
+import { AdminDobForm } from "@/components/admin/AdminDobForm";
 
 type Props = { params: Promise<{ profileId: string }> };
 
@@ -24,10 +26,11 @@ export default async function AdminPlayerDetailPage({ params }: Props) {
   if (!userId || !(await isAdminUser(userId))) notFound();
 
   const { profileId } = await params;
-  const [profile, allCategories, managedOrgIds] = await Promise.all([
+  const [profile, allCategories, managedOrgIds, isPlatAdmin] = await Promise.all([
     getPlayerProfile(profileId),
     getAllRatingCategories(),
     getAdminManagedOrgIds(userId),
+    isPlatformAdmin(userId),
   ]);
   if (!profile) notFound();
 
@@ -66,6 +69,17 @@ export default async function AdminPlayerDetailPage({ params }: Props) {
             </Link>
           </div>
         </div>
+
+        {isPlatAdmin && (
+          <section className="space-y-4">
+            <h2 className="text-base font-medium text-text-1">Date of birth</h2>
+            <AdminDobForm
+              profileId={profile.id}
+              currentBirthDate={profile.birthDate ? profile.birthDate.toISOString().slice(0, 10) : ""}
+              action={adminSetDobAction.bind(null, profile.id)}
+            />
+          </section>
+        )}
 
         <section className="space-y-4">
           <h2 className="text-base font-medium text-text-1">Ratings</h2>

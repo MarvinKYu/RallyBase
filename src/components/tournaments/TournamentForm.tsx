@@ -13,6 +13,7 @@ type TournamentDefaultValues = {
   endDate?: string;
   startTime?: string;
   withdrawDeadline?: string;
+  verificationMethod?: "CODE" | "BIRTH_YEAR" | "BOTH";
 };
 
 export function TournamentForm({
@@ -182,6 +183,26 @@ export function TournamentForm({
             </div>
           </div>
         )}
+      </div>
+
+      {/* Match verification */}
+      <div className="space-y-1">
+        <label htmlFor="verificationMethod" className="block text-sm font-medium text-text-2">
+          Match verification method
+        </label>
+        <select
+          id="verificationMethod"
+          name="verificationMethod"
+          defaultValue={defaultValues?.verificationMethod ?? "CODE"}
+          className="w-full rounded-md border border-border bg-elevated px-3 py-2 text-sm text-text-1 shadow-sm focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
+        >
+          <option value="CODE">Confirmation code</option>
+          <option value="BIRTH_YEAR">Opponent&apos;s birth year</option>
+          <option value="BOTH">Both (code + birth year)</option>
+        </select>
+        <p className="text-xs text-text-3">
+          How the non-submitting player verifies match results.
+        </p>
       </div>
 
       <button

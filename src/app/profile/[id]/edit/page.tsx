@@ -21,6 +21,9 @@ export default async function ProfileEditPage({ params }: Props) {
   const birthDateValue = profile.birthDate
     ? profile.birthDate.toISOString().slice(0, 10)
     : "";
+  const birthDateDisplay = profile.birthDate
+    ? profile.birthDate.toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric", timeZone: "UTC" })
+    : "";
 
   return (
     <main className="mx-auto max-w-lg px-4 py-16">
@@ -39,7 +42,9 @@ export default async function ProfileEditPage({ params }: Props) {
           displayName: profile.displayName,
           bio: profile.bio ?? "",
           gender: profile.gender ?? "",
-          birthDate: birthDateValue,
+          birthDate: birthDateDisplay,
+          showGender: profile.showGender,
+          showAge: profile.showAge,
         }}
       />
 

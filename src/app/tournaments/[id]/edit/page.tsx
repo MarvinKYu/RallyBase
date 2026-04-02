@@ -54,6 +54,7 @@ export default async function EditTournamentPage({ params }: Props) {
           endDate: toDateInput(tournament.endDate),
           startTime: toDatetimeLocal(tournament.startTime),
           withdrawDeadline: toDatetimeLocal(tournament.withdrawDeadline),
+          verificationMethod: tournament.verificationMethod,
         }}
         submitLabel="Save changes"
       />

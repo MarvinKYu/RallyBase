@@ -70,15 +70,20 @@ export default async function ConfirmResultPage({ params }: Props) {
         </div>
       </section>
 
-      {/* Confirmation code entry */}
+      {/* Confirmation entry */}
       <div className="mb-6">
         <h2 className="mb-3 text-sm font-medium text-text-2">
-          Enter the confirmation code to confirm these scores
+          {match.event.tournament.verificationMethod === "BIRTH_YEAR"
+            ? "Enter your opponent's birth year to confirm these scores"
+            : match.event.tournament.verificationMethod === "BOTH"
+              ? "Enter the confirmation code and your opponent's birth year"
+              : "Enter the confirmation code to confirm these scores"}
         </h2>
         <ConfirmResultForm
           matchId={matchId}
           tournamentId={tournamentId}
           eventId={eventId}
+          verificationMethod={match.event.tournament.verificationMethod}
         />
       </div>
 

@@ -55,7 +55,7 @@ export function ProfileForm() {
       <div className="grid grid-cols-2 gap-4">
         <div className="space-y-1">
           <label htmlFor="gender" className="block text-sm font-medium text-text-2">
-            Gender <span className="font-normal text-text-3">(optional)</span>
+            Gender <span className="text-red-400">*</span>
           </label>
           <select
             id="gender"
@@ -63,17 +63,20 @@ export function ProfileForm() {
             defaultValue=""
             className="w-full rounded-md border border-border bg-elevated px-3 py-2 text-sm text-text-1 shadow-sm focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
           >
-            <option value="">Prefer not to say</option>
+            <option value="" disabled>Select…</option>
             <option value="MALE">Male</option>
             <option value="FEMALE">Female</option>
             <option value="OTHER">Other</option>
             <option value="PREFER_NOT_TO_SAY">Prefer not to say</option>
           </select>
+          {state?.fieldErrors?.gender && (
+            <p className="text-sm text-red-400">{state.fieldErrors.gender[0]}</p>
+          )}
         </div>
 
         <div className="space-y-1">
           <label htmlFor="birthDate" className="block text-sm font-medium text-text-2">
-            Date of birth <span className="font-normal text-text-3">(optional)</span>
+            Date of birth <span className="text-red-400">*</span>
           </label>
           <input
             id="birthDate"
@@ -81,6 +84,9 @@ export function ProfileForm() {
             type="date"
             className="w-full rounded-md border border-border bg-elevated px-3 py-2 text-sm text-text-1 shadow-sm focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
           />
+          {state?.fieldErrors?.birthDate && (
+            <p className="text-sm text-red-400">{state.fieldErrors.birthDate[0]}</p>
+          )}
         </div>
       </div>
 

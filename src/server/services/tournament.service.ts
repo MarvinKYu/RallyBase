@@ -122,7 +122,7 @@ export async function createTournament(
     return { fieldErrors: parsed.error.flatten().fieldErrors as Record<string, string[]> };
   }
 
-  const { organizationId, name, location, startDate, endDate, startTime, withdrawDeadline } = parsed.data;
+  const { organizationId, name, location, startDate, endDate, startTime, withdrawDeadline, verificationMethod } = parsed.data;
 
   if (createdByClerkId && !(await canCreateTournamentInOrg(createdByClerkId, organizationId))) {
     return { error: "You are not authorized to create tournaments in this organization." };
@@ -138,6 +138,7 @@ export async function createTournament(
       endDate: endDate ? new Date(endDate) : undefined,
       startTime: startTime ? new Date(startTime) : undefined,
       withdrawDeadline: withdrawDeadline ? new Date(withdrawDeadline) : undefined,
+      verificationMethod,
     });
 
     const full = await findTournamentById(tournament.id);
@@ -185,7 +186,7 @@ export async function updateTournament(
     return { fieldErrors: parsed.error.flatten().fieldErrors as Record<string, string[]> };
   }
 
-  const { name, location, startDate, endDate, startTime, withdrawDeadline } = parsed.data;
+  const { name, location, startDate, endDate, startTime, withdrawDeadline, verificationMethod } = parsed.data;
 
   try {
     await updateTournamentById(tournamentId, {
@@ -195,6 +196,7 @@ export async function updateTournament(
       endDate: endDate ? new Date(endDate) : null,
       startTime: startTime ? new Date(startTime) : null,
       withdrawDeadline: withdrawDeadline ? new Date(withdrawDeadline) : null,
+      verificationMethod,
     });
     const updated = await findTournamentById(tournamentId);
     return { tournament: updated! };

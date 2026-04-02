@@ -18,7 +18,7 @@ export async function findMatchById(id: string) {
           eventFormat: true,
           gamePointTarget: true,
           ratingCategoryId: true,
-          tournament: { select: { id: true, name: true, createdByClerkId: true, organizationId: true } },
+          tournament: { select: { id: true, name: true, createdByClerkId: true, organizationId: true, verificationMethod: true } },
         },
       },
       submissions: {
@@ -53,6 +53,33 @@ export async function findSubmissionByCode(confirmationCode: string) {
               gamePointTarget: true,
               ratingCategoryId: true,
               tournament: { select: { id: true } },
+            },
+          },
+        },
+      },
+    },
+  });
+}
+
+export async function findPendingSubmissionByMatchId(matchId: string) {
+  return prisma.matchResultSubmission.findFirst({
+    where: { matchId, status: SubmissionStatus.PENDING },
+    include: {
+      submittedBy: { select: { id: true, displayName: true } },
+      games: { orderBy: { gameNumber: "asc" } },
+      match: {
+        include: {
+          player1: { select: { id: true, displayName: true, birthDate: true } },
+          player2: { select: { id: true, displayName: true, birthDate: true } },
+          event: {
+            select: {
+              id: true,
+              status: true,
+              format: true,
+              eventFormat: true,
+              gamePointTarget: true,
+              ratingCategoryId: true,
+              tournament: { select: { id: true, verificationMethod: true } },
             },
           },
         },

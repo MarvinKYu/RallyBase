@@ -43,6 +43,7 @@ export async function createTournamentAction(
     endDate: (formData.get("endDate") as string) || undefined,
     startTime: (formData.get("startTime") as string) || undefined,
     withdrawDeadline: (formData.get("withdrawDeadline") as string) || undefined,
+    verificationMethod: (formData.get("verificationMethod") as string) || "CODE",
   };
 
   const result = await createTournament(data, userId);
@@ -68,6 +69,7 @@ export async function updateTournamentAction(
     endDate: (formData.get("endDate") as string) || undefined,
     startTime: (formData.get("startTime") as string) || undefined,
     withdrawDeadline: (formData.get("withdrawDeadline") as string) || undefined,
+    verificationMethod: (formData.get("verificationMethod") as string) || "CODE",
   };
 
   const result = await updateTournament(tournamentId, data, userId);

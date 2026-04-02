@@ -31,6 +31,8 @@ model PlayerProfile {
   bio          String?
   gender       Gender?
   birthDate    DateTime?
+  showGender   Boolean   @default(false)
+  showAge      Boolean   @default(false)
   createdAt    DateTime  @default(now())
   updatedAt    DateTime  @updatedAt
 
@@ -168,17 +170,18 @@ model RatingTransaction {
 // ─── Tournaments ──────────────────────────────────────────────────────────────
 
 model Tournament {
-  id               String           @id @default(cuid())
-  organizationId   String
-  createdByClerkId String?
-  name             String
-  location         String?
-  startDate        DateTime
-  endDate          DateTime?
-  startTime        DateTime?
-  withdrawDeadline DateTime?
-  status           TournamentStatus @default(DRAFT)
-  createdAt        DateTime         @default(now())
+  id                 String             @id @default(cuid())
+  organizationId     String
+  createdByClerkId   String?
+  name               String
+  location           String?
+  startDate          DateTime
+  endDate            DateTime?
+  startTime          DateTime?
+  withdrawDeadline   DateTime?
+  status             TournamentStatus   @default(DRAFT)
+  verificationMethod VerificationMethod @default(CODE)
+  createdAt          DateTime           @default(now())
 
   organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   events       Event[]
@@ -342,4 +345,10 @@ enum Gender {
   FEMALE
   OTHER
   PREFER_NOT_TO_SAY
+}
+
+enum VerificationMethod {
+  CODE
+  BIRTH_YEAR
+  BOTH
 }

@@ -84,12 +84,13 @@ export async function confirmResultAction(
   const profile = await getMyProfile();
   if (!profile) return { error: "You need a player profile to confirm results" };
 
-  const confirmationCode = (formData.get("confirmationCode") as string)?.trim();
-  if (!confirmationCode) return { error: "Confirmation code is required" };
+  const confirmationCode = (formData.get("confirmationCode") as string)?.trim() || undefined;
+  const birthYear = (formData.get("birthYear") as string)?.trim() || undefined;
 
   const result = await confirmMatchResult({
     matchId,
     confirmationCode,
+    birthYear,
     confirmingProfileId: profile.id,
   });
 

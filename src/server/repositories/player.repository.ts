@@ -38,7 +38,7 @@ export async function createProfile(
 
 export async function updatePlayerProfile(
   id: string,
-  data: { displayName: string; bio?: string | null; gender?: Gender | null; birthDate?: Date | null },
+  data: { displayName: string; bio?: string | null; gender?: Gender | null; showGender?: boolean; showAge?: boolean },
 ) {
   return prisma.playerProfile.update({ where: { id }, data });
 }

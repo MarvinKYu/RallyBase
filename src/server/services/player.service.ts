@@ -116,13 +116,14 @@ export async function updatePlayerProfile(
     return { fieldErrors: parsed.error.flatten().fieldErrors as Record<string, string[]> };
   }
 
-  const { displayName, bio, gender, birthDate } = parsed.data;
+  const { displayName, bio, gender, showGender, showAge } = parsed.data;
 
   await dbUpdatePlayerProfile(profileId, {
     displayName,
     bio: bio || null,
     gender: (gender || null) as Gender | null,
-    birthDate: birthDate ? new Date(birthDate) : null,
+    showGender: showGender ?? false,
+    showAge: showAge ?? false,
   });
 
   const updated = await findProfileById(profileId);
