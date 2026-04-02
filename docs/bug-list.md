@@ -1,5 +1,9 @@
 # Current bugs
 
+## Bracket center column should be labeled "Semifinals/Final"
+
+## Allow players to confirm own submission if birth year confirmation is enabled 
+
 ## Persist filled-out fields and selections chosen in create event page if error is thrown 
 
 ## Throw error on event create page if # advancers > # players per group
