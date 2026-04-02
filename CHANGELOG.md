@@ -10,6 +10,25 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 ---
 
+## [0.16.2] - 2026-04-02
+
+### Added
+- **Player number in search results** — player number (`#N`) shown as a muted prefix on every row in the player search results list, with consistent spacing via flex gap.
+- **Entrants sorted by rating** — the Entrants section on the event detail page is now sorted by rating descending (unrated players at the bottom).
+
+### Changed
+- **Winner name: green + bold everywhere** — completed-match winner names are now `font-semibold text-green-400` in `EventMatchRow`, `ManageEventMatchList`, and the bracket `MatchCard`.
+- **`(D)` default-win indicator** — extended to `EventMatchRow` and `ManageEventMatchList` (was bracket-only). Winner's name gets ` (D)` suffix for default wins.
+- **Entrants scrollable** — the entrants list on event detail page is capped at `max-h-96` with `overflow-y-auto`.
+- **Tournament search results scrollable** — the right-column results list on `/tournaments` is capped at `max-h-[28rem]` with `overflow-y-auto`.
+- **"View all" link removed from preview lists** — the redundant "View all X (N) →" link below the Upcoming/Past tournament preview lists is removed; the section-header "View all →" link remains.
+- **Status pill removed from matches page** — `EventMatchRow` now accepts a `showStatus` prop (default `true`); the `/events/[id]/matches` page and `RRtoSEMatchesList` both pass `showStatus={false}`.
+- **Bracket center column label** — `StackedCenterColumn` label changed from "Final" to "Semifinals / Final".
+- **Player search defaults to USATT + Singles** — `/players` pre-selects USATT org and Singles discipline when no URL params are set; search results are also filtered to USATT by default.
+- **Create event form persists fields on error** — `createEventAction` now returns submitted field values in the error state; `EventForm` uses them as `defaultValue`s on re-render.
+
+---
+
 ## [0.16.1] - 2026-04-02
 
 ### Added
