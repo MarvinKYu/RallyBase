@@ -214,17 +214,29 @@ function ForkConnector({
   outerCount,
   H,
   side,
+  stackingFactor,
 }: {
   outerRound: number;
   outerCount: number;
   H: number;
   side: "left" | "right";
+  stackingFactor?: number;
 }) {
+  function effectiveYCenter(i: number): number {
+    if (stackingFactor !== undefined) {
+      const factor = stackingFactor;
+      const pt = ((factor - 1) * CARD_H) / 2;
+      const gap = (factor - 1) * CARD_H;
+      return pt + i * (CARD_H + gap) + CARD_H / 2;
+    }
+    return yCenter(outerRound, i);
+  }
+
   const segments: React.ReactNode[] = [];
 
   for (let i = 0; i < outerCount; i += 2) {
-    const topY = yCenter(outerRound, i);
-    const bottomY = yCenter(outerRound, i + 1);
+    const topY = effectiveYCenter(i);
+    const bottomY = effectiveYCenter(i + 1);
     const midY = (topY + bottomY) / 2;
     const mid = CONN_W / 2;
 
@@ -259,6 +271,24 @@ function ForkConnector({
   );
 }
 
+/**
+ * Dual horizontal connector for stacked layout: draws two horizontal lines
+ * at H/2 and 3H/2 within a 2H SVG, connecting QF to SF1 and SF2 respectively.
+ */
+function StackingConnector({ H }: { H: number }) {
+  const y1 = H / 2;
+  const y2 = (3 * H) / 2;
+  return (
+    <div className="shrink-0 text-border" style={{ width: CONN_W }}>
+      <div style={{ height: LABEL_H }} />
+      <svg width={CONN_W} height={2 * H} style={{ display: "block" }}>
+        <line x1={0} y1={y1} x2={CONN_W} y2={y1} stroke="currentColor" strokeWidth={1} />
+        <line x1={0} y1={y2} x2={CONN_W} y2={y2} stroke="currentColor" strokeWidth={1} />
+      </svg>
+    </div>
+  );
+}
+
 /** Simple horizontal line connector (1-to-1 match, e.g. between semifinal and final) */
 function SimpleConnector({ H, side }: { H: number; side: "left" | "right" }) {
   const midY = H / 2;
@@ -288,6 +318,7 @@ function BracketColumn({
   tournamentId,
   eventId,
   isTD,
+  stackingFactor,
 }: {
   label: string;
   labelVariant: "default" | "final";
@@ -298,8 +329,9 @@ function BracketColumn({
   tournamentId: string;
   eventId: string;
   isTD: boolean;
+  stackingFactor?: number;
 }) {
-  const factor = Math.pow(2, round - 1);
+  const factor = stackingFactor ?? Math.pow(2, round - 1);
   const paddingTop = isCenter
     ? (H - CARD_H) / 2
     : ((factor - 1) * CARD_H) / 2;
@@ -858,78 +890,87 @@ export default async function BracketPage({ params, searchParams }: Props) {
 
   if (totalRounds >= 4) {
     const sfRound = totalRounds - 1;
+    // leftStackedRounds: rounds that appear left of the stacked center (R1 through QF)
     const leftStackedRounds = Array.from({ length: totalRounds - 2 }, (_, i) => i + 1);
     const rightStackedRounds = [...leftStackedRounds].reverse();
     const sfLeftMatch = leftMatches(sfRound)[0];
     const sfRightMatch = rightMatches(sfRound)[0];
-    const leftWidth = (totalRounds - 2) * (CARD_W + CONN_W);
-    const totalWidth = 2 * leftWidth + CARD_W;
+    const stackedH = 2 * H; // total bracket height in stacked layout
 
     return (
       <main className="px-6 py-12">
         {bracketHeader}
         <div className="overflow-x-auto pb-8">
           <div className="flex min-w-full justify-center">
-            <div style={{ position: "relative", width: totalWidth, height: 2 * H + LABEL_H }}>
+            <div className="flex items-start">
 
-              {/* Left side */}
-              <div style={{ position: "absolute", top: 0, left: 0, display: "flex", alignItems: "flex-start" }}>
-                {leftStackedRounds.map((round) => {
-                  const count = leftHalfCount(round);
-                  return (
-                    <div key={`l-${round}`} className="flex items-start">
-                      <BracketColumn
-                        label={getRoundLabel(round, totalRounds)}
-                        labelVariant="default"
-                        round={round}
-                        matches={leftMatches(round)}
-                        H={H}
-                        isCenter={false}
-                        tournamentId={id}
-                        eventId={eventId}
-                        isTD={isTD}
-                      />
-                      <ForkConnector outerRound={round} outerCount={count} H={H} side="left" />
-                    </div>
-                  );
-                })}
-              </div>
+              {/* ── LEFT SIDE (spans full stackedH via doubled factor) ── */}
+              {leftStackedRounds.map((round, idx) => {
+                const isLastLeft = idx === leftStackedRounds.length - 1;
+                const count = leftHalfCount(round);
+                // stackingFactor = 2^round causes matches to span stackedH correctly
+                const sf = Math.pow(2, round);
+                return (
+                  <div key={`l-${round}`} className="flex items-start">
+                    <BracketColumn
+                      label={getRoundLabel(round, totalRounds)}
+                      labelVariant="default"
+                      round={round}
+                      matches={leftMatches(round)}
+                      H={stackedH}
+                      isCenter={false}
+                      tournamentId={id}
+                      eventId={eventId}
+                      isTD={isTD}
+                      stackingFactor={sf}
+                    />
+                    {isLastLeft ? (
+                      <StackingConnector H={H} />
+                    ) : (
+                      <ForkConnector outerRound={round} outerCount={count} H={stackedH} side="left" stackingFactor={sf} />
+                    )}
+                  </div>
+                );
+              })}
 
-              {/* Stacked center */}
-              <div style={{ position: "absolute", top: 0, left: leftWidth }}>
-                <StackedCenterColumn
-                  sfLeftMatch={sfLeftMatch}
-                  finalMatch={finalMatch}
-                  sfRightMatch={sfRightMatch}
-                  H={H}
-                  tournamentId={id}
-                  eventId={eventId}
-                  isTD={isTD}
-                />
-              </div>
+              {/* ── STACKED CENTER (SF1 / Final / SF2) ── */}
+              <StackedCenterColumn
+                sfLeftMatch={sfLeftMatch}
+                finalMatch={finalMatch}
+                sfRightMatch={sfRightMatch}
+                H={H}
+                tournamentId={id}
+                eventId={eventId}
+                isTD={isTD}
+              />
 
-              {/* Right side */}
-              <div style={{ position: "absolute", top: H, left: leftWidth + CARD_W, display: "flex", alignItems: "flex-start" }}>
-                {rightStackedRounds.map((round) => {
-                  const count = leftHalfCount(round);
-                  return (
-                    <div key={`r-${round}`} className="flex items-start">
-                      <ForkConnector outerRound={round} outerCount={count} H={H} side="right" />
-                      <BracketColumn
-                        label={getRoundLabel(round, totalRounds)}
-                        labelVariant="default"
-                        round={round}
-                        matches={rightMatches(round)}
-                        H={H}
-                        isCenter={false}
-                        tournamentId={id}
-                        eventId={eventId}
-                        isTD={isTD}
-                      />
-                    </div>
-                  );
-                })}
-              </div>
+              {/* ── RIGHT SIDE ── */}
+              {rightStackedRounds.map((round, idx) => {
+                const isFirstRight = idx === 0;
+                const count = leftHalfCount(round);
+                const sf = Math.pow(2, round);
+                return (
+                  <div key={`r-${round}`} className="flex items-start">
+                    {isFirstRight ? (
+                      <StackingConnector H={H} />
+                    ) : (
+                      <ForkConnector outerRound={round} outerCount={count} H={stackedH} side="right" stackingFactor={sf} />
+                    )}
+                    <BracketColumn
+                      label={getRoundLabel(round, totalRounds)}
+                      labelVariant="default"
+                      round={round}
+                      matches={rightMatches(round)}
+                      H={stackedH}
+                      isCenter={false}
+                      tournamentId={id}
+                      eventId={eventId}
+                      isTD={isTD}
+                      stackingFactor={sf}
+                    />
+                  </div>
+                );
+              })}
 
             </div>
           </div>
