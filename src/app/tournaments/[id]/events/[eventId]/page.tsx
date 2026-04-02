@@ -161,6 +161,7 @@ export default async function EventDetailPage({ params }: Props) {
   const allMatches: SerializedEventMatch[] = allMatchesRaw.map((m) => ({
     id: m.id,
     round: m.round,
+    groupNumber: m.groupNumber,
     status: m.status,
     player1Id: m.player1Id,
     player2Id: m.player2Id,

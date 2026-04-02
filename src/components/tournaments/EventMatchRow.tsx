@@ -5,6 +5,7 @@ import { useState } from "react";
 export type SerializedEventMatch = {
   id: string;
   round: number;
+  groupNumber: number | null;
   status: string;
   player1Id: string | null;
   player2Id: string | null;

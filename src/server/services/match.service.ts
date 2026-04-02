@@ -145,9 +145,10 @@ export async function confirmMatchResult(
 
   const match = submission.match;
   const verificationMethod = match.event.tournament.verificationMethod;
+  const isSelfConfirm = submission.submittedById === confirmingProfileId;
 
   // Verify via the method(s) the tournament requires
-  if (verificationMethod === "CODE" || verificationMethod === "BOTH") {
+  if (!isSelfConfirm && (verificationMethod === "CODE" || verificationMethod === "BOTH")) {
     if (!confirmationCode) return { error: "Confirmation code is required" };
     if (submission.confirmationCode !== confirmationCode) return { error: "Invalid confirmation code" };
   }
@@ -164,7 +165,7 @@ export async function confirmMatchResult(
   }
 
   // The confirmer must be the opposing player — not the one who submitted
-  if (submission.submittedById === confirmingProfileId) {
+  if (isSelfConfirm && verificationMethod === "CODE") {
     return { error: "You cannot confirm your own submission" };
   }
   if (

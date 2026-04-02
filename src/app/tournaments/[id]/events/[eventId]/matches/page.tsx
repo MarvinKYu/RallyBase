@@ -3,6 +3,7 @@ import Link from "next/link";
 import { getEventDetail } from "@/server/services/tournament.service";
 import { getEventBracket } from "@/server/services/bracket.service";
 import { EventMatchRow, type SerializedEventMatch } from "@/components/tournaments/EventMatchRow";
+import { RRtoSEMatchesList } from "@/components/tournaments/RRtoSEMatchesList";
 
 type Props = {
   params: Promise<{ id: string; eventId: string }>;
@@ -26,6 +27,7 @@ export default async function EventMatchesPage({ params }: Props) {
   const matches: SerializedEventMatch[] = rawMatches.map((m) => ({
     id: m.id,
     round: m.round,
+    groupNumber: m.groupNumber,
     status: m.status,
     player1Id: m.player1Id,
     player2Id: m.player2Id,
@@ -59,6 +61,8 @@ export default async function EventMatchesPage({ params }: Props) {
 
         {matches.length === 0 ? (
           <p className="text-sm text-text-2">No matches scheduled yet.</p>
+        ) : event.eventFormat === "RR_TO_SE" ? (
+          <RRtoSEMatchesList matches={matches} />
         ) : (
           <ul className="overflow-hidden rounded-lg border border-border">
             {matches.map((m) => (
