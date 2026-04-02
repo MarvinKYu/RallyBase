@@ -7,10 +7,6 @@
 ## Group/round persisted state from event manage page is inconsistent
 - Latency issue or logic issue? unclear- investigate
 
-## Make gender and age display on public profile togglable 
-
-## Remove player ability to edit date of birth in profile
-
 ## Display "USATT" and "Singles" as selected options for player search filters by default
 
 ## Add back player number in player search but format UI to have consistent spacing

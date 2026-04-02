@@ -10,6 +10,20 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 ---
 
+## [0.16.0] - 2026-04-01
+
+### Added
+- **Match verification method** — TD can set per-tournament verification method (Code / Birth year / Both) in tournament create and edit forms. DB migration adds `verificationMethod VerificationMethod @default(CODE)` to `Tournament`.
+- **Birth year confirmation** — when a tournament uses `BIRTH_YEAR` or `BOTH`, the confirming player enters their opponent's 4-digit birth year instead of (or in addition to) the random code. Returns a clear error if the opponent has no birth date on file.
+- **Gender/age visibility toggles** — `showGender` and `showAge` fields added to `PlayerProfile` (default `false`, opt-in). Profile edit page now shows toggle sliders (ON/OFF) for each flag. Public profile page gates gender/age display on these flags.
+- **DOB admin edit** — platform admin can edit a player's date of birth via a new section on the admin player detail page (`AdminDobForm`).
+
+### Changed
+- **Gender + DOB required on signup** — onboarding `ProfileForm` now requires both gender (must pick a value; "Prefer not to say" is valid) and date of birth.
+- **DOB read-only in profile edit** — players can no longer edit their date of birth; it is shown as a read-only display with a note to contact support.
+
+---
+
 ## [0.15.6] - 2026-04-01
 
 ### Fixed
