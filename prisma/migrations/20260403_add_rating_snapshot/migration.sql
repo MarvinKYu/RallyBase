@@ -1,0 +1,1 @@
+ALTER TABLE "EventEntry" ADD COLUMN "ratingSnapshot" DOUBLE PRECISION;

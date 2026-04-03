@@ -103,13 +103,14 @@ export default async function ManageEventPage({ params }: Props) {
   }));
 
   const serializedEntries: EntryCard[] = event.eventEntries.map((e) => {
-    const ratingRow = e.playerProfile.playerRatings.find(
+    const liveRating = e.playerProfile.playerRatings.find(
       (r) => r.ratingCategoryId === event.ratingCategoryId,
-    );
+    )?.rating ?? null;
     return {
       playerProfileId: e.playerProfileId,
       displayName: e.playerProfile.displayName,
-      rating: ratingRow ? ratingRow.rating : null,
+      ratingSnapshot: e.ratingSnapshot ?? null,
+      rating: e.ratingSnapshot ?? liveRating,
       groupNumber: e.groupNumber ?? null,
     };
   });
@@ -174,7 +175,7 @@ export default async function ManageEventPage({ params }: Props) {
                 href={`/tournaments/${id}/events/${eventId}/standings?from=manage`}
                 className="rounded-md bg-accent px-4 py-2 text-sm font-medium text-background transition-colors hover:bg-accent-dim"
               >
-                View groups
+                View Group Draws
               </Link>
             )}
             {/* View bracket — pure SE or RR_TO_SE SE stage */}
@@ -354,9 +355,10 @@ export default async function ManageEventPage({ params }: Props) {
             ) : (
               <ul className="overflow-hidden rounded-lg border border-border">
                 {event.eventEntries.slice(0, 10).map((entry) => {
-                  const rating = entry.playerProfile.playerRatings.find(
+                  const liveRating = entry.playerProfile.playerRatings.find(
                     (r) => r.ratingCategoryId === event.ratingCategoryId,
-                  );
+                  )?.rating ?? null;
+                  const rating = entry.ratingSnapshot ?? liveRating;
                   return (
                     <li
                       key={entry.id}
@@ -369,7 +371,7 @@ export default async function ManageEventPage({ params }: Props) {
                         {entry.playerProfile.displayName}
                       </Link>
                       <span className="text-sm text-text-2">
-                        {rating ? Math.round(rating.rating) : "Unrated"}
+                        {rating !== null ? Math.round(rating) : "Unrated"}
                       </span>
                     </li>
                   );

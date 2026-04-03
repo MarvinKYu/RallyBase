@@ -289,6 +289,18 @@ export async function generateBracket(eventId: string): Promise<void> {
     // RR phase only — SE stage is generated separately after all group matches complete
     await generateRoundRobinBracket(event);
   } else {
+    const { ratingCategoryId } = event;
+    await prisma.$transaction(
+      event.eventEntries.map((e) => {
+        const snap =
+          e.playerProfile.playerRatings.find((r) => r.ratingCategoryId === ratingCategoryId)
+            ?.rating ?? null;
+        return prisma.eventEntry.update({
+          where: { eventId_playerProfileId: { eventId, playerProfileId: e.playerProfileId } },
+          data: { ratingSnapshot: snap },
+        });
+      }),
+    );
     await generateSingleEliminationBracket(eventId, event.eventEntries);
   }
 }
@@ -307,6 +319,7 @@ async function generateRoundRobinBracket(
           ?.rating ?? 1500,
     );
     const playerIds = eventEntries.map((e) => e.playerProfileId);
+    const playerRatingMap = new Map(playerIds.map((id, i) => [id, ratings[i]]));
     const totalGroups =
       event.maxParticipants != null ? event.maxParticipants / groupSize : undefined;
     const groups = assignGroups(playerIds, ratings, groupSize, totalGroups);
@@ -333,11 +346,13 @@ async function generateRoundRobinBracket(
           });
         }
 
-        // Stamp group assignment on EventEntry rows
-        await tx.eventEntry.updateMany({
-          where: { eventId, playerProfileId: { in: groupPlayerIds } },
-          data: { groupNumber },
-        });
+        // Stamp group assignment and rating snapshot on EventEntry rows
+        for (const pid of groupPlayerIds) {
+          await tx.eventEntry.update({
+            where: { eventId_playerProfileId: { eventId, playerProfileId: pid } },
+            data: { groupNumber, ratingSnapshot: playerRatingMap.get(pid) ?? null },
+          });
+        }
       }
     });
   } else {

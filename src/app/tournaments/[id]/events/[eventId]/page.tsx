@@ -61,6 +61,13 @@ export default async function EventDetailPage({ params }: Props) {
     ? await getEventPodium(eventId, event.eventFormat, event.groupSize)
     : null;
 
+  function getDisplayRating(entry: NonNullable<typeof event>["eventEntries"][number]): number | null {
+    if (entry.ratingSnapshot != null) return entry.ratingSnapshot;
+    return entry.playerProfile.playerRatings.find(
+      (r) => r.ratingCategoryId === event!.ratingCategoryId,
+    )?.rating ?? null;
+  }
+
   // ── Groups computation ────────────────────────────────────────────────────
   const groups: Array<{
     groupNumber: number;
@@ -68,6 +75,7 @@ export default async function EventDetailPage({ params }: Props) {
     players: Array<{
       playerProfileId: string;
       displayName: string;
+      ratingSnapshot: number | null;
       rating: number | null;
       wins: number;
       losses: number;
@@ -113,35 +121,40 @@ export default async function EventDetailPage({ params }: Props) {
         return {
           playerProfileId: e.playerProfileId,
           displayName: e.playerProfile.displayName,
-          rating: ratingRow ? ratingRow.rating : null,
+          ratingSnapshot: e.ratingSnapshot ?? null,
+          rating: e.ratingSnapshot ?? ratingRow?.rating ?? null,
           wins: wl.get(e.playerProfileId)?.wins ?? 0,
           losses: wl.get(e.playerProfileId)?.losses ?? 0,
         };
       });
 
-      const sortedPlayers = groupComplete
-        ? [...rawPlayers].sort((a, b) => b.wins - a.wins)
-        : rawPlayers;
+      const drawOrderPlayers = [...rawPlayers].sort((a, b) => {
+        const aRating = a.ratingSnapshot ?? a.rating ?? 0;
+        const bRating = b.ratingSnapshot ?? b.rating ?? 0;
+        return bRating - aRating;
+      });
 
-      const rankList: number[] = [];
+      const rankMap = new Map<string, number>();
       if (groupComplete) {
-        for (let i = 0; i < sortedPlayers.length; i++) {
-          if (i === 0) {
-            rankList.push(1);
-          } else if (sortedPlayers[i].wins === sortedPlayers[i - 1].wins) {
-            rankList.push(rankList[i - 1]);
-          } else {
-            rankList.push(i + 1);
-          }
+        const winsSorted = [...rawPlayers].sort((a, b) => b.wins - a.wins);
+        for (let i = 0; i < winsSorted.length; i++) {
+          const prev = winsSorted[i - 1];
+          const rank =
+            i === 0
+              ? 1
+              : winsSorted[i].wins === prev.wins
+                ? rankMap.get(prev.playerProfileId)!
+                : i + 1;
+          rankMap.set(winsSorted[i].playerProfileId, rank);
         }
       }
 
       groups.push({
         groupNumber: groupNum,
         groupComplete,
-        players: sortedPlayers.map((p, i) => ({
+        players: drawOrderPlayers.map((p) => ({
           ...p,
-          rank: groupComplete ? rankList[i] : null,
+          rank: groupComplete ? (rankMap.get(p.playerProfileId) ?? null) : null,
         })),
       });
     }
@@ -358,21 +371,15 @@ export default async function EventDetailPage({ params }: Props) {
                   {event.eventEntries
                     .slice()
                     .sort((a, b) => {
-                      const aRating = a.playerProfile.playerRatings.find(
-                        (r) => r.ratingCategoryId === event.ratingCategoryId,
-                      )?.rating;
-                      const bRating = b.playerProfile.playerRatings.find(
-                        (r) => r.ratingCategoryId === event.ratingCategoryId,
-                      )?.rating;
-                      if (aRating === undefined && bRating === undefined) return 0;
-                      if (aRating === undefined) return 1;
-                      if (bRating === undefined) return -1;
+                      const aRating = getDisplayRating(a);
+                      const bRating = getDisplayRating(b);
+                      if (aRating === null && bRating === null) return 0;
+                      if (aRating === null) return 1;
+                      if (bRating === null) return -1;
                       return bRating - aRating;
                     })
                     .map((entry) => {
-                      const rating = entry.playerProfile.playerRatings.find(
-                        (r) => r.ratingCategoryId === event.ratingCategoryId,
-                      );
+                      const rating = getDisplayRating(entry);
                       return (
                         <li
                           key={entry.id}
@@ -385,7 +392,7 @@ export default async function EventDetailPage({ params }: Props) {
                             {entry.playerProfile.displayName}
                           </Link>
                           <span className="text-sm text-text-2">
-                            {rating ? Math.round(rating.rating) : "Unrated"}
+                            {rating !== null ? Math.round(rating) : "Unrated"}
                           </span>
                         </li>
                       );
@@ -409,7 +416,7 @@ export default async function EventDetailPage({ params }: Props) {
           {/* Groups section — RR and RR_TO_SE grouped events */}
           {groups.length > 0 && (
             <section>
-              <h2 className="mb-3 text-base font-medium text-text-1">Groups</h2>
+              <h2 className="mb-3 text-base font-medium text-text-1">Group Draws</h2>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
                 {groups.map((group) => (
                   <div

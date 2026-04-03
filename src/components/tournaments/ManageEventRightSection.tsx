@@ -8,6 +8,7 @@ import { getRoundLabel } from "@/lib/bracket-labels";
 export type EntryCard = {
   playerProfileId: string;
   displayName: string;
+  ratingSnapshot: number | null;
   rating: number | null;
   groupNumber: number | null;
 };
@@ -115,30 +116,33 @@ export function ManageEventRightSection({
         losses: wl.get(e.playerProfileId)?.losses ?? 0,
       }));
 
-      const sortedPlayers = groupComplete
-        ? [...rawPlayers].sort((a, b) => b.wins - a.wins)
-        : rawPlayers;
+      const drawOrderPlayers = [...rawPlayers].sort((a, b) => {
+        const aRating = a.ratingSnapshot ?? a.rating ?? 0;
+        const bRating = b.ratingSnapshot ?? b.rating ?? 0;
+        return bRating - aRating;
+      });
 
-      // Assign ranks (competition ranking: ties share rank)
-      const rankList: number[] = [];
+      const rankMap = new Map<string, number>();
       if (groupComplete) {
-        for (let i = 0; i < sortedPlayers.length; i++) {
-          if (i === 0) {
-            rankList.push(1);
-          } else if (sortedPlayers[i].wins === sortedPlayers[i - 1].wins) {
-            rankList.push(rankList[i - 1]);
-          } else {
-            rankList.push(i + 1);
-          }
+        const winsSorted = [...rawPlayers].sort((a, b) => b.wins - a.wins);
+        for (let i = 0; i < winsSorted.length; i++) {
+          const prev = winsSorted[i - 1];
+          const rank =
+            i === 0
+              ? 1
+              : winsSorted[i].wins === prev.wins
+                ? rankMap.get(prev.playerProfileId)!
+                : i + 1;
+          rankMap.set(winsSorted[i].playerProfileId, rank);
         }
       }
 
       return {
         groupNumber: groupNum,
         groupComplete,
-        players: sortedPlayers.map((p, i) => ({
+        players: drawOrderPlayers.map((p) => ({
           ...p,
-          rank: groupComplete ? rankList[i] : null,
+          rank: groupComplete ? (rankMap.get(p.playerProfileId) ?? null) : null,
         })),
       };
     });
@@ -224,7 +228,7 @@ export function ManageEventRightSection({
       {isGrouped && groups.length > 0 && (
         <section>
           <div className="mb-3 flex items-center gap-2">
-            <h2 className="text-base font-medium text-text-1">Groups</h2>
+            <h2 className="text-base font-medium text-text-1">Group Draws</h2>
             {seExists && (
               <span className="inline-flex items-center rounded-full border border-border bg-surface px-2 py-0.5 text-xs font-medium text-text-2">
                 Completed
