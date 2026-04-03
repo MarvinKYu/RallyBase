@@ -17,6 +17,18 @@
 
 # Fixed
 
+## Version 0.17.3
+
+### "View Group Draws" button label (regression from v0.17.2)
+- Codex renamed the manage page nav button to "View Group Draws" — the rename was intended for the section heading only.
+- Fix: reverted button text to "View groups".
+
+### Delete tournament not reversing ratings
+- `deleteTournamentById` was nulling `ratingTransaction.matchId` (orphaning transactions) without restoring `playerRating.rating` or decrementing `gamesPlayed`.
+- Fix: now fetches completed match transactions and restores `rating = ratingBefore` + `gamesPlayed: { decrement: 1 }` for each, matching the pattern used by `deleteEventById` and `tdVoidMatch`.
+
+---
+
 ## Version 0.17.1
 
 ### Search input zoom on iOS

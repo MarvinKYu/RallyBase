@@ -10,6 +10,14 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 ---
 
+## [0.17.3] - 2026-04-03
+
+### Fixed
+- **"View groups" button label** — Codex renamed it to "View Group Draws" in v0.17.2; reverted. The "Group Draws" rename applies only to the section heading, not the navigation button.
+- **Delete tournament now reverses rating transactions** — `deleteTournamentById` was orphaning rating transactions (nulling `matchId`) without restoring `playerRating.rating` or decrementing `gamesPlayed`. Now mirrors the same reversal pattern used by `deleteEventById` and `tdVoidMatch`.
+
+---
+
 ## [0.17.2] - 2026-04-03
 
 ### Added
