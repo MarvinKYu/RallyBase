@@ -21,10 +21,13 @@ Do this automatically for every shipped change — no need to ask.
 
 ## Project Status
 
-**Current version: v0.16.0.** The app is live on Vercel at https://rally-base.vercel.app. Next target is v0.17.0 (Tournament Templates) or continued bug fixes.
+**Current version: v0.16.3.** The app is live on Vercel at https://rally-base.vercel.app. Next targets: v0.16.4 (tournament flow reversal), v0.16.5 (historical ratings), then v1.0.0 (public release).
 
 ### Upcoming
-- v0.17.0 — Tournament Templates
+- v0.16.4 — Tournament flow reversal (retract to draft, start new events in in-progress tournaments)
+- v0.16.5 — Historical ratings preservation
+- v1.0.0 — Public release (mobile UI, DB reset, final polish, security audit)
+- v1.1.0 — Tournament Templates (post-public-release)
 
 ## Tech Stack
 
@@ -160,6 +163,4 @@ Submitted scores live in `match_result_submission_games`. Official scores are on
 - **Timezone limitation**: `datetime-local` inputs are stored as UTC. `toLocaleString()` on the client converts to browser local time. UTC labels added as mitigation; proper timezone handling is future work.
 - **`prisma migrate dev` unavailable**: non-interactive terminal requires writing migration SQL manually and applying via `prisma db execute --file <path> --schema prisma/schema.prisma`.
 - **`checkSEStageStatus` vacuous rrComplete**: `countIncompleteRRMatches` returns 0 for events with no schedule at all. `rrComplete` is guarded by `rrMatchCount > 0 && incompleteRR === 0` — do not revert this to just `incompleteRR === 0` or a fresh RR_TO_SE event will stack-overflow via `bracketSeedOrder(1)` infinite recursion.
-- **Birth year self-confirm blocked**: `confirmMatchResult` always rejects `submittedById === confirmingProfileId`. For `BIRTH_YEAR` verification this may need relaxing — tracked in bug list.
-- **Stacked bracket center column unlabeled**: the SF1 / Final / SF2 stacked column (`StackedCenterColumn`) has no heading. Tracked in bug list.
 
