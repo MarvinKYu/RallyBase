@@ -10,6 +10,13 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 ---
 
+## [0.17.4] - 2026-04-03
+
+### Fixed
+- **Glicko state now fully reversible on void/delete** — `RatingTransaction` now stores `rdBefore`, `sigmaBefore`, `lastActiveDayBefore` from the pre-match snapshot. All three reversal paths (`tdVoidMatch`, `deleteEventById`, `deleteTournamentById`) restore these fields alongside `rating` and `gamesPlayed`. Existing transactions have null for these fields; reversal falls back to leaving rd/sigma unchanged (safe for Elo matches and pre-v0.17.4 history).
+
+---
+
 ## [0.17.3] - 2026-04-03
 
 ### Fixed
