@@ -7,10 +7,7 @@
 - Latency issue or logic issue? unclear- investigate
 
 ## Mobile UI fixes (ongoing list, needs comprehensive review)
-- Clicking into player search bar forces zoom in
-- Groups: display one per row when phone is vertical, two per row when phone is horizontal
-- Fix spacing inside groups tables
-- Bracket scrolling broken for brackets with round of 16: cannot swipe to show left-half round of 16 matches
+- *(Comprehensive review pending for v1.0.0)*
 
 ## Tournaments and events should automatically start at their set startTime
 - Cron-based time-triggered auto-start requires Vercel Pro for sub-daily scheduling. Deferred until plan upgrade.
@@ -19,6 +16,22 @@
 - Requires scheduled job. Deferred.
 
 # Fixed
+
+## Version 0.17.1
+
+### Search input zoom on iOS
+- All search/filter inputs had `text-sm` (14px), triggering iOS Safari auto-zoom on focus.
+- Fix: `text-base md:text-sm` on all inputs in `EntrantSearchForm` and `PlayerSearchForm`.
+
+### Groups grid cramped on mobile
+- Event detail and standings pages used fixed `grid-cols-4`, making group cards unreadably narrow on phones.
+- Fix: `grid-cols-1 sm:grid-cols-2 lg:grid-cols-4` — 1 col portrait, 2 col landscape, 4 col desktop.
+
+### Bracket left-half not scrollable on R16+
+- Large bracket inner container used `flex min-w-full justify-center`; flexbox centering with overflow clips the left side behind the scroll origin.
+- Fix: `mx-auto flex w-fit items-start` — bracket has intrinsic width, both sides scrollable.
+
+---
 
 ## Version 0.15.4
 

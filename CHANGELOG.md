@@ -10,6 +10,19 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 ---
 
+## [0.17.1] - 2026-04-03
+
+### Fixed
+- **Search input zoom on iOS** — all search/filter inputs now use `text-base` on mobile (`md:text-sm` on desktop), preventing iOS Safari's auto-zoom on focus.
+- **Groups grid layout on mobile** — event detail and standings pages now use `grid-cols-1 sm:grid-cols-2 lg:grid-cols-4` instead of fixed `grid-cols-4`; portrait phone shows 1 group per row, landscape shows 2.
+- **Bracket horizontal scroll for R16+** — large bracket inner container changed from `flex min-w-full justify-center` to `mx-auto flex w-fit items-start`; left side of bracket now scrollable on mobile.
+
+### Changed
+- **Player search defaults to RallyBase** — org filter defaults to RallyBase org and RallyBase Singles discipline instead of USATT.
+- **seed-extra-players script** — now seeds RallyBase Singles ratings (900–1550, Glicko scale) instead of USATT ratings.
+
+---
+
 ## [0.17.0] - 2026-04-03
 
 ### Added

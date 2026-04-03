@@ -7,13 +7,13 @@
 Final polish and infrastructure pass before opening to the public.
 
 ### Mobile UI
-- Comprehensive mobile review: fix zoom-on-search-tap, layout overflow issues, and other small issues catalogued in bug-list.md.
+- Comprehensive mobile review: remaining layout overflow issues and other small issues catalogued in bug-list.md.
 
 ### Final polish
 - Audit all pages for consistency: status tags, empty states, error messages, loading states.
 - Review and finalize all copy (labels, tooltips, placeholder text).
 
-## Security check for all user input fields
+### Security check for all user input fields
 
 ---
 
@@ -30,15 +30,15 @@ Final polish and infrastructure pass before opening to the public.
 
 ---
 
-## v1.1.1
+## v1.1.1 — Tournament flow reversal
 
-### Tournament flow reversal 
+### Tournament flow reversal
 - Give TD option to move from "published" back to "draft" through a "Retract" button
 - Also fix: TD should be able to "start event" for new events added to in-progress tournaments. right now attempting that displays an error message saying "The parent tournament must be published before advancing this event."
 
 ---
 
-## v1.1.2
+## v1.1.2 — Historical ratings preservation
 
 ### Historical ratings preservation
 - When looking at past tournament results, player ratings displayed should be the ratings at the time of the event start, and not display their current rating.
