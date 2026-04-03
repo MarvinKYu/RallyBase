@@ -1,22 +1,28 @@
 import { describe, it, expect } from "vitest";
 import { createProfileSchema } from "@/lib/schemas/player";
 
+const baseValid = {
+  displayName: "Alex Chen",
+  gender: "MALE" as const,
+  birthDate: "1995-06-15",
+};
+
 describe("createProfileSchema", () => {
   it("accepts a valid displayName", () => {
-    const result = createProfileSchema.safeParse({ displayName: "Alex Chen" });
+    const result = createProfileSchema.safeParse(baseValid);
     expect(result.success).toBe(true);
   });
 
   it("accepts a displayName with an optional bio", () => {
     const result = createProfileSchema.safeParse({
-      displayName: "Alex Chen",
+      ...baseValid,
       bio: "Competitive singles player, USATT rated.",
     });
     expect(result.success).toBe(true);
   });
 
   it("accepts when bio is omitted entirely", () => {
-    const result = createProfileSchema.safeParse({ displayName: "Jo" });
+    const result = createProfileSchema.safeParse({ ...baseValid, displayName: "Jo" });
     expect(result.success).toBe(true);
     if (result.success) expect(result.data.bio).toBeUndefined();
   });
@@ -49,7 +55,7 @@ describe("createProfileSchema", () => {
 
   it("accepts a bio of exactly 500 characters", () => {
     const result = createProfileSchema.safeParse({
-      displayName: "Alex Chen",
+      ...baseValid,
       bio: "B".repeat(500),
     });
     expect(result.success).toBe(true);

@@ -144,6 +144,9 @@ model PlayerRating {
   ratingCategoryId String
   rating           Float    @default(1500)
   gamesPlayed      Int      @default(0)
+  rd               Float?
+  sigma            Float?
+  lastActiveDay    Int?
   updatedAt        DateTime @updatedAt
 
   playerProfile  PlayerProfile  @relation(fields: [playerProfileId], references: [id], onDelete: Cascade)

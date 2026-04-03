@@ -32,6 +32,10 @@ const STATUS_PRIORITY: Record<string, number> = {
   PENDING: 2,
 };
 
+function ratingDisplayPriority(name: string): number {
+  return name === "RallyBase Singles" ? 0 : 1;
+}
+
 export default async function ProfilePage({ params }: Props) {
   const { id } = await params;
   const { userId } = await auth();
@@ -77,6 +81,11 @@ export default async function ProfilePage({ params }: Props) {
     getPlayerRatingHistories(profile.id),
     isOwnProfile ? getPlayerTournamentHistory(profile.id) : Promise.resolve([]),
   ]);
+  const sortedRatings = [...profile.playerRatings].sort((a, b) => {
+    const priorityDiff = ratingDisplayPriority(a.ratingCategory.name) - ratingDisplayPriority(b.ratingCategory.name);
+    if (priorityDiff !== 0) return priorityDiff;
+    return b.updatedAt.getTime() - a.updatedAt.getTime();
+  });
 
   const statusLabel: Record<string, string> = {
     PENDING: "Pending",
@@ -136,7 +145,7 @@ export default async function ProfilePage({ params }: Props) {
               </p>
             ) : (
               <div className="overflow-hidden rounded-lg border border-border">
-                {profile.playerRatings.map((pr) => (
+                {sortedRatings.map((pr) => (
                   <div
                     key={pr.id}
                     className="flex items-center justify-between border-b border-border-subtle bg-surface px-4 py-3 last:border-b-0"

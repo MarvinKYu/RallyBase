@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useActionState } from "react";
 import { createTournamentAction, type TournamentActionState } from "@/server/actions/tournament.actions";
 
-type Org = { id: string; name: string };
+type Org = { id: string; name: string; slug?: string };
 
 type TournamentDefaultValues = {
   name?: string;
@@ -36,6 +36,8 @@ export function TournamentForm({
   );
   const [startDate, setStartDate] = useState(defaultValues?.startDate ?? "");
   const [endDate, setEndDate] = useState(defaultValues?.endDate ?? "");
+  const defaultOrganizationId =
+    organizations.find((org) => org.slug === "rallybase")?.id ?? "";
 
   return (
     <form action={dispatch} className="space-y-6">
@@ -54,6 +56,7 @@ export function TournamentForm({
           <select
             id="organizationId"
             name="organizationId"
+            defaultValue={state?.fields?.organizationId ?? defaultOrganizationId}
             className="w-full rounded-md border border-border bg-elevated px-3 py-2 text-sm text-text-1 shadow-sm focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
           >
             <option value="">Select an organization…</option>

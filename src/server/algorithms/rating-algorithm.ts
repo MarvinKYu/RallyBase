@@ -1,41 +1,37 @@
-/**
- * Rating algorithm abstraction layer.
- *
- * Defines the RatingAlgorithm interface and a dispatcher that returns the correct
- * algorithm implementation for a given organization slug. All orgs currently use Elo.
- *
- * To plug in a custom RallyBase algorithm when it's ready:
- *   1. Implement RatingAlgorithm in a new file (e.g. rallybase-rating.ts)
- *   2. Import it here and add: if (orgSlug === "rallybase") return rallybaseAlgorithm;
- */
-
 import { calculateMatchElo } from "@/server/algorithms/elo";
+import { rallybaseGlickoAlgorithm } from "@/server/algorithms/rallybase-glicko";
 
 export interface RatingAlgorithmResult {
-  winner: { newRating: number; delta: number };
-  loser: { newRating: number; delta: number };
+  winner: { newRating: number; delta: number; newRd?: number; newSigma?: number };
+  loser: { newRating: number; delta: number; newRd?: number; newSigma?: number };
 }
 
 export interface RatingAlgorithm {
+  defaultRating: number;
   calcMatchResult(params: {
     winnerRating: number;
     loserRating: number;
     winnerGamesPlayed: number;
     loserGamesPlayed: number;
+    winnerRd?: number | null;
+    loserRd?: number | null;
+    winnerSigma?: number | null;
+    loserSigma?: number | null;
+    winnerLastActiveDay?: number | null;
+    loserLastActiveDay?: number | null;
+    winnerIsJunior?: boolean;
+    loserIsJunior?: boolean;
+    matchDay?: number;
   }): RatingAlgorithmResult;
 }
 
 const eloAlgorithm: RatingAlgorithm = {
+  defaultRating: 1500,
   calcMatchResult: ({ winnerRating, loserRating, winnerGamesPlayed, loserGamesPlayed }) =>
     calculateMatchElo(winnerRating, loserRating, winnerGamesPlayed, loserGamesPlayed),
 };
 
-/**
- * Returns the rating algorithm for the given organization slug.
- * All orgs currently use Elo.
- */
-export function getAlgorithmForOrg(_orgSlug: string): RatingAlgorithm {
-  // TODO: when rallybase custom algorithm is complete, add:
-  // if (_orgSlug === "rallybase") return rallybaseAlgorithm;
+export function getAlgorithmForOrg(orgSlug: string): RatingAlgorithm {
+  if (orgSlug === "rallybase") return rallybaseGlickoAlgorithm;
   return eloAlgorithm;
 }
