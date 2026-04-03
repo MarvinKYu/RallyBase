@@ -175,7 +175,7 @@ export default async function ManageEventPage({ params }: Props) {
                 href={`/tournaments/${id}/events/${eventId}/standings?from=manage`}
                 className="rounded-md bg-accent px-4 py-2 text-sm font-medium text-background transition-colors hover:bg-accent-dim"
               >
-                View Group Draws
+                View groups
               </Link>
             )}
             {/* View bracket — pure SE or RR_TO_SE SE stage */}

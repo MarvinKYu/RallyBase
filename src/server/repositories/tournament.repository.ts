@@ -169,19 +169,42 @@ export async function createTournament(data: {
 }
 
 export async function deleteTournamentById(id: string) {
-  const matchIds = await prisma.match.findMany({
+  const matchRows = await prisma.match.findMany({
     where: { event: { tournamentId: id } },
-    select: { id: true },
-  }).then((rows) => rows.map((r) => r.id));
+    select: { id: true, status: true },
+  });
+
+  const allMatchIds = matchRows.map((r) => r.id);
+  const completedMatchIds = matchRows
+    .filter((m) => m.status === "COMPLETED")
+    .map((m) => m.id);
 
   await prisma.$transaction(async (tx) => {
-    if (matchIds.length > 0) {
+    // Reverse rating changes for all completed matches in the tournament
+    if (completedMatchIds.length > 0) {
+      const transactions = await tx.ratingTransaction.findMany({
+        where: { matchId: { in: completedMatchIds } },
+      });
+      for (const txn of transactions) {
+        await tx.playerRating.update({
+          where: {
+            playerProfileId_ratingCategoryId: {
+              playerProfileId: txn.playerProfileId,
+              ratingCategoryId: txn.ratingCategoryId,
+            },
+          },
+          data: { rating: txn.ratingBefore, gamesPlayed: { decrement: 1 } },
+        });
+      }
+    }
+
+    if (allMatchIds.length > 0) {
       await tx.match.updateMany({
-        where: { id: { in: matchIds } },
+        where: { id: { in: allMatchIds } },
         data: { nextMatchId: null },
       });
       await tx.ratingTransaction.updateMany({
-        where: { matchId: { in: matchIds } },
+        where: { matchId: { in: allMatchIds } },
         data: { matchId: null },
       });
     }
