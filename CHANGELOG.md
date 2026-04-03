@@ -10,6 +10,19 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 ---
 
+## [0.17.2] - 2026-04-03
+
+### Added
+- **`ratingSnapshot` on EventEntry** — new `Float?` column captures each entrant's rating at the moment of bracket/group generation (SE and RR/RR_TO_SE). Migration applied to production DB.
+
+### Changed
+- **Entrants list** — shows `ratingSnapshot` instead of live rating when available; falls back to live rating for pre-start events with no snapshot.
+- **"Groups" renamed to "Group Draws"** — section header on event detail page and manage event page updated; "View groups" button renamed to "View Group Draws".
+- **Group Draws row order fixed** — rows always show players in original draw order (by `ratingSnapshot DESC`), never re-sorted by rank after group completes.
+- **Rank column shows result rank in-place** — the `#` column reflects actual match-result rank; row order is unaffected.
+
+---
+
 ## [0.17.1] - 2026-04-03
 
 ### Fixed
