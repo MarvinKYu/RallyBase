@@ -396,7 +396,6 @@ export async function tdVoidMatch(matchId: string): Promise<TdVoidResult> {
 
   await prisma.$transaction(async (tx) => {
     for (const txn of transactions) {
-      // Restore rating to ratingBefore and decrement gamesPlayed
       await tx.playerRating.update({
         where: {
           playerProfileId_ratingCategoryId: {
@@ -407,6 +406,9 @@ export async function tdVoidMatch(matchId: string): Promise<TdVoidResult> {
         data: {
           rating: txn.ratingBefore,
           gamesPlayed: { decrement: 1 },
+          ...(txn.rdBefore != null ? { rd: txn.rdBefore } : {}),
+          ...(txn.sigmaBefore != null ? { sigma: txn.sigmaBefore } : {}),
+          ...(txn.lastActiveDayBefore !== null ? { lastActiveDay: txn.lastActiveDayBefore } : {}),
         },
       });
     }

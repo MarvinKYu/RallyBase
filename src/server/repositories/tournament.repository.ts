@@ -193,7 +193,13 @@ export async function deleteTournamentById(id: string) {
               ratingCategoryId: txn.ratingCategoryId,
             },
           },
-          data: { rating: txn.ratingBefore, gamesPlayed: { decrement: 1 } },
+          data: {
+              rating: txn.ratingBefore,
+              gamesPlayed: { decrement: 1 },
+              ...(txn.rdBefore != null ? { rd: txn.rdBefore } : {}),
+              ...(txn.sigmaBefore != null ? { sigma: txn.sigmaBefore } : {}),
+              ...(txn.lastActiveDayBefore !== null ? { lastActiveDay: txn.lastActiveDayBefore } : {}),
+            },
         });
       }
     }
@@ -237,7 +243,13 @@ export async function deleteEventById(eventId: string) {
               ratingCategoryId: txn.ratingCategoryId,
             },
           },
-          data: { rating: txn.ratingBefore, gamesPlayed: { decrement: 1 } },
+          data: {
+              rating: txn.ratingBefore,
+              gamesPlayed: { decrement: 1 },
+              ...(txn.rdBefore != null ? { rd: txn.rdBefore } : {}),
+              ...(txn.sigmaBefore != null ? { sigma: txn.sigmaBefore } : {}),
+              ...(txn.lastActiveDayBefore !== null ? { lastActiveDay: txn.lastActiveDayBefore } : {}),
+            },
         });
       }
     }

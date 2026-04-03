@@ -160,10 +160,13 @@ model RatingTransaction {
   playerProfileId  String
   ratingCategoryId String
   matchId          String?
-  ratingBefore     Float
-  ratingAfter      Float
-  delta            Float
-  createdAt        DateTime @default(now())
+  ratingBefore        Float
+  ratingAfter         Float
+  delta               Float
+  rdBefore            Float?
+  sigmaBefore         Float?
+  lastActiveDayBefore Int?
+  createdAt           DateTime @default(now())
 
   playerProfile  PlayerProfile  @relation(fields: [playerProfileId], references: [id], onDelete: Cascade)
   ratingCategory RatingCategory @relation(fields: [ratingCategoryId], references: [id], onDelete: Cascade)

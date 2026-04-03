@@ -181,6 +181,9 @@ export async function applyRatingResult(
         ratingBefore: winnerBefore,
         ratingAfter: winner.newRating,
         delta: winner.delta,
+        rdBefore: winnerRatingState?.rd ?? null,
+        sigmaBefore: winnerRatingState?.sigma ?? null,
+        lastActiveDayBefore: winnerRatingState?.lastActiveDay ?? null,
       },
     });
 
@@ -192,6 +195,9 @@ export async function applyRatingResult(
         ratingBefore: loserBefore,
         ratingAfter: loser.newRating,
         delta: loser.delta,
+        rdBefore: loserRatingState?.rd ?? null,
+        sigmaBefore: loserRatingState?.sigma ?? null,
+        lastActiveDayBefore: loserRatingState?.lastActiveDay ?? null,
       },
     });
   });
