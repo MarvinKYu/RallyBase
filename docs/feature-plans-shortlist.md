@@ -3,6 +3,10 @@
 
 ## For players: think about displayed name vs actual name + edge cases
 
+## Publish tournament 
+- Publishing tournament takes a while (esp for more events), at least several seconds
+- Add some sort of visual indicator that publishing is in progress (loading bar? spinning wheel?)
+
 # Long-term ideas
 - Notes for things we could do in the future
 
@@ -23,8 +27,10 @@
 - Keep a list of assigned vs unassigned (free) tables
 - Auto-assign free tables to matches based on schedule
 
-## Develop custom algorithm for rating in separate org (RB rating)
-- Factor in age of player/number of years active
+## Explain rating
+- Link in match history
+- Include general explanation of algorithm
+- Expand later: include walkthrough of how calculations were applied to specific matches ("?") next to rating delta per row.
 
 ## Add doubles, hardbat
 
