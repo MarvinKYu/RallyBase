@@ -21,13 +21,12 @@ Do this automatically for every shipped change — no need to ask.
 
 ## Project Status
 
-**Current version: v0.16.3.** The app is live on Vercel at https://rally-base.vercel.app. Next targets: v0.16.4 (tournament flow reversal), v0.16.5 (historical ratings), then v1.0.0 (public release).
+**Current version: v0.17.4.** The app is live on Vercel at https://rally-base.vercel.app. Next target: v1.0.0 (public release).
 
 ### Upcoming
-- v0.16.4 — Tournament flow reversal (retract to draft, start new events in in-progress tournaments)
-- v0.16.5 — Historical ratings preservation
-- v1.0.0 — Public release (mobile UI, DB reset, final polish, security audit)
+- v1.0.0 — Public release (remaining mobile UI fixes, final polish, security audit)
 - v1.1.0 — Tournament Templates (post-public-release)
+- v1.1.1 — Tournament flow reversal (post-public-release)
 
 ## Tech Stack
 
@@ -103,8 +102,10 @@ export async function addEntrantAction(eventId, tournamentId, formData): Promise
 - **Org admin**: assigned per-org by platform admin via `/admin`. Stored in `OrgAdmin` table (separate from `UserRole`), scoped by `organizationId`.
 - **Tournament creation gating**: `canCreateTournamentInOrg(clerkId, organizationId)` in `admin.service.ts` — returns true for platform admin, org admin, `TournamentCreatorAllowlist` entry, or org slug === `"rallybase"`. `createTournament` enforces this before writing to DB. `getOrgsForTournamentCreation(clerkId)` returns filtered org list for the new-tournament page.
 - **TournamentCreatorAllowlist**: DB table mirroring `OrgAdmin` pattern (unique on `(userId, organizationId)`). Managed by platform admin or org admin via `/admin`. Actions: `assignTournamentCreatorAction`, `removeTournamentCreatorAction`.
-- **Rating algorithm abstraction**: `RatingAlgorithm` interface + `getAlgorithmForOrg(orgSlug)` dispatcher in `src/server/algorithms/rating-algorithm.ts`. All orgs currently return the Elo adapter. To plug in a custom RallyBase algorithm, add a case for `"rallybase"` in the dispatcher.
-- **Player initial rating**: no `PlayerRating` row exists until after the first match or an admin sets one. `applyRatingResult` falls back to `DEFAULT_RATING = 1500` when no row is found.
+- **Rating algorithm abstraction**: `RatingAlgorithm` interface + `getAlgorithmForOrg(orgSlug)` dispatcher in `src/server/algorithms/rating-algorithm.ts`. RallyBase org uses Glicko-lite v1 (`rallybase-glicko.ts`, default_rating=1200, base_k=120, c=100). All other orgs use Elo (default_rating=1500).
+- **Player initial rating**: no `PlayerRating` row exists until after the first match or an admin sets one. RallyBase default is 1200; Elo default is 1500. `applyRatingResult` reads `algorithm.defaultRating`.
+- **Glicko state fields**: `player_ratings` has `rd Float?`, `sigma Float?`, `lastActiveDay Int?`. `rating_transactions` has `rdBefore Float?`, `sigmaBefore Float?`, `lastActiveDayBefore Int?` (null for pre-v0.17.4 rows and Elo matches). All void/delete paths restore these when non-null.
+- **Rating snapshot**: `EventEntry.ratingSnapshot Float?` captures each entrant's rating at bracket generation time. Displayed in place of live rating on event detail and manage pages; falls back to live rating for pre-start events.
 - **Multi-group RR events**: `Event.groupSize Int?` enables multi-group round robin. When set, `generateRoundRobinBracket` uses `assignGroups` (snake seeding) to distribute players, then builds one schedule per group. `getRoundRobinStandings(eventId, true)` returns `GroupedRoundRobinStandings[]`. Group count = `maxParticipants / groupSize` when `maxParticipants` is set; otherwise `Math.ceil(n / groupSize)`. `createEventSchema` enforces `maxParticipants % groupSize === 0` via `.superRefine()` when both fields are present.
 - **RR→SE hybrid events**: `EventFormat.RR_TO_SE` — group stage (RR) feeds into SE bracket. `Event.advancersPerGroup Int?` (max 2; A≥3 deferred post-v1.0.0) sets how many advance per group. `EventEntry.seed` is reused for SE seeding; `EventEntry.advancesToSE Boolean?` stores TD tie-resolution overrides. SE matches have `groupNumber = null`; RR matches have `groupNumber IS NOT NULL`. Auto-generate SE fires when last RR match completes. `getEventPodium` for RR_TO_SE uses SE-only matches. The bracket page only shows SE matches for RR_TO_SE events. **Seeding (A=1)**: seeds 1–G in ascending group order. **Seeding (A=2)**: winners get seeds 1–G ascending; runners-up get seeds G+1–2G using constrained half-zone placement — each runner-up assigned to the opposite bracket half from their group's winner (greedy, descending group order for strength ordering). Guaranteed satisfiable for any G: `bracketSeedOrder(nextPowerOf2(2G))` upper/lower halves each contain exactly G seeds from [1,2G]. Implemented in `src/server/algorithms/advancer.ts`; uses `bracketSeedOrder` from `bracket.ts` and helpers `nextPowerOf2`/`buildHalfMap`.
 - **Server action FormData rule**: when adding a new form field, always update BOTH `createEventAction` AND `updateEventAction` in `tournament.actions.ts` to extract the field via `formData.get(...)`. Missing either causes silent null storage with no error.
@@ -156,7 +157,7 @@ Submitted scores live in `match_result_submission_games`. Official scores are on
 
 - **Middleware deprecation**: Next.js 16 shows `"middleware" file convention is deprecated` warning — this is cosmetic; the middleware works correctly.
 - **react-hook-form removed**: react-hook-form v7.71 + React 19.2 has a `useMemo` incompatibility (React error #310) in production builds. All forms now use plain `useActionState` + native FormData with `name` attributes. Do NOT reintroduce react-hook-form.
-- **Tournament deletion FK cycle**: `Match.nextMatchId` uses `onDelete: NoAction`. Deleting a tournament requires nulling `nextMatchId` on all its matches first, then detaching `RatingTransaction.matchId`, then deleting the tournament. See `deleteTournamentById` in `tournament.repository.ts`.
+- **Tournament deletion FK cycle**: `Match.nextMatchId` uses `onDelete: NoAction`. `deleteTournamentById` nulls `nextMatchId`, reverses rating transactions (restoring rating/gamesPlayed/rd/sigma/lastActiveDay), detaches `RatingTransaction.matchId`, then deletes. See `tournament.repository.ts`.
 - **User email uniqueness**: Clerk treats email+password and Google OAuth sign-ins as separate accounts with different `clerkId`s. `upsertUserFromClerk` matches on `clerkId OR email` to merge them.
 - **Tournament ownership**: `Tournament.createdByClerkId` (nullable String) stores the Clerk user ID of the creator. Existing/seeded tournaments have `null` and show no delete button.
 - **Existing live tournaments default to DRAFT**: any tournaments created before v0.6.0 without a `createdByClerkId` have `status = 'DRAFT'` and won't appear in the public list. Run `UPDATE "Tournament" SET status = 'PUBLISHED' WHERE "createdByClerkId" IS NULL;` on the production DB after deploying v0.6.0.
