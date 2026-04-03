@@ -1,20 +1,5 @@
 # Planned Features Roadmap
 
-## v0.16.4
-
-### Tournament flow reversal 
-- Give TD option to move from "published" back to "draft" through a "Retract" button
-- Also fix: TD should be able to "start event" for new events added to in-progress tournaments. right now attempting that displays an error message saying "The parent tournament must be published before advancing this event."
-
----
-
-## v0.16.5
-
-### Historical ratings preservation
-- When looking at past tournament results, player ratings displayed should be the ratings at the time of the event start, and not display their current rating.
-
----
-
 ## v1.0.0 — Public Release
 
 > Plan mode: **No** — polish and audit work; no new schema or cross-service changes. Each sub-item can be tackled incrementally.
@@ -23,9 +8,6 @@ Final polish and infrastructure pass before opening to the public.
 
 ### Mobile UI
 - Comprehensive mobile review: fix zoom-on-search-tap, layout overflow issues, and other small issues catalogued in bug-list.md.
-
-### DB reset
-- Remove all demo user and test match/tournament data. 
 
 ### Final polish
 - Audit all pages for consistency: status tags, empty states, error messages, loading states.
@@ -45,6 +27,21 @@ Final polish and infrastructure pass before opening to the public.
 
 ### Load template when creating a tournament
 - When creating a new tournament, TD can optionally select a saved template to pre-fill all fields and events.
+
+---
+
+## v1.1.1
+
+### Tournament flow reversal 
+- Give TD option to move from "published" back to "draft" through a "Retract" button
+- Also fix: TD should be able to "start event" for new events added to in-progress tournaments. right now attempting that displays an error message saying "The parent tournament must be published before advancing this event."
+
+---
+
+## v1.1.2
+
+### Historical ratings preservation
+- When looking at past tournament results, player ratings displayed should be the ratings at the time of the event start, and not display their current rating.
 
 ---
 

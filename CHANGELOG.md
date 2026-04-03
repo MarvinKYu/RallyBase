@@ -10,6 +10,24 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 ---
 
+## [0.17.0] - 2026-04-03
+
+### Added
+- **RallyBase Glicko-lite v1 algorithm** — new `rallybase-glicko.ts` implementing a validated Glicko-lite rating system for the RallyBase org. Locked parameters: `default_rating=1200`, `base_k=120`, `inactivity_rd_growth_c=100`, score modifier disabled. Validated against 359,724 USATT matches (Brier 0.176 vs 0.191 baseline).
+- **Glicko state columns** — `rd`, `sigma`, `lastActiveDay` added to `player_ratings`. New players start at `rd=300`, `sigma=0.06`; state updates after every match.
+- **`RatingAlgorithm` interface extended** — optional Glicko fields (rd, sigma, lastActiveDay, isJunior, matchDay) and `defaultRating` property. Elo adapter unchanged.
+- **Junior handling** — players under 21 at match time get elevated RD floor (220) and new/junior boosts to effective_k.
+- **Inactivity RD inflation** — `rd_prime = sqrt(rd² + c * days_inactive)`, clamped to [40, 350].
+- **Algorithm unit tests** — 6 Glicko stress-test scenarios covering mismatch, close matchup, winner clamp, rating floor, new-player boost, and inactive returner.
+
+### Changed
+- **RallyBase new-player default rating** — 1200 (down from Elo's 1500) for players with no existing rating row.
+- **Tournament creation form** — org selector defaults to RallyBase.
+- **Player profile** — RallyBase Singles rating shown first.
+- **Vitest config** — excludes `.codex-gitops*` worktree directories from test runs.
+
+---
+
 ## [0.16.3] - 2026-04-02
 
 ### Changed
