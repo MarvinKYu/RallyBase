@@ -158,11 +158,12 @@ export async function tdDefaultMatchAction(
   redirect(redirectTo);
 }
 
-// matchId, tournamentId, eventId are pre-bound via .bind()
+// matchId, tournamentId, eventId, returnTo are pre-bound via .bind()
 export async function tdVoidMatchAction(
   matchId: string,
   tournamentId: string,
   eventId: string,
+  returnTo: string,
 ): Promise<void> {
   const { userId } = await auth();
   if (!userId) redirect("/sign-in");
@@ -176,5 +177,5 @@ export async function tdVoidMatchAction(
   const result = await tdVoidMatch(matchId);
   if ("error" in result) throw new Error(result.error);
 
-  redirect(`/tournaments/${tournamentId}/events/${eventId}/manage`);
+  redirect(returnTo);
 }

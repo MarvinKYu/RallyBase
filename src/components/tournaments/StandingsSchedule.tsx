@@ -22,13 +22,17 @@ export function StandingsSchedule({
   isTD,
   tournamentId,
   eventId,
+  voidReturnTo,
   compact = false,
+  viewerProfileId = null,
 }: {
   rounds: Array<{ round: number; matches: SerializedMatch[] }>;
   isTD: boolean;
   tournamentId: string;
   eventId: string;
+  voidReturnTo: string;
   compact?: boolean;
+  viewerProfileId?: string | null;
 }) {
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
 
@@ -58,7 +62,7 @@ export function StandingsSchedule({
                       <span
                         className={`text-sm ${
                           match.winnerId === match.player1Id
-                            ? "font-semibold text-text-1"
+                            ? "font-semibold text-green-400"
                             : "text-text-2"
                         }`}
                       >
@@ -68,7 +72,7 @@ export function StandingsSchedule({
                       <span
                         className={`text-sm ${
                           match.winnerId === match.player2Id
-                            ? "font-semibold text-text-1"
+                            ? "font-semibold text-green-400"
                             : "text-text-2"
                         }`}
                       >
@@ -76,17 +80,9 @@ export function StandingsSchedule({
                       </span>
                     </div>
                     <div className="flex items-center gap-3">
-                      <span className="text-xs text-text-3">
-                        {match.status === "PENDING"
-                          ? "Pending"
-                          : match.status === "IN_PROGRESS"
-                            ? "In progress"
-                            : match.status === "AWAITING_CONFIRMATION"
-                              ? "Awaiting confirmation"
-                              : "Completed"}
-                      </span>
                       {/* Player actions */}
-                      {!isTD && match.status === "PENDING" && match.player1Id && match.player2Id && (
+                      {!isTD && match.status === "PENDING" && match.player1Id && match.player2Id &&
+                        viewerProfileId && (viewerProfileId === match.player1Id || viewerProfileId === match.player2Id) && (
                         <Link
                           href={`/matches/${match.id}/submit`}
                           className="text-xs font-medium text-accent hover:underline"
@@ -94,7 +90,8 @@ export function StandingsSchedule({
                           Submit
                         </Link>
                       )}
-                      {!isTD && match.status === "AWAITING_CONFIRMATION" && (
+                      {!isTD && match.status === "AWAITING_CONFIRMATION" &&
+                        viewerProfileId && (viewerProfileId === match.player1Id || viewerProfileId === match.player2Id) && (
                         <Link
                           href={`/matches/${match.id}/confirm`}
                           className="text-xs font-medium text-accent hover:underline"
@@ -112,7 +109,7 @@ export function StandingsSchedule({
                         </Link>
                       )}
                       {isTD && (match.status === "COMPLETED" || match.status === "AWAITING_CONFIRMATION") && (
-                        <form action={tdVoidMatchAction.bind(null, match.id, tournamentId, eventId)} className="flex items-center">
+                        <form action={tdVoidMatchAction.bind(null, match.id, tournamentId, eventId, voidReturnTo)} className="flex items-center">
                           <button
                             type="submit"
                             className="text-xs font-medium text-red-400 hover:underline"

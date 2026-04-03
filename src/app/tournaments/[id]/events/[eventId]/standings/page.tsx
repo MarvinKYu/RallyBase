@@ -2,6 +2,7 @@ import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
 import { auth } from "@clerk/nextjs/server";
 import { getEventDetail } from "@/server/services/tournament.service";
+import { getMyProfile } from "@/server/services/player.service";
 import {
   getEventBracket,
   getRoundRobinStandings,
@@ -25,10 +26,12 @@ export default async function StandingsPage({ params, searchParams }: Props) {
   const { id, eventId } = await params;
   const { from } = await searchParams;
   const { userId } = await auth();
-  const [event, matches] = await Promise.all([
+  const [event, matches, viewerProfile] = await Promise.all([
     getEventDetail(eventId),
     getEventBracket(eventId),
+    userId ? getMyProfile() : Promise.resolve(null),
   ]);
+  const viewerProfileId = viewerProfile?.id ?? null;
 
   if (!event) notFound();
   if (event.eventFormat !== "ROUND_ROBIN" && event.eventFormat !== "RR_TO_SE") redirect(`/tournaments/${id}/events/${eventId}`);
@@ -93,6 +96,8 @@ export default async function StandingsPage({ params, searchParams }: Props) {
       ? `/tournaments/${id}/events/${eventId}/manage`
       : `/tournaments/${id}/events/${eventId}`;
   const backLabel = from === "manage" ? "← Back to manage event" : "← Back to event";
+  const tournamentHref = from === "manage" ? `/tournaments/${id}/manage` : `/tournaments/${id}`;
+  const eventHref = from === "manage" ? `/tournaments/${id}/events/${eventId}/manage` : `/tournaments/${id}/events/${eventId}`;
 
   // ── Grouped layout (multi-group RR or RR_TO_SE) ────────────────────────────
   if (isGrouped) {
@@ -104,11 +109,11 @@ export default async function StandingsPage({ params, searchParams }: Props) {
           {/* Header */}
           <div className="shrink-0">
             <p className="text-sm text-text-3">
-              <Link href={`/tournaments/${id}`} className="hover:text-text-2">
+              <Link href={tournamentHref} className="hover:text-text-2">
                 {event.tournament.name}
               </Link>
               {" / "}
-              <Link href={`/tournaments/${id}/events/${eventId}`} className="hover:text-text-2">
+              <Link href={eventHref} className="hover:text-text-2">
                 {event.name}
               </Link>
             </p>
@@ -147,7 +152,9 @@ export default async function StandingsPage({ params, searchParams }: Props) {
                         isTD={isTD}
                         tournamentId={id}
                         eventId={eventId}
+                        voidReturnTo={`/tournaments/${id}/events/${eventId}/standings${from ? `?from=${from}` : ""}`}
                         compact
+                        viewerProfileId={viewerProfileId}
                       />
                     </div>
                   ) : (
@@ -206,6 +213,8 @@ export default async function StandingsPage({ params, searchParams }: Props) {
               isTD={isTD}
               tournamentId={id}
               eventId={eventId}
+              voidReturnTo={`/tournaments/${id}/events/${eventId}/standings${from ? `?from=${from}` : ""}`}
+              viewerProfileId={viewerProfileId}
             />
           </section>
         )}

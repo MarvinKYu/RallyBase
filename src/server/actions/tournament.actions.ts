@@ -109,7 +109,7 @@ export async function updateEventAction(
   if ("fieldErrors" in result) return { fieldErrors: result.fieldErrors };
   if ("error" in result) return { error: result.error };
 
-  redirect(`/tournaments/${tournamentId}/manage`);
+  redirect(`/tournaments/${tournamentId}/events/${eventId}/manage`);
 }
 
 // tournamentId is pre-bound via .bind(null, tournamentId)

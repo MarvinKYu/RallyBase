@@ -147,7 +147,7 @@ export function ManageEventMatchList({
                     {(match.status === "COMPLETED" || match.status === "AWAITING_CONFIRMATION") &&
                       !isBye && (
                         <form
-                          action={tdVoidMatchAction.bind(null, match.id, tournamentId, eventId)}
+                          action={tdVoidMatchAction.bind(null, match.id, tournamentId, eventId, returnTo)}
                           onClick={(e) => e.stopPropagation()}
                         >
                           <button

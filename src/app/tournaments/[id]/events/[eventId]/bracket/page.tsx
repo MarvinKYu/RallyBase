@@ -3,6 +3,7 @@ import Link from "next/link";
 import { auth } from "@clerk/nextjs/server";
 import { getEventDetail } from "@/server/services/tournament.service";
 import { getEventBracket } from "@/server/services/bracket.service";
+import { getMyProfile } from "@/server/services/player.service";
 import { tdVoidMatchAction } from "@/server/actions/match.actions";
 import { getRoundLabel } from "@/lib/bracket-labels";
 import { bracketSeedOrder } from "@/server/algorithms/bracket";
@@ -57,11 +58,15 @@ function MatchCard({
   tournamentId,
   eventId,
   isTD,
+  voidReturnTo,
+  viewerProfileId = null,
 }: {
   match: BracketMatch;
   tournamentId: string;
   eventId: string;
   isTD: boolean;
+  voidReturnTo: string;
+  viewerProfileId?: string | null;
 }) {
   const isBye = match.player2Id === null && match.status === "COMPLETED";
   const isDefault = !!match.isDefault;
@@ -130,7 +135,8 @@ function MatchCard({
         </span>
         <div className="flex gap-2">
           {/* Player actions */}
-          {!isTD && match.status === "PENDING" && match.player1Id && match.player2Id && (
+          {!isTD && match.status === "PENDING" && match.player1Id && match.player2Id &&
+            viewerProfileId && (viewerProfileId === match.player1Id || viewerProfileId === match.player2Id) && (
             <Link
               href={`/matches/${match.id}/submit`}
               className="text-[10px] font-medium text-accent underline-offset-2 hover:underline"
@@ -138,7 +144,8 @@ function MatchCard({
               Submit
             </Link>
           )}
-          {!isTD && match.status === "AWAITING_CONFIRMATION" && (
+          {!isTD && match.status === "AWAITING_CONFIRMATION" &&
+            viewerProfileId && (viewerProfileId === match.player1Id || viewerProfileId === match.player2Id) && (
             <>
               <Link
                 href={`/matches/${match.id}/pending`}
@@ -170,7 +177,7 @@ function MatchCard({
             (match.status === "COMPLETED" || match.status === "AWAITING_CONFIRMATION") &&
             !isBye && (
               <form
-                action={tdVoidMatchAction.bind(null, match.id, tournamentId, eventId)}
+                action={tdVoidMatchAction.bind(null, match.id, tournamentId, eventId, voidReturnTo)}
                 className="flex items-center"
               >
                 <button
@@ -319,6 +326,8 @@ function BracketColumn({
   eventId,
   isTD,
   stackingFactor,
+  voidReturnTo,
+  viewerProfileId = null,
 }: {
   label: string;
   labelVariant: "default" | "final";
@@ -330,6 +339,8 @@ function BracketColumn({
   eventId: string;
   isTD: boolean;
   stackingFactor?: number;
+  voidReturnTo: string;
+  viewerProfileId?: string | null;
 }) {
   const factor = stackingFactor ?? Math.pow(2, round - 1);
   const paddingTop = isCenter
@@ -369,6 +380,8 @@ function BracketColumn({
             tournamentId={tournamentId}
             eventId={eventId}
             isTD={isTD}
+            voidReturnTo={voidReturnTo}
+            viewerProfileId={viewerProfileId}
           />
         ))}
       </div>
@@ -386,6 +399,8 @@ function StackedCenterColumn({
   tournamentId,
   eventId,
   isTD,
+  voidReturnTo,
+  viewerProfileId = null,
 }: {
   sfLeftMatch: BracketMatch | undefined;
   finalMatch: BracketMatch | undefined;
@@ -394,6 +409,8 @@ function StackedCenterColumn({
   tournamentId: string;
   eventId: string;
   isTD: boolean;
+  voidReturnTo: string;
+  viewerProfileId?: string | null;
 }) {
   const sfTopOffset = H / 2 - CARD_H / 2;
   const finalTopOffset = H - CARD_H / 2;
@@ -410,7 +427,7 @@ function StackedCenterColumn({
       </div>
       <div style={{ position: "absolute", top: LABEL_H + sfTopOffset, left: 0, width: CARD_W }}>
         {sfLeftMatch ? (
-          <MatchCard match={sfLeftMatch} tournamentId={tournamentId} eventId={eventId} isTD={isTD} />
+          <MatchCard match={sfLeftMatch} tournamentId={tournamentId} eventId={eventId} isTD={isTD} voidReturnTo={voidReturnTo} viewerProfileId={viewerProfileId} />
         ) : (
           <div className="w-44 overflow-hidden rounded-md border border-border bg-surface shadow-sm" style={{ height: CARD_H }} />
         )}
@@ -423,7 +440,7 @@ function StackedCenterColumn({
       </svg>
       <div style={{ position: "absolute", top: LABEL_H + finalTopOffset, left: 0, width: CARD_W }}>
         {finalMatch ? (
-          <MatchCard match={finalMatch} tournamentId={tournamentId} eventId={eventId} isTD={isTD} />
+          <MatchCard match={finalMatch} tournamentId={tournamentId} eventId={eventId} isTD={isTD} voidReturnTo={voidReturnTo} viewerProfileId={viewerProfileId} />
         ) : (
           <div className="w-44 overflow-hidden rounded-md border border-border bg-surface shadow-sm" style={{ height: CARD_H }} />
         )}
@@ -436,7 +453,7 @@ function StackedCenterColumn({
       </svg>
       <div style={{ position: "absolute", top: LABEL_H + sfBotOffset, left: 0, width: CARD_W }}>
         {sfRightMatch ? (
-          <MatchCard match={sfRightMatch} tournamentId={tournamentId} eventId={eventId} isTD={isTD} />
+          <MatchCard match={sfRightMatch} tournamentId={tournamentId} eventId={eventId} isTD={isTD} voidReturnTo={voidReturnTo} viewerProfileId={viewerProfileId} />
         ) : (
           <div className="w-44 overflow-hidden rounded-md border border-border bg-surface shadow-sm" style={{ height: CARD_H }} />
         )}
@@ -672,10 +689,12 @@ export default async function BracketPage({ params, searchParams }: Props) {
   const { id, eventId } = await params;
   const { from } = await searchParams;
   const { userId } = await auth();
-  const [event, matches] = await Promise.all([
+  const [event, matches, viewerProfile] = await Promise.all([
     getEventDetail(eventId),
     getEventBracket(eventId),
+    userId ? getMyProfile() : Promise.resolve(null),
   ]);
+  const viewerProfileId = viewerProfile?.id ?? null;
 
   if (!event) notFound();
   if (event.eventFormat === "ROUND_ROBIN") {
@@ -694,6 +713,9 @@ export default async function BracketPage({ params, searchParams }: Props) {
     from === "manage"
       ? `/tournaments/${id}/events/${eventId}/manage`
       : `/tournaments/${id}/events/${eventId}`;
+  const tournamentHref = from === "manage" ? `/tournaments/${id}/manage` : `/tournaments/${id}`;
+  const eventHref = from === "manage" ? `/tournaments/${id}/events/${eventId}/manage` : `/tournaments/${id}/events/${eventId}`;
+  const voidReturnTo = `/tournaments/${id}/events/${eventId}/bracket${from ? `?from=${from}` : ""}`;
 
   if (bracketMatches.length === 0) {
     // For RR→SE: show placeholder bracket if RR has been generated
@@ -739,11 +761,11 @@ export default async function BracketPage({ params, searchParams }: Props) {
         {/* Header */}
         <div className="mb-8 space-y-1">
           <p className="text-sm text-text-3">
-            <Link href={`/tournaments/${id}`} className="hover:text-text-2">
+            <Link href={tournamentHref} className="hover:text-text-2">
               {event.tournament.name}
             </Link>
             {" / "}
-            <Link href={`/tournaments/${id}/events/${eventId}`} className="hover:text-text-2">
+            <Link href={eventHref} className="hover:text-text-2">
               {event.name}
             </Link>
           </p>
@@ -860,11 +882,11 @@ export default async function BracketPage({ params, searchParams }: Props) {
   const bracketHeader = (
     <div className="mb-8 space-y-1">
       <p className="text-sm text-text-3">
-        <Link href={`/tournaments/${id}`} className="hover:text-text-2">
+        <Link href={tournamentHref} className="hover:text-text-2">
           {event.tournament.name}
         </Link>
         {" / "}
-        <Link href={`/tournaments/${id}/events/${eventId}`} className="hover:text-text-2">
+        <Link href={eventHref} className="hover:text-text-2">
           {event.name}
         </Link>
       </p>
@@ -923,6 +945,8 @@ export default async function BracketPage({ params, searchParams }: Props) {
                       eventId={eventId}
                       isTD={isTD}
                       stackingFactor={sf}
+                      voidReturnTo={voidReturnTo}
+                      viewerProfileId={viewerProfileId}
                     />
                     {isLastLeft ? (
                       <StackingConnector H={H} />
@@ -942,6 +966,8 @@ export default async function BracketPage({ params, searchParams }: Props) {
                 tournamentId={id}
                 eventId={eventId}
                 isTD={isTD}
+                voidReturnTo={voidReturnTo}
+                viewerProfileId={viewerProfileId}
               />
 
               {/* ── RIGHT SIDE ── */}
@@ -967,6 +993,8 @@ export default async function BracketPage({ params, searchParams }: Props) {
                       eventId={eventId}
                       isTD={isTD}
                       stackingFactor={sf}
+                      voidReturnTo={voidReturnTo}
+                      viewerProfileId={viewerProfileId}
                     />
                   </div>
                 );
@@ -985,11 +1013,11 @@ export default async function BracketPage({ params, searchParams }: Props) {
       {/* Header */}
       <div className="mb-8 space-y-1">
         <p className="text-sm text-text-3">
-          <Link href={`/tournaments/${id}`} className="hover:text-text-2">
+          <Link href={tournamentHref} className="hover:text-text-2">
             {event.tournament.name}
           </Link>
           {" / "}
-          <Link href={`/tournaments/${id}/events/${eventId}`} className="hover:text-text-2">
+          <Link href={eventHref} className="hover:text-text-2">
             {event.name}
           </Link>
         </p>
@@ -1023,6 +1051,8 @@ export default async function BracketPage({ params, searchParams }: Props) {
                   tournamentId={id}
                   eventId={eventId}
                   isTD={isTD}
+                  voidReturnTo={voidReturnTo}
+                  viewerProfileId={viewerProfileId}
                 />
                 {isLastLeft ? (
                   <SimpleConnector H={H} side="left" />
@@ -1044,6 +1074,8 @@ export default async function BracketPage({ params, searchParams }: Props) {
             tournamentId={id}
             eventId={eventId}
             isTD={isTD}
+            voidReturnTo={voidReturnTo}
+            viewerProfileId={viewerProfileId}
           />
 
           {/* ── RIGHT SIDE ── */}
@@ -1068,6 +1100,8 @@ export default async function BracketPage({ params, searchParams }: Props) {
                   tournamentId={id}
                   eventId={eventId}
                   isTD={isTD}
+                  voidReturnTo={voidReturnTo}
+                  viewerProfileId={viewerProfileId}
                 />
               </div>
             );
