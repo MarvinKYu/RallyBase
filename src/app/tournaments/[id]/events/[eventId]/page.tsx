@@ -410,7 +410,7 @@ export default async function EventDetailPage({ params }: Props) {
           {groups.length > 0 && (
             <section>
               <h2 className="mb-3 text-base font-medium text-text-1">Groups</h2>
-              <div className="grid grid-cols-4 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
                 {groups.map((group) => (
                   <div
                     key={group.groupNumber}

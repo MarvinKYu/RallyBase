@@ -41,8 +41,8 @@ export default async function PlayersPage({ searchParams }: Props) {
   } = await searchParams;
 
   const organizations = await getOrganizations();
-  const usattOrg = organizations.find((o) => o.name === "USATT");
-  const defaultOrgId = usattOrg?.id ?? "";
+  const rallybaseOrg = organizations.find((o) => o.name === "RallyBase");
+  const defaultOrgId = rallybaseOrg?.id ?? "";
   const defaultRatingCategories = defaultOrgId && !org
     ? await getRatingCategoriesForOrg(defaultOrgId)
     : [];
@@ -53,7 +53,7 @@ export default async function PlayersPage({ searchParams }: Props) {
   // Determine the rating category to display and sort by:
   // - Both org + discipline set → that discipline
   // - Org set, no discipline → org's Singles category (or first)
-  // - Neither → USATT Singles (or first USATT category)
+  // - Neither → RallyBase Singles (or first RallyBase category)
   let sortRatingCategoryId: string | undefined = discipline || undefined;
   if (!sortRatingCategoryId) {
     if (org || defaultOrgId) {

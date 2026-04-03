@@ -923,7 +923,7 @@ export default async function BracketPage({ params, searchParams }: Props) {
       <main className="px-6 py-12">
         {bracketHeader}
         <div className="overflow-x-auto pb-8">
-          <div className="flex min-w-full justify-center">
+          <div className="mx-auto flex w-fit items-start">
             <div className="flex items-start">
 
               {/* ── LEFT SIDE (spans full stackedH via doubled factor) ── */}

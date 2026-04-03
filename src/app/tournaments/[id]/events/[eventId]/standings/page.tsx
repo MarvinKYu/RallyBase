@@ -122,7 +122,7 @@ export default async function StandingsPage({ params, searchParams }: Props) {
 
           {/* 4-column grid — fills remaining viewport height */}
           <div
-            className="min-h-0 flex-1 grid grid-cols-4 gap-3"
+            className="min-h-0 flex-1 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3"
             style={{ gridAutoRows: "1fr" }}
           >
             {groups.map((g) => {

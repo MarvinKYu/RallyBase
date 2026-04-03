@@ -51,7 +51,7 @@ export function PlayerSearchForm({
           defaultValue={q}
           onChange={(e) => pushParams({ q: e.target.value })}
           placeholder="Search by name or player #…"
-          className="w-full rounded-md border border-border bg-elevated px-3 py-2 text-sm text-text-1 placeholder:text-text-3 shadow-sm focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
+          className="w-full rounded-md border border-border bg-elevated px-3 py-2 text-base md:text-sm text-text-1 placeholder:text-text-3 shadow-sm focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
           autoFocus
         />
         {isPending && (
@@ -65,7 +65,7 @@ export function PlayerSearchForm({
         <select
           defaultValue={org || defaultOrgId}
           onChange={(e) => pushParams({ org: e.target.value, discipline: "" })}
-          className="rounded-md border border-border bg-elevated px-3 py-2 text-sm text-text-1 shadow-sm focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
+          className="rounded-md border border-border bg-elevated px-3 py-2 text-base md:text-sm text-text-1 shadow-sm focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
         >
           <option value="">All orgs</option>
           {organizations.map((o) => (
@@ -76,7 +76,7 @@ export function PlayerSearchForm({
         <select
           defaultValue={discipline || defaultDisciplineId}
           onChange={(e) => pushParams({ discipline: e.target.value })}
-          className="rounded-md border border-border bg-elevated px-3 py-2 text-sm text-text-1 shadow-sm focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
+          className="rounded-md border border-border bg-elevated px-3 py-2 text-base md:text-sm text-text-1 shadow-sm focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
         >
           <option value="">All disciplines</option>
           {ratingCategories.map((rc) => (
@@ -87,7 +87,7 @@ export function PlayerSearchForm({
         <select
           defaultValue={gender}
           onChange={(e) => pushParams({ gender: e.target.value })}
-          className="rounded-md border border-border bg-elevated px-3 py-2 text-sm text-text-1 shadow-sm focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
+          className="rounded-md border border-border bg-elevated px-3 py-2 text-base md:text-sm text-text-1 shadow-sm focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
         >
           <option value="">All genders</option>
           <option value="MALE">Male</option>
@@ -101,7 +101,7 @@ export function PlayerSearchForm({
           defaultValue={minAge}
           onChange={(e) => pushParams({ minAge: e.target.value })}
           placeholder="Min age"
-          className="rounded-md border border-border bg-elevated px-3 py-2 text-sm text-text-1 placeholder:text-text-3 shadow-sm focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
+          className="rounded-md border border-border bg-elevated px-3 py-2 text-base md:text-sm text-text-1 placeholder:text-text-3 shadow-sm focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
         />
 
         <input
@@ -110,7 +110,7 @@ export function PlayerSearchForm({
           defaultValue={maxAge}
           onChange={(e) => pushParams({ maxAge: e.target.value })}
           placeholder="Max age"
-          className="rounded-md border border-border bg-elevated px-3 py-2 text-sm text-text-1 placeholder:text-text-3 shadow-sm focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
+          className="rounded-md border border-border bg-elevated px-3 py-2 text-base md:text-sm text-text-1 placeholder:text-text-3 shadow-sm focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
         />
       </div>
     </div>
