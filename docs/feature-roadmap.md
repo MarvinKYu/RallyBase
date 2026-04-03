@@ -1,38 +1,5 @@
 # Planned Features Roadmap
 
-## v0.16.1
-
-### Reformat non-TD view all matches for RR -> SE event page
-- Two-column layout: All RR phase matches scrollable in left column, All SE phase matches scrollable in right column, "Round Robin"/"Single Elimination" label column headers
-- RR phase matches: order by group and label subsections with "Group 1", "Group 2", etc.
-- SE phase matches: order by round descending (FINAL at top, then SEMIFINAL, etc) and label subsections with "Round of 16", "Quarterfinal", etc. 
-- Add search bar at top to filter matches by player name
-
-### Allow players to confirm own submission if birth year confirmation is enabled using opponent birth year
-
----
-
-## v0.16.2 - UI Fixes
-
-- Make "Entrants" section on event detail page scrollable for more than 10, sorted by rating descending from top to bottom. 
-- Make displayed search results in right column of tournament search page scrollable for more than 7 
-- Remove the "View all past (#) ->" button from past tournaments section on tournament search page so thats bottom between left and right columns on tournament search page are aligned
-- Display "RallyBase" and "Singles" as selected options for player search filters by default
-- Text-color green for winner name for completed match cards in event detail/event manage pages
-- Bracket center column should be labeled "Semifinals/Final" for brackets with R16+ where semifinal/final gets stacked vertically
-- Persist filled-out fields and selections chosen in create event page if error is thrown 
-- Add player number in player search but format UI to have consistent spacing
-
----
-
-## v0.16.3 - Nav Fixes
-
-- Edit event -> Save changes should redirect back to manage event page
-- Void match in bracket should keep you on bracket page, not redirect to manage event page
-- Tournament/Event links at top of standings/bracket pages should link to the tournament manage/event manage page if standings/bracket pages were accessed from tournament manage or event manage pages. Right now, those links go to the player-facing tournament detail/event detail page regardless of how they were reached. 
-
----
-
 ## v0.16.4
 
 ### Tournament flow reversal 

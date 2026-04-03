@@ -10,6 +10,18 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 ---
 
+## [0.16.3] - 2026-04-02
+
+### Changed
+- **Edit event → save redirects to event manage page** — was redirecting to tournament manage page.
+- **Void match stays on current page** — `tdVoidMatchAction` now takes a `returnTo` param; void from bracket page stays on bracket, void from standings stays on standings, void from manage event stays on manage event.
+- **Bracket/standings breadcrumbs context-aware** — tournament and event links in bracket/standings breadcrumbs now link to manage pages when the page was accessed via `?from=manage`.
+- **Winner name green in StandingsSchedule** — completed-match winner names now use `text-green-400` (consistent with bracket and match list).
+- **Status tag removed from StandingsSchedule** — per-match status text removed from standings/groups schedule view.
+- **Submit/Confirm links gated on player identity** — Submit and Confirm links on bracket and standings pages are only shown to the player who is actually in that match (requires login and player profile match). TDs retain their "Enter result" links for all matches.
+
+---
+
 ## [0.16.2] - 2026-04-02
 
 ### Added
