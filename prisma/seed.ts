@@ -26,6 +26,7 @@ function calcMatchElo(
 
 async function completeMatch({
   matchId,
+  tournamentId,
   matchPosition,
   nextMatchId,
   submittedById,
@@ -35,6 +36,7 @@ async function completeMatch({
   games,
 }: {
   matchId: string;
+  tournamentId: string;
   matchPosition: number;
   nextMatchId: string | null;
   submittedById: string;
@@ -73,6 +75,7 @@ async function completeMatch({
     await tx.matchResultSubmission.create({
       data: {
         matchId,
+        tournamentId,
         submittedById,
         confirmationCode: Math.floor(Math.random() * 10000).toString().padStart(4, "0"),
         status: SubmissionStatus.CONFIRMED,
@@ -318,6 +321,7 @@ async function main() {
   // QF1: seed1 (Alex) beats seed8 (Mia) 3-0
   await completeMatch({
     matchId: qf1.id,
+    tournamentId: tournament.id,
     matchPosition: 1,
     nextMatchId: sf1.id,
     submittedById: s1,
@@ -335,6 +339,7 @@ async function main() {
   // QF2: seed2 (Maria) beats seed7 (Sam) 3-1
   await completeMatch({
     matchId: qf2.id,
+    tournamentId: tournament.id,
     matchPosition: 2,
     nextMatchId: sf1.id,
     submittedById: s2,
@@ -353,6 +358,7 @@ async function main() {
   // QF3: seed3 (Jake) beats seed6 (Yuki) 3-2
   await completeMatch({
     matchId: qf3.id,
+    tournamentId: tournament.id,
     matchPosition: 3,
     nextMatchId: sf2.id,
     submittedById: s3,
@@ -372,6 +378,7 @@ async function main() {
   // QF4: seed5 (Carlos) upsets seed4 (Priya) 3-1 → player2 wins
   await completeMatch({
     matchId: qf4.id,
+    tournamentId: tournament.id,
     matchPosition: 4,
     nextMatchId: sf2.id,
     submittedById: s5,  // Carlos (player2) submitted

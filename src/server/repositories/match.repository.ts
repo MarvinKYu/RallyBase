@@ -34,31 +34,14 @@ export async function findMatchById(id: string) {
   });
 }
 
-export async function findSubmissionByCode(confirmationCode: string) {
-  return prisma.matchResultSubmission.findUnique({
-    where: { confirmationCode },
-    include: {
-      submittedBy: playerSelect,
-      games: { orderBy: { gameNumber: "asc" } },
-      match: {
-        include: {
-          player1: playerSelect,
-          player2: playerSelect,
-          event: {
-            select: {
-              id: true,
-              status: true,
-              format: true,
-              eventFormat: true,
-              gamePointTarget: true,
-              ratingCategoryId: true,
-              tournament: { select: { id: true } },
-            },
-          },
-        },
-      },
-    },
+export async function submissionCodeExistsForTournament(
+  tournamentId: string,
+  confirmationCode: string,
+): Promise<boolean> {
+  const count = await prisma.matchResultSubmission.count({
+    where: { tournamentId, confirmationCode },
   });
+  return count > 0;
 }
 
 export async function findPendingSubmissionByMatchId(matchId: string) {
@@ -90,6 +73,7 @@ export async function findPendingSubmissionByMatchId(matchId: string) {
 
 export async function createSubmission(data: {
   matchId: string;
+  tournamentId: string;
   submittedById: string;
   confirmationCode: string;
   games: Array<{ gameNumber: number; player1Points: number; player2Points: number }>;
@@ -98,6 +82,7 @@ export async function createSubmission(data: {
     const submission = await tx.matchResultSubmission.create({
       data: {
         matchId: data.matchId,
+        tournamentId: data.tournamentId,
         submittedById: data.submittedById,
         confirmationCode: data.confirmationCode,
         games: { create: data.games },

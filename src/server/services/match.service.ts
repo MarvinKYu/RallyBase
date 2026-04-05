@@ -3,6 +3,7 @@ import { winnerSlotInNextMatch } from "@/server/algorithms/bracket";
 import {
   findMatchById,
   findPendingSubmissionByMatchId,
+  submissionCodeExistsForTournament,
   createSubmission,
   confirmSubmission,
   directCompleteMatch,
@@ -126,10 +127,15 @@ export async function submitMatchResult(
     .slice(0, validation.gamesPlayed)
     .map((g, i) => ({ gameNumber: i + 1, ...g }));
 
-  const confirmationCode = Math.floor(Math.random() * 10000).toString().padStart(4, "0");
+  const tournamentId = match.event.tournament.id;
+  let confirmationCode: string;
+  do {
+    confirmationCode = Math.floor(Math.random() * 10000).toString().padStart(4, "0");
+  } while (await submissionCodeExistsForTournament(tournamentId, confirmationCode));
 
   const submission = await createSubmission({
     matchId,
+    tournamentId,
     submittedById: submittedByProfileId,
     confirmationCode,
     games: playedGames,

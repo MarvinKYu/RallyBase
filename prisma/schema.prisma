@@ -189,8 +189,9 @@ model Tournament {
   verificationMethod VerificationMethod @default(CODE)
   createdAt          DateTime           @default(now())
 
-  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  events       Event[]
+  organization          Organization            @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  events                Event[]
+  matchResultSubmissions MatchResultSubmission[]
 
   @@unique([organizationId, name])
 }
@@ -283,15 +284,19 @@ model MatchGame {
 model MatchResultSubmission {
   id               String           @id @default(cuid())
   matchId          String
+  tournamentId     String
   submittedById    String
-  confirmationCode String           @unique
+  confirmationCode String
   status           SubmissionStatus @default(PENDING)
   createdAt        DateTime         @default(now())
   confirmedAt      DateTime?
 
-  match       Match         @relation(fields: [matchId], references: [id], onDelete: Cascade)
+  match      Match        @relation(fields: [matchId], references: [id], onDelete: Cascade)
+  tournament Tournament   @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
   submittedBy PlayerProfile @relation(fields: [submittedById], references: [id])
   games       MatchResultSubmissionGame[]
+
+  @@unique([tournamentId, confirmationCode])
 }
 
 model MatchResultSubmissionGame {
