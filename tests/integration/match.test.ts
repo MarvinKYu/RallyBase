@@ -321,6 +321,361 @@ describe("Match result submission — full submit → confirm flow", () => {
   });
 });
 
+describe("Match result confirmation — BIRTH_YEAR verification", () => {
+  const BY_CLERK_IDS = ["test_by_p1", "test_by_p2", "test_by_p3", "test_by_p4"];
+  const BY_EMAILS = BY_CLERK_IDS.map((_, i) => `by_p${i + 1}@rallybase.test`);
+  // birth years: 2000, 1998, 2001, 1999
+  const BY_BIRTH_DATES = [
+    new Date("2000-01-15"),
+    new Date("1998-05-20"),
+    new Date("2001-09-10"),
+    new Date("1999-12-01"),
+  ];
+
+  let byTournamentId: string;
+  let byEventId: string;
+  const byProfiles: string[] = [];
+  let byR1P1MatchId: string; // profiles[0] vs profiles[3] — non-self confirm tests
+  let byR1P2MatchId: string; // profiles[1] vs profiles[2] — self-confirm tests
+
+  afterAll(async () => {
+    if (byEventId) {
+      await prisma.ratingTransaction.deleteMany({ where: { match: { eventId: byEventId } } });
+      await prisma.matchGame.deleteMany({ where: { match: { eventId: byEventId } } });
+      await prisma.matchResultSubmissionGame.deleteMany({
+        where: { submission: { match: { eventId: byEventId } } },
+      });
+      await prisma.matchResultSubmission.deleteMany({ where: { match: { eventId: byEventId } } });
+      await prisma.match.deleteMany({ where: { eventId: byEventId } });
+      await prisma.eventEntry.deleteMany({ where: { eventId: byEventId } });
+      await prisma.event.delete({ where: { id: byEventId } }).catch(() => {});
+    }
+    if (byTournamentId) {
+      await prisma.tournament.delete({ where: { id: byTournamentId } }).catch(() => {});
+    }
+    for (const clerkId of BY_CLERK_IDS) {
+      const user = await prisma.user.findUnique({ where: { clerkId } });
+      if (user) {
+        const profile = await prisma.playerProfile.findUnique({ where: { userId: user.id } });
+        if (profile) {
+          await prisma.playerRating.deleteMany({ where: { playerProfileId: profile.id } });
+          await prisma.playerProfile.delete({ where: { id: profile.id } });
+        }
+        await prisma.user.delete({ where: { id: user.id } });
+      }
+    }
+  });
+
+  it("sets up BIRTH_YEAR tournament with 4 players", async () => {
+    const org = await prisma.organization.findFirst();
+    const category = await prisma.ratingCategory.findFirst({ where: { organizationId: org!.id } });
+
+    const tournament = await prisma.tournament.create({
+      data: {
+        organizationId: org!.id,
+        name: "BIRTH_YEAR Verification Test Tournament",
+        startDate: new Date("2026-09-01"),
+        verificationMethod: "BIRTH_YEAR",
+      },
+    });
+    byTournamentId = tournament.id;
+
+    const event = await prisma.event.create({
+      data: {
+        tournamentId: tournament.id,
+        ratingCategoryId: category!.id,
+        name: "BIRTH_YEAR Singles",
+        format: "BEST_OF_3",
+        gamePointTarget: 11,
+      },
+    });
+    byEventId = event.id;
+
+    for (let i = 0; i < 4; i++) {
+      const user = await prisma.user.upsert({
+        where: { clerkId: BY_CLERK_IDS[i] },
+        update: {},
+        create: { clerkId: BY_CLERK_IDS[i], email: BY_EMAILS[i], name: `BY Player ${i + 1}` },
+      });
+      const profile = await prisma.playerProfile.upsert({
+        where: { userId: user.id },
+        update: { birthDate: BY_BIRTH_DATES[i] },
+        create: { userId: user.id, displayName: `BY Player ${i + 1}`, birthDate: BY_BIRTH_DATES[i] },
+      });
+      byProfiles[i] = profile.id;
+      await prisma.eventEntry.create({
+        data: { eventId: event.id, playerProfileId: profile.id, seed: i + 1 },
+      });
+    }
+
+    await generateBracket(byEventId);
+    const matches = await getEventBracket(byEventId);
+    byR1P1MatchId = matches.find((m) => m.round === 1 && m.position === 1)!.id;
+    byR1P2MatchId = matches.find((m) => m.round === 1 && m.position === 2)!.id;
+    expect(byR1P1MatchId).toBeTruthy();
+    expect(byR1P2MatchId).toBeTruthy();
+  });
+
+  // ── Non-self confirm ──────────────────────────────────────────────────────
+
+  it("submits R1P1 result (byProfiles[0] vs byProfiles[3])", async () => {
+    const result = await submitMatchResult({
+      matchId: byR1P1MatchId,
+      submittedByProfileId: byProfiles[0],
+      games: [
+        { player1Points: 11, player2Points: 5 },
+        { player1Points: 11, player2Points: 7 },
+      ],
+    });
+    expect("submission" in result).toBe(true);
+  });
+
+  it("rejects non-self confirm with wrong birth year", async () => {
+    const result = await confirmMatchResult({
+      matchId: byR1P1MatchId,
+      confirmingProfileId: byProfiles[3],
+      birthYear: "1900",
+    });
+    expect("error" in result).toBe(true);
+    if ("error" in result) expect(result.error).toMatch(/incorrect birth year/i);
+  });
+
+  it("accepts non-self confirm with correct birth year (non-submitter's year)", async () => {
+    // byProfiles[0] submitted; non-submitter = byProfiles[3], birth year = "1999"
+    const result = await confirmMatchResult({
+      matchId: byR1P1MatchId,
+      confirmingProfileId: byProfiles[3],
+      birthYear: "1999",
+    });
+    expect("success" in result).toBe(true);
+  });
+
+  // ── Self-confirm ──────────────────────────────────────────────────────────
+
+  it("submits R1P2 result (byProfiles[1] as submitter for self-confirm test)", async () => {
+    const result = await submitMatchResult({
+      matchId: byR1P2MatchId,
+      submittedByProfileId: byProfiles[1],
+      games: [
+        { player1Points: 11, player2Points: 5 },
+        { player1Points: 11, player2Points: 7 },
+      ],
+    });
+    expect("submission" in result).toBe(true);
+  });
+
+  it("rejects self-confirm with wrong birth year", async () => {
+    // non-submitter = byProfiles[2], birth year = "2001"
+    const result = await confirmMatchResult({
+      matchId: byR1P2MatchId,
+      confirmingProfileId: byProfiles[1], // same as submitter = self-confirm
+      birthYear: "1900",
+    });
+    expect("error" in result).toBe(true);
+    if ("error" in result) expect(result.error).toMatch(/incorrect birth year/i);
+  });
+
+  it("accepts self-confirm with correct birth year (non-submitter's year)", async () => {
+    // non-submitter = byProfiles[2], birth year = "2001"
+    const result = await confirmMatchResult({
+      matchId: byR1P2MatchId,
+      confirmingProfileId: byProfiles[1], // self-confirm
+      birthYear: "2001",
+    });
+    expect("success" in result).toBe(true);
+  });
+});
+
+describe("Match result confirmation — BOTH verification", () => {
+  const BTH_CLERK_IDS = ["test_bth_p1", "test_bth_p2", "test_bth_p3", "test_bth_p4"];
+  const BTH_EMAILS = BTH_CLERK_IDS.map((_, i) => `bth_p${i + 1}@rallybase.test`);
+  // birth years: 1997, 2003, 1995, 2002
+  const BTH_BIRTH_DATES = [
+    new Date("1997-04-10"),
+    new Date("2003-08-22"),
+    new Date("1995-11-05"),
+    new Date("2002-02-14"),
+  ];
+
+  let bthTournamentId: string;
+  let bthEventId: string;
+  const bthProfiles: string[] = [];
+  let bthR1P1MatchId: string; // bthProfiles[0] vs bthProfiles[3] — non-self confirm tests
+  let bthR1P2MatchId: string; // bthProfiles[1] vs bthProfiles[2] — self-confirm tests
+  let bthCode1: string;
+
+  afterAll(async () => {
+    if (bthEventId) {
+      await prisma.ratingTransaction.deleteMany({ where: { match: { eventId: bthEventId } } });
+      await prisma.matchGame.deleteMany({ where: { match: { eventId: bthEventId } } });
+      await prisma.matchResultSubmissionGame.deleteMany({
+        where: { submission: { match: { eventId: bthEventId } } },
+      });
+      await prisma.matchResultSubmission.deleteMany({ where: { match: { eventId: bthEventId } } });
+      await prisma.match.deleteMany({ where: { eventId: bthEventId } });
+      await prisma.eventEntry.deleteMany({ where: { eventId: bthEventId } });
+      await prisma.event.delete({ where: { id: bthEventId } }).catch(() => {});
+    }
+    if (bthTournamentId) {
+      await prisma.tournament.delete({ where: { id: bthTournamentId } }).catch(() => {});
+    }
+    for (const clerkId of BTH_CLERK_IDS) {
+      const user = await prisma.user.findUnique({ where: { clerkId } });
+      if (user) {
+        const profile = await prisma.playerProfile.findUnique({ where: { userId: user.id } });
+        if (profile) {
+          await prisma.playerRating.deleteMany({ where: { playerProfileId: profile.id } });
+          await prisma.playerProfile.delete({ where: { id: profile.id } });
+        }
+        await prisma.user.delete({ where: { id: user.id } });
+      }
+    }
+  });
+
+  it("sets up BOTH tournament with 4 players", async () => {
+    const org = await prisma.organization.findFirst();
+    const category = await prisma.ratingCategory.findFirst({ where: { organizationId: org!.id } });
+
+    const tournament = await prisma.tournament.create({
+      data: {
+        organizationId: org!.id,
+        name: "BOTH Verification Test Tournament",
+        startDate: new Date("2026-09-15"),
+        verificationMethod: "BOTH",
+      },
+    });
+    bthTournamentId = tournament.id;
+
+    const event = await prisma.event.create({
+      data: {
+        tournamentId: tournament.id,
+        ratingCategoryId: category!.id,
+        name: "BOTH Singles",
+        format: "BEST_OF_3",
+        gamePointTarget: 11,
+      },
+    });
+    bthEventId = event.id;
+
+    for (let i = 0; i < 4; i++) {
+      const user = await prisma.user.upsert({
+        where: { clerkId: BTH_CLERK_IDS[i] },
+        update: {},
+        create: { clerkId: BTH_CLERK_IDS[i], email: BTH_EMAILS[i], name: `BTH Player ${i + 1}` },
+      });
+      const profile = await prisma.playerProfile.upsert({
+        where: { userId: user.id },
+        update: { birthDate: BTH_BIRTH_DATES[i] },
+        create: { userId: user.id, displayName: `BTH Player ${i + 1}`, birthDate: BTH_BIRTH_DATES[i] },
+      });
+      bthProfiles[i] = profile.id;
+      await prisma.eventEntry.create({
+        data: { eventId: event.id, playerProfileId: profile.id, seed: i + 1 },
+      });
+    }
+
+    await generateBracket(bthEventId);
+    const matches = await getEventBracket(bthEventId);
+    bthR1P1MatchId = matches.find((m) => m.round === 1 && m.position === 1)!.id;
+    bthR1P2MatchId = matches.find((m) => m.round === 1 && m.position === 2)!.id;
+    expect(bthR1P1MatchId).toBeTruthy();
+    expect(bthR1P2MatchId).toBeTruthy();
+  });
+
+  // ── Non-self confirm ──────────────────────────────────────────────────────
+
+  it("submits R1P1 result (bthProfiles[0] vs bthProfiles[3])", async () => {
+    const result = await submitMatchResult({
+      matchId: bthR1P1MatchId,
+      submittedByProfileId: bthProfiles[0],
+      games: [
+        { player1Points: 11, player2Points: 5 },
+        { player1Points: 11, player2Points: 7 },
+      ],
+    });
+    expect("submission" in result).toBe(true);
+    if ("submission" in result) bthCode1 = result.submission.confirmationCode;
+  });
+
+  it("rejects non-self confirm with wrong code", async () => {
+    const result = await confirmMatchResult({
+      matchId: bthR1P1MatchId,
+      confirmingProfileId: bthProfiles[3],
+      confirmationCode: "0000",
+      birthYear: "2002", // correct birth year — but code check fires first
+    });
+    expect("error" in result).toBe(true);
+    if ("error" in result) expect(result.error).toMatch(/invalid.*code/i);
+  });
+
+  it("rejects non-self confirm with correct code but wrong birth year", async () => {
+    const result = await confirmMatchResult({
+      matchId: bthR1P1MatchId,
+      confirmingProfileId: bthProfiles[3],
+      confirmationCode: bthCode1,
+      birthYear: "1900",
+    });
+    expect("error" in result).toBe(true);
+    if ("error" in result) expect(result.error).toMatch(/incorrect birth year/i);
+  });
+
+  it("accepts non-self confirm with correct code and correct birth year", async () => {
+    // bthProfiles[0] submitted; non-submitter = bthProfiles[3], birth year = "2002"
+    const result = await confirmMatchResult({
+      matchId: bthR1P1MatchId,
+      confirmingProfileId: bthProfiles[3],
+      confirmationCode: bthCode1,
+      birthYear: "2002",
+    });
+    expect("success" in result).toBe(true);
+  });
+
+  // ── Self-confirm ──────────────────────────────────────────────────────────
+
+  it("submits R1P2 result (bthProfiles[1] as submitter for self-confirm test)", async () => {
+    const result = await submitMatchResult({
+      matchId: bthR1P2MatchId,
+      submittedByProfileId: bthProfiles[1],
+      games: [
+        { player1Points: 11, player2Points: 5 },
+        { player1Points: 11, player2Points: 7 },
+      ],
+    });
+    expect("submission" in result).toBe(true);
+  });
+
+  it("rejects self-confirm when birth year is missing", async () => {
+    const result = await confirmMatchResult({
+      matchId: bthR1P2MatchId,
+      confirmingProfileId: bthProfiles[1], // self-confirm
+      // no birthYear — code check is skipped for self-confirm, but birth year is still required
+    });
+    expect("error" in result).toBe(true);
+    if ("error" in result) expect(result.error).toMatch(/birth year is required/i);
+  });
+
+  it("rejects self-confirm with wrong birth year", async () => {
+    // non-submitter = bthProfiles[2], birth year = "1995"
+    const result = await confirmMatchResult({
+      matchId: bthR1P2MatchId,
+      confirmingProfileId: bthProfiles[1], // self-confirm
+      birthYear: "1900",
+    });
+    expect("error" in result).toBe(true);
+    if ("error" in result) expect(result.error).toMatch(/incorrect birth year/i);
+  });
+
+  it("accepts self-confirm with correct birth year (no code required)", async () => {
+    // non-submitter = bthProfiles[2], birth year = "1995"
+    const result = await confirmMatchResult({
+      matchId: bthR1P2MatchId,
+      confirmingProfileId: bthProfiles[1], // self-confirm
+      birthYear: "1995",
+    });
+    expect("success" in result).toBe(true);
+  });
+});
+
 describe("Match result submission — BEST_OF_3 format", () => {
   let bo3EventId: string;
   let bo3MatchId: string;

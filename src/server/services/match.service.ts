@@ -147,27 +147,31 @@ export async function confirmMatchResult(
   const verificationMethod = match.event.tournament.verificationMethod;
   const isSelfConfirm = submission.submittedById === confirmingProfileId;
 
-  // Verify via the method(s) the tournament requires
-  if (!isSelfConfirm && (verificationMethod === "CODE" || verificationMethod === "BOTH")) {
-    if (!confirmationCode) return { error: "Confirmation code is required" };
-    if (submission.confirmationCode !== confirmationCode) return { error: "Invalid confirmation code" };
-  }
-  if (verificationMethod === "BIRTH_YEAR" || verificationMethod === "BOTH") {
-    if (!birthYear) return { error: "Birth year is required" };
-    // The confirmer must enter the OPPONENT's birth year
-    const opponent =
-      submission.submittedById === match.player1Id ? match.player2 : match.player1;
-    if (!opponent?.birthDate) {
-      return { error: "Opponent's date of birth is not on file — cannot verify by birth year" };
-    }
-    const opponentYear = new Date(opponent.birthDate).getUTCFullYear().toString();
-    if (birthYear !== opponentYear) return { error: "Incorrect birth year" };
-  }
-
-  // The confirmer must be the opposing player — not the one who submitted
+  // CODE-only tournaments never allow self-confirmation
   if (isSelfConfirm && verificationMethod === "CODE") {
     return { error: "You cannot confirm your own submission" };
   }
+
+  // Code verification: required for CODE always; required for BOTH only when not self-confirming
+  // (self-confirm on BOTH uses birth year as the sole verification path)
+  if (verificationMethod === "CODE" || (verificationMethod === "BOTH" && !isSelfConfirm)) {
+    if (!confirmationCode) return { error: "Confirmation code is required" };
+    if (submission.confirmationCode !== confirmationCode) return { error: "Invalid confirmation code" };
+  }
+
+  // Birth year verification: required for BIRTH_YEAR and BOTH always
+  if (verificationMethod === "BIRTH_YEAR" || verificationMethod === "BOTH") {
+    if (!birthYear) return { error: "Birth year is required" };
+    // Confirmer must enter the non-submitting player's birth year
+    const nonSubmitter =
+      submission.submittedById === match.player1Id ? match.player2 : match.player1;
+    if (!nonSubmitter?.birthDate) {
+      return { error: "Opponent's date of birth is not on file — cannot verify by birth year" };
+    }
+    const nonSubmitterYear = new Date(nonSubmitter.birthDate).getUTCFullYear().toString();
+    if (birthYear !== nonSubmitterYear) return { error: "Incorrect birth year" };
+  }
+
   if (
     match.player1Id !== confirmingProfileId &&
     match.player2Id !== confirmingProfileId

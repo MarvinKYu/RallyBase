@@ -358,7 +358,7 @@ export async function advanceEventStatus(
   const nextStatus = EVENT_STATUS_ORDER[currentIndex + 1];
 
   if (nextStatus === "REGISTRATION_OPEN" || nextStatus === "IN_PROGRESS") {
-    if (event.tournament.status !== "PUBLISHED") {
+    if (event.tournament.status === "DRAFT") {
       return { error: "The parent tournament must be published before advancing this event." };
     }
   }
