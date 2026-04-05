@@ -2,6 +2,7 @@ import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
 import { auth } from "@clerk/nextjs/server";
 import { getMatchWithSubmission } from "@/server/services/match.service";
+import { getProfileIdByClerkId } from "@/server/services/player.service";
 
 type Props = { params: Promise<{ matchId: string }> };
 
@@ -23,6 +24,9 @@ export default async function PendingResultPage({ params }: Props) {
   const tournamentId = match.event.tournament.id;
   const eventId = match.event.id;
 
+  const viewerProfileId = userId ? await getProfileIdByClerkId(userId) : null;
+  const isSubmitter = viewerProfileId === submission.submittedById;
+
   return (
     <main className="mx-auto max-w-lg px-4 py-16">
       <div className="mb-8 space-y-1">
@@ -41,15 +45,23 @@ export default async function PendingResultPage({ params }: Props) {
         </p>
       </div>
 
-      {/* Confirmation code — shown prominently for the submitter to read aloud */}
-      <div className="mb-8 rounded-lg border border-border bg-elevated px-6 py-5 text-center">
-        <p className="mb-2 text-sm font-medium text-text-2">
-          Give this code to your opponent to confirm the result
-        </p>
-        <p className="break-all font-mono text-lg font-semibold tracking-wide text-accent-bright">
-          {submission.confirmationCode}
-        </p>
-      </div>
+      {/* Confirmation code — visible to the submitter only */}
+      {isSubmitter ? (
+        <div className="mb-8 rounded-lg border border-border bg-elevated px-6 py-5 text-center">
+          <p className="mb-2 text-sm font-medium text-text-2">
+            Give this code to your opponent to confirm the result
+          </p>
+          <p className="break-all font-mono text-lg font-semibold tracking-wide text-accent-bright">
+            {submission.confirmationCode}
+          </p>
+        </div>
+      ) : (
+        <div className="mb-8 rounded-lg border border-border bg-elevated px-6 py-5 text-center">
+          <p className="text-sm text-text-2">
+            Awaiting confirmation from {submission.submittedBy.displayName}&apos;s opponent.
+          </p>
+        </div>
+      )}
 
       {/* Submitted scores */}
       <section className="mb-8">

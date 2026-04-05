@@ -11,6 +11,8 @@ import {
   saveMatchProgressScores,
 } from "@/server/repositories/match.repository";
 import { applyRatingResult } from "@/server/services/rating.service";
+import { isAuthorizedAsTD } from "@/server/services/admin.service";
+import { getProfileIdByClerkId } from "@/server/services/player.service";
 import {
   setEventStatus,
   countNonCompletedMatches,
@@ -24,6 +26,22 @@ import {
 } from "@/server/repositories/bracket.repository";
 import { generateSEStage } from "@/server/services/bracket.service";
 import { prisma } from "@/lib/prisma";
+
+// ── Authorization ─────────────────────────────────────────────────────────────
+
+export async function isMatchParticipantOrTD(
+  clerkId: string,
+  match: {
+    player1Id: string | null;
+    player2Id: string | null;
+    event: { tournament: { createdByClerkId: string | null; organizationId: string } };
+  },
+): Promise<boolean> {
+  if (await isAuthorizedAsTD(clerkId, match.event.tournament)) return true;
+  const profileId = await getProfileIdByClerkId(clerkId);
+  if (!profileId) return false;
+  return profileId === match.player1Id || profileId === match.player2Id;
+}
 
 // ── Queries ───────────────────────────────────────────────────────────────────
 

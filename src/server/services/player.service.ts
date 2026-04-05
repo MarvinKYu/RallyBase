@@ -5,12 +5,15 @@ import { isPlatformAdmin } from "@/server/services/admin.service";
 import { createProfileSchema, updateProfileSchema } from "@/lib/schemas/player";
 import { upsertUserFromClerk } from "@/server/repositories/user.repository";
 import {
+  findProfileIdByClerkId,
   findProfileByUserId,
   findProfileById,
   updatePlayerProfile as dbUpdatePlayerProfile,
   searchProfiles,
   type ProfileFilters,
 } from "@/server/repositories/player.repository";
+
+export { findProfileIdByClerkId as getProfileIdByClerkId };
 import {
   findCompletedMatchesByPlayerId,
   findMatchesByPlayerAndTournament,

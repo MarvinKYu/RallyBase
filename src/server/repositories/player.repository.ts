@@ -13,6 +13,14 @@ const profileInclude = {
   },
 } as const;
 
+export async function findProfileIdByClerkId(clerkId: string): Promise<string | null> {
+  const profile = await prisma.playerProfile.findFirst({
+    where: { user: { clerkId } },
+    select: { id: true },
+  });
+  return profile?.id ?? null;
+}
+
 export async function findProfileByUserId(userId: string) {
   return prisma.playerProfile.findUnique({
     where: { userId },

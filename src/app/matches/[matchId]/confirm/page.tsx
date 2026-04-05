@@ -1,7 +1,7 @@
 import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
 import { auth } from "@clerk/nextjs/server";
-import { getMatchWithSubmission } from "@/server/services/match.service";
+import { getMatchWithSubmission, isMatchParticipantOrTD } from "@/server/services/match.service";
 import { ConfirmResultForm } from "@/components/matches/ConfirmResultForm";
 
 type Props = { params: Promise<{ matchId: string }> };
@@ -25,6 +25,9 @@ export default async function ConfirmResultPage({ params }: Props) {
   if (match.status !== "AWAITING_CONFIRMATION") {
     redirect(`/matches/${matchId}/submit`);
   }
+
+  const authorized = await isMatchParticipantOrTD(userId, match);
+  if (!authorized) redirect(`/tournaments/${tournamentId}/events/${eventId}/bracket`);
 
   const submission = match.submissions[0]!;
 
