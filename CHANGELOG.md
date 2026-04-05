@@ -10,6 +10,13 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 ---
 
+## [0.18.2] - 2026-04-04
+
+### Fixed
+- **TD authorization now consistent across all pages and actions** — all hardcoded `tournament.createdByClerkId === userId` comparisons replaced with `isAuthorizedAsTD()`. Org admins and platform admins now have full TD access everywhere: bracket generation (all 4 action functions), TD result entry, tournament edit, event create, event edit, bracket page TD controls, and standings page TD controls.
+
+---
+
 ## [0.18.1] - 2026-04-04
 
 ### Fixed
