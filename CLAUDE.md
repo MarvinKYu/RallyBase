@@ -21,10 +21,10 @@ Do this automatically for every shipped change — no need to ask.
 
 ## Project Status
 
-**Current version: v0.17.4.** The app is live on Vercel at https://rally-base.vercel.app. Next target: v1.0.0 (public release).
+**Current version: v0.18.4.** The app is live on Vercel at https://rally-base.vercel.app. Next target: v1.0.0 (public release).
 
 ### Upcoming
-- v1.0.0 — Public release (remaining mobile UI fixes, final polish, security audit)
+- v1.0.0 — Public release (final polish, mobile UI review)
 - v1.1.0 — Tournament Templates (post-public-release)
 - v1.1.1 — Tournament flow reversal (post-public-release)
 
@@ -90,7 +90,7 @@ export async function addEntrantAction(eventId, tournamentId, formData): Promise
 - **One account per person**, with multiple roles: `PLAYER`, `TOURNAMENT_DIRECTOR`, `ORG_ADMIN`, `PLATFORM_ADMIN`
 - **Ratings are scoped** by `(player, organization, discipline)` — ratings across orgs are completely isolated
 - **Two rating structures**: a mutable current snapshot (`player_ratings`) and an immutable transaction ledger (`rating_transactions`)
-- **Match results are pending** until the opponent confirms via a confirmation code (auto-generated cuid on `MatchResultSubmission`)
+- **Match results are pending** until the opponent confirms via a 4-digit numeric confirmation code (auto-generated, scoped to `(tournamentId, confirmationCode)` pair — unique within a tournament, not globally unique)
 - **Store per-game point scores** (not just game win counts) in `match_games`; `match_result_submission_games` stores the tentative scores before confirmation
 - **Two bracket formats**: `SINGLE_ELIMINATION` (seeded, advancement chain) and `ROUND_ROBIN` (circle-method, no advancement chain, 3–6 players)
 - **Ratings update automatically** when `confirmMatchResult` is called — `applyRatingResult` runs in the same flow
@@ -109,7 +109,8 @@ export async function addEntrantAction(eventId, tournamentId, formData): Promise
 - **Multi-group RR events**: `Event.groupSize Int?` enables multi-group round robin. When set, `generateRoundRobinBracket` uses `assignGroups` (snake seeding) to distribute players, then builds one schedule per group. `getRoundRobinStandings(eventId, true)` returns `GroupedRoundRobinStandings[]`. Group count = `maxParticipants / groupSize` when `maxParticipants` is set; otherwise `Math.ceil(n / groupSize)`. `createEventSchema` enforces `maxParticipants % groupSize === 0` via `.superRefine()` when both fields are present.
 - **RR→SE hybrid events**: `EventFormat.RR_TO_SE` — group stage (RR) feeds into SE bracket. `Event.advancersPerGroup Int?` (max 2; A≥3 deferred post-v1.0.0) sets how many advance per group. `EventEntry.seed` is reused for SE seeding; `EventEntry.advancesToSE Boolean?` stores TD tie-resolution overrides. SE matches have `groupNumber = null`; RR matches have `groupNumber IS NOT NULL`. Auto-generate SE fires when last RR match completes. `getEventPodium` for RR_TO_SE uses SE-only matches. The bracket page only shows SE matches for RR_TO_SE events. **Seeding (A=1)**: seeds 1–G in ascending group order. **Seeding (A=2)**: winners get seeds 1–G ascending; runners-up get seeds G+1–2G using constrained half-zone placement — each runner-up assigned to the opposite bracket half from their group's winner (greedy, descending group order for strength ordering). Guaranteed satisfiable for any G: `bracketSeedOrder(nextPowerOf2(2G))` upper/lower halves each contain exactly G seeds from [1,2G]. Implemented in `src/server/algorithms/advancer.ts`; uses `bracketSeedOrder` from `bracket.ts` and helpers `nextPowerOf2`/`buildHalfMap`.
 - **Server action FormData rule**: when adding a new form field, always update BOTH `createEventAction` AND `updateEventAction` in `tournament.actions.ts` to extract the field via `formData.get(...)`. Missing either causes silent null storage with no error.
-- **Match verification method**: `Tournament.verificationMethod VerificationMethod @default(CODE)` — values: `CODE`, `BIRTH_YEAR`, `BOTH`. `confirmMatchResult` uses `findPendingSubmissionByMatchId` (looks up by matchId, not code) and verifies accordingly. For `BIRTH_YEAR`/`BOTH`, the submitting player's *opponent's* 4-digit birth year is checked. Fails if opponent has no `birthDate` on file.
+- **Match verification method**: `Tournament.verificationMethod VerificationMethod @default(CODE)` — values: `CODE`, `BIRTH_YEAR`, `BOTH`. `confirmMatchResult` uses `findPendingSubmissionByMatchId` (looks up by matchId, not code) and verifies accordingly. Self-confirm rules: CODE always blocks self-confirm; BIRTH_YEAR always allows self-confirm (birth year of the non-submitter required); BOTH allows self-confirm via birth year only (code check skipped for self-confirmers). Birth year check uses the *opponent's* (non-submitter's) 4-digit birth year. Fails if opponent has no `birthDate` on file.
+- **`isMatchParticipantOrTD(clerkId, match)`**: helper in `match.service.ts` that combines `isAuthorizedAsTD()` + player1Id/player2Id profileId check. Used to gate confirm/page.tsx and pending/page.tsx. Confirmation code on pending page only shown to the original submitter.
 - **Profile visibility flags**: `PlayerProfile.showGender Boolean @default(false)` and `showAge Boolean @default(false)` — opt-in. Set via toggle sliders in profile edit. Public profile (`/profile/[id]`) only shows gender/age when the respective flag is true. DOB is not editable by the player after signup; platform admin can edit via `/admin/players/[profileId]` using `adminSetDobAction`.
 - **Signup requires gender + DOB**: `createProfileSchema` requires both fields. `ProfileForm` (onboarding) enforces this with a disabled placeholder option for gender and a required date input.
 
@@ -164,4 +165,5 @@ Submitted scores live in `match_result_submission_games`. Official scores are on
 - **Timezone limitation**: `datetime-local` inputs are stored as UTC. `toLocaleString()` on the client converts to browser local time. UTC labels added as mitigation; proper timezone handling is future work.
 - **`prisma migrate dev` unavailable**: non-interactive terminal requires writing migration SQL manually and applying via `prisma db execute --file <path> --schema prisma/schema.prisma`.
 - **`checkSEStageStatus` vacuous rrComplete**: `countIncompleteRRMatches` returns 0 for events with no schedule at all. `rrComplete` is guarded by `rrMatchCount > 0 && incompleteRR === 0` — do not revert this to just `incompleteRR === 0` or a fresh RR_TO_SE event will stack-overflow via `bracketSeedOrder(1)` infinite recursion.
+- **Codex runtime artifacts**: `.agents/`, `.codex-gitops/`, `.codex-gitops2/`, `AGENTS.md` are not in `.gitignore` — repo hygiene issue, deferred to v1.0.0 polish.
 
