@@ -21,7 +21,7 @@ export async function generateBracketAction(
   if (!userId) redirect("/sign-in");
 
   const tournament = await getTournamentDetail(tournamentId);
-  if (!tournament || tournament.createdByClerkId !== userId) {
+  if (!tournament || !(await isAuthorizedAsTD(userId, tournament))) {
     redirect(`/tournaments/${tournamentId}/events/${eventId}`);
   }
 

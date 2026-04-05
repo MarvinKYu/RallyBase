@@ -5,6 +5,7 @@ import { getTournamentDetail } from "@/server/services/tournament.service";
 import { TournamentForm } from "@/components/tournaments/TournamentForm";
 import { updateTournamentAction } from "@/server/actions/tournament.actions";
 import { DeleteTournamentButton } from "@/components/tournaments/DeleteTournamentButton";
+import { isAuthorizedAsTD } from "@/server/services/admin.service";
 
 type Props = { params: Promise<{ id: string }> };
 
@@ -35,7 +36,7 @@ export default async function EditTournamentPage({ params }: Props) {
 
   const tournament = await getTournamentDetail(id);
   if (!tournament) notFound();
-  if (tournament.createdByClerkId !== userId) redirect(`/tournaments/${id}`);
+  if (!(await isAuthorizedAsTD(userId, tournament))) redirect(`/tournaments/${id}`);
 
   const boundAction = updateTournamentAction.bind(null, id);
 

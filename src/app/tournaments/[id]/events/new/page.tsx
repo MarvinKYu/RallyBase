@@ -3,6 +3,7 @@ import Link from "next/link";
 import { auth } from "@clerk/nextjs/server";
 import { getTournamentDetail, getRatingCategoriesForOrg } from "@/server/services/tournament.service";
 import { EventForm } from "@/components/tournaments/EventForm";
+import { isAuthorizedAsTD } from "@/server/services/admin.service";
 
 type Props = { params: Promise<{ id: string }> };
 
@@ -16,7 +17,7 @@ export default async function NewEventPage({ params }: Props) {
   const tournament = await getTournamentDetail(id);
   if (!tournament) notFound();
 
-  const isTournamentCreator = tournament.createdByClerkId === userId;
+  const isTournamentCreator = await isAuthorizedAsTD(userId, tournament);
   if (!isTournamentCreator) redirect(`/tournaments/${id}`);
 
   const ratingCategories = await getRatingCategoriesForOrg(tournament.organizationId);

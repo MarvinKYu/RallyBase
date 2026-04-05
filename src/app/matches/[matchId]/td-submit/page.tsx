@@ -5,6 +5,7 @@ import { getMatchWithSubmission } from "@/server/services/match.service";
 import { MAX_GAMES } from "@/server/algorithms/match-validation";
 import { TdSubmitResultForm } from "@/components/matches/TdSubmitResultForm";
 import { tdDefaultMatchAction } from "@/server/actions/match.actions";
+import { isAuthorizedAsTD } from "@/server/services/admin.service";
 
 type Props = {
   params: Promise<{ matchId: string }>;
@@ -23,7 +24,7 @@ export default async function TdSubmitResultPage({ params, searchParams }: Props
   if (!match) notFound();
 
   // Must be the tournament creator
-  if (match.event.tournament.createdByClerkId !== userId) {
+  if (!(await isAuthorizedAsTD(userId, match.event.tournament))) {
     redirect(`/matches/${matchId}/submit`);
   }
 

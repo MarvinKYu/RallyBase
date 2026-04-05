@@ -5,6 +5,7 @@ import { getEventDetail } from "@/server/services/tournament.service";
 import { EventForm } from "@/components/tournaments/EventForm";
 import { updateEventAction } from "@/server/actions/tournament.actions";
 import { DeleteEventButton } from "@/components/tournaments/DeleteEventButton";
+import { isAuthorizedAsTD } from "@/server/services/admin.service";
 
 type Props = { params: Promise<{ id: string; eventId: string }> };
 
@@ -28,7 +29,7 @@ export default async function EditEventPage({ params }: Props) {
 
   const event = await getEventDetail(eventId);
   if (!event) notFound();
-  if (event.tournament.createdByClerkId !== userId) redirect(`/tournaments/${id}/events/${eventId}`);
+  if (!(await isAuthorizedAsTD(userId, event.tournament))) redirect(`/tournaments/${id}/events/${eventId}`);
 
   const boundAction = updateEventAction.bind(null, eventId, id);
 

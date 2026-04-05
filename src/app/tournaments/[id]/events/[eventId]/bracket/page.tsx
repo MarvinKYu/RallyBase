@@ -9,6 +9,7 @@ import { getRoundLabel } from "@/lib/bracket-labels";
 import { bracketSeedOrder } from "@/server/algorithms/bracket";
 import { computeAdvancers } from "@/server/algorithms/advancer";
 import type { GroupedRoundRobinStandings } from "@/server/services/bracket.service";
+import { isAuthorizedAsTD } from "@/server/services/admin.service";
 
 type Props = {
   params: Promise<{ id: string; eventId: string }>;
@@ -701,7 +702,7 @@ export default async function BracketPage({ params, searchParams }: Props) {
     redirect(`/tournaments/${id}/events/${eventId}/standings${from ? `?from=${from}` : ""}`);
   }
 
-  const isTD = !!userId && event.tournament.createdByClerkId === userId;
+  const isTD = !!userId && await isAuthorizedAsTD(userId, event.tournament);
 
   // For RR_TO_SE: only show SE matches (groupNumber === null)
   const bracketMatches =

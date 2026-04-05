@@ -10,6 +10,7 @@ import {
   type RoundRobinStanding,
 } from "@/server/services/bracket.service";
 import { StandingsSchedule, type SerializedMatch } from "@/components/tournaments/StandingsSchedule";
+import { isAuthorizedAsTD } from "@/server/services/admin.service";
 
 type Props = {
   params: Promise<{ id: string; eventId: string }>;
@@ -46,7 +47,7 @@ export default async function StandingsPage({ params, searchParams }: Props) {
     ? matches.filter((m) => (m as typeof m & { groupNumber?: number | null }).groupNumber !== null)
     : matches;
 
-  const isTD = !!userId && event.tournament.createdByClerkId === userId;
+  const isTD = !!userId && await isAuthorizedAsTD(userId, event.tournament);
 
   // Serialize matches and group by [groupNumber, round]
   function serializeMatch(m: (typeof matches)[0]): SerializedMatch {
