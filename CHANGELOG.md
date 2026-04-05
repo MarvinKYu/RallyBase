@@ -10,6 +10,16 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 ---
 
+## [0.18.3] - 2026-04-04
+
+### Fixed
+- **Confirmation codes scoped to tournament** — `MatchResultSubmission.confirmationCode` was globally unique across all submissions, guaranteeing eventual exhaustion at 10,000 confirmed matches. Now unique per tournament (`@@unique([tournamentId, confirmationCode])`). Code generation retries on collision; 4-digit numeric format preserved. Existing rows back-filled via migration.
+
+### Changed
+- Removed unused `findSubmissionByCode` repository function (orphaned by the uniqueness change).
+
+---
+
 ## [0.18.2] - 2026-04-04
 
 ### Fixed
