@@ -10,6 +10,17 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 ---
 
+## [0.18.0] - 2026-04-04
+
+### Fixed
+- **Self-confirmation logic corrected for all verification methods** — `confirmMatchResult()` now blocks self-confirm upfront for `CODE` tournaments; allows self-confirm for `BIRTH_YEAR` tournaments (birth year of the non-submitting player still required); allows self-confirm for `BOTH` tournaments via birth year only (code check skipped for self-confirmers, since they generated the code themselves).
+- **Event advancement allowed when tournament is IN_PROGRESS or COMPLETED** — `advanceEventStatus()` previously blocked advancement unless the tournament was exactly `PUBLISHED`. Now only `DRAFT` is blocked, so TDs can advance events added to in-progress or completed tournaments.
+
+### Tests
+- Added integration test suites for `BIRTH_YEAR` and `BOTH` verification modes, covering non-self and self-confirm paths (7 + 9 new tests; 32 total in `match.test.ts`).
+
+---
+
 ## [0.17.4] - 2026-04-03
 
 ### Fixed

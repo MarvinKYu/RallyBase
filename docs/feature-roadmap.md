@@ -1,5 +1,45 @@
 # Planned Features Roadmap
 
+## v0.18.0 — Fix self-confirmation logic
+
+> Codex: **No** — the BOTH + self-confirm behavior is non-obvious and requires careful restructuring; better owned directly.
+
+Fix `confirmMatchResult()` in `match.service.ts` so the self-confirm block fires before verification-method branching. Resulting rules: `CODE` blocks self-confirm entirely; `BIRTH_YEAR` allows self-confirm (birth year still required); `BOTH` allows self-confirm via birth year only (code check skipped for self-confirmers). Add integration tests for all three verification modes, including self-confirm cases.
+
+---
+
+## v0.18.1 — Restrict confirmation pages to participants and TDs
+
+> Codex: **No** — small and contained; 2 page files + 1 service helper.
+
+`pending/page.tsx`: show confirmation code only to the submitter; any signed-in user can see the scores. `confirm/page.tsx`: require that the viewer is a match participant or is authorized as TD (covers creator, org admin, platform admin). Add `isMatchParticipantOrTD(clerkId, match)` helper in `match.service.ts`.
+
+---
+
+## v0.18.2 — Fix TD authorization across pages and actions
+
+> Codex: **Yes** — mechanical multi-file find-and-replace; 7 locations to replace hardcoded `createdByClerkId` comparisons with `isAuthorizedAsTD()`.
+
+Files: `bracket.actions.ts`, `td-submit/page.tsx`, `tournaments/[id]/edit/page.tsx`, `tournaments/[id]/events/new/page.tsx`, `tournaments/[id]/events/[eventId]/bracket/page.tsx`, `tournaments/[id]/events/[eventId]/edit/page.tsx`, `tournaments/[id]/events/[eventId]/standings/page.tsx`.
+
+---
+
+## v0.18.3 — Scope confirmation codes to tournament
+
+> Codex: **Yes** — well-defined schema migration + targeted service change.
+
+Schema: add `tournamentId String` (denormalized) to `MatchResultSubmission`; replace `@unique` on `confirmationCode` with `@@unique([tournamentId, confirmationCode])`. Service: pass `tournamentId` through `submitMatchResult` → `createSubmission`; retry code generation on collision. Keeps 4-digit numeric format; resets the uniqueness namespace per tournament.
+
+---
+
+## v0.18.4 — Fix broken integration tests
+
+> Codex: **No** — requires context about why tests broke (tournament creation gating via `canCreateTournamentInOrg`); targeted fix is faster to own directly.
+
+`tournament-status.test.ts` and `tournament-edit.test.ts` fail because they call `createTournament` without an authorized user. Fix: give each test suite its own user + org setup that satisfies `canCreateTournamentInOrg`.
+
+---
+
 ## v1.0.0 — Public Release
 
 > Plan mode: **No** — polish and audit work; no new schema or cross-service changes. Each sub-item can be tackled incrementally.
@@ -31,7 +71,6 @@ Final polish and infrastructure pass before opening to the public.
 
 ### Tournament flow reversal
 - Give TD option to move from "published" back to "draft" through a "Retract" button
-- Also fix: TD should be able to "start event" for new events added to in-progress tournaments. right now attempting that displays an error message saying "The parent tournament must be published before advancing this event."
 
 ---
 

@@ -1,5 +1,45 @@
 # Current bugs
 
+## UX: BOTH + self-confirm still shows confirmation code field
+- `ConfirmResultForm` renders both code and birth year fields for `BOTH` verification. When self-confirming, the server correctly skips the code check, but the user still sees a code input they don't need to fill in.
+- Fix: pass `isSelf` prop to the form and conditionally hide the code field.
+- Deferred until post-v0.18.0 UX pass.
+
+## Non-atomic match confirmation (race condition)
+- `confirmMatchResult` reads the pending submission outside any transaction; `applyRatingResult` runs in a separate step. Two near-simultaneous confirmations could double-apply ratings.
+- Low real-world risk (two users confirming the same match simultaneously is extremely unlikely), but architecturally unsound.
+- Fix: wrap confirm + score write + bracket advance + rating update in a single `$transaction`, or use a conditional `PENDING → CONFIRMED` update that aborts if no row changed.
+- Deferred — revisit before high-volume production use.
+
+## Concurrent match submissions race condition
+- `submitMatchResult` checks match status before creating the submission, outside the write transaction. Two near-simultaneous submits could create two pending submissions for one match.
+- Low real-world risk. `findFirst()` always picks one; the second is orphaned but harmless.
+- Fix: enforce `@@unique([matchId])` or similar DB-level guard on pending submissions, and make creation conditional on match still being `PENDING`.
+- Deferred — revisit before high-volume production use.
+
+## In-progress saved scores publicly readable
+- `/matches(.*)` is public. The match page renders "Saved scores" whenever `match.status === "IN_PROGRESS"` and `match.matchGames` exist.
+- Product decision pending: keep in-progress scores private to participants/TDs, or accept current public visibility.
+- Files: `middleware.ts`, `matches/[matchId]/page.tsx`, `match.repository.ts`.
+
+## README migration instructions describe the wrong workflow
+- `npm run db:migrate` maps to `prisma migrate dev`, which requires an interactive terminal that is unavailable in this environment. Actual workflow requires manual SQL + `prisma db execute`.
+- Fix: update README to document the real migration flow and separate "local dev bootstrap" from "schema authoring" instructions.
+
+## Demo seed injects fake data into any environment
+- `npm run db:seed` creates demo players, a published tournament, a seeded bracket, and completed match results. README presents it as normal setup.
+- Fix: split bootstrap seed (roles, orgs) from demo seed, or make demo data opt-in via a separate command.
+
+## Repository metadata not release-ready
+- No `LICENSE` file; no `.github/workflows` CI; `package.json` still has `"private": true` and version `"0.1.0"`.
+- Fix: add a license, add basic CI (lint/build/tests), align `package.json` version with actual release version.
+
+## Public repo polish
+- `docs/feature-plans-shortlist.md` starts with a `# TODO` stub.
+- Default Next.js SVG assets in `public/` are unused.
+- `tests/setup.ts` prints dotenv tips for every test file.
+- `npm run build` warns that the `middleware` file convention is deprecated (cosmetic — works correctly per CLAUDE.md).
+
 ## Throw error on event create page if # advancers > # players per group
 - Save for later when we implement # advancers = 3, 4. 
 
