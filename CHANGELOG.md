@@ -10,6 +10,13 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 ---
 
+## [0.18.4] - 2026-04-04
+
+### Fixed
+- **Integration test suite fully passing** — `tournament-status.test.ts` and `tournament-edit.test.ts` were failing because `seedSetup()` called `organization.findFirst()` without filtering, which could return a non-rallybase org. `canCreateTournamentInOrg()` auto-approves the "rallybase" org by slug; tests now explicitly target it. All 138 integration tests pass.
+
+---
+
 ## [0.18.3] - 2026-04-04
 
 ### Fixed
