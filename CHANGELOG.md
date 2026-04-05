@@ -10,6 +10,14 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 ---
 
+## [0.18.1] - 2026-04-04
+
+### Fixed
+- **Confirmation page restricted to participants and TDs** — `/matches/[id]/confirm` now redirects unauthorized viewers (non-participants, non-TDs) to the bracket page. Org admins and platform admins are covered via `isAuthorizedAsTD`.
+- **Pending page hides confirmation code from non-submitters** — the code is now shown only to the player who submitted the result. Other viewers (including the opponent) see a generic "awaiting confirmation" message instead.
+
+---
+
 ## [0.18.0] - 2026-04-04
 
 ### Fixed
