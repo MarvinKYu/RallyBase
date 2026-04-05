@@ -37,8 +37,9 @@ afterAll(async () => {
 });
 
 async function seedSetup() {
-  const org = await prisma.organization.findFirst();
-  if (!org) throw new Error("No organizations found — run db seed first");
+  // Must use the "rallybase" org so canCreateTournamentInOrg() passes for test users
+  const org = await prisma.organization.findFirst({ where: { slug: "rallybase" } });
+  if (!org) throw new Error("rallybase org not found — run db seed first");
   const category = await prisma.ratingCategory.findFirst({
     where: { organizationId: org.id },
   });
