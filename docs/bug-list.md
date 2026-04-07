@@ -1,27 +1,5 @@
 # Current bugs
 
-## UX: BOTH + self-confirm still shows confirmation code field
-- `ConfirmResultForm` renders both code and birth year fields for `BOTH` verification. When self-confirming, the server correctly skips the code check, but the user still sees a code input they don't need to fill in.
-- Fix: pass `isSelf` prop to the form and conditionally hide the code field.
-- Deferred until post-v0.18.0 UX pass.
-
-## Non-atomic match confirmation (race condition)
-- `confirmMatchResult` reads the pending submission outside any transaction; `applyRatingResult` runs in a separate step. Two near-simultaneous confirmations could double-apply ratings.
-- Low real-world risk (two users confirming the same match simultaneously is extremely unlikely), but architecturally unsound.
-- Fix: wrap confirm + score write + bracket advance + rating update in a single `$transaction`, or use a conditional `PENDING → CONFIRMED` update that aborts if no row changed.
-- Deferred — revisit before high-volume production use.
-
-## Concurrent match submissions race condition
-- `submitMatchResult` checks match status before creating the submission, outside the write transaction. Two near-simultaneous submits could create two pending submissions for one match.
-- Low real-world risk. `findFirst()` always picks one; the second is orphaned but harmless.
-- Fix: enforce `@@unique([matchId])` or similar DB-level guard on pending submissions, and make creation conditional on match still being `PENDING`.
-- Deferred — revisit before high-volume production use.
-
-## In-progress saved scores publicly readable
-- `/matches(.*)` is public. The match page renders "Saved scores" whenever `match.status === "IN_PROGRESS"` and `match.matchGames` exist.
-- Product decision pending: keep in-progress scores private to participants/TDs, or accept current public visibility.
-- Files: `middleware.ts`, `matches/[matchId]/page.tsx`, `match.repository.ts`.
-
 ## README migration instructions describe the wrong workflow
 - `npm run db:migrate` maps to `prisma migrate dev`, which requires an interactive terminal that is unavailable in this environment. Actual workflow requires manual SQL + `prisma db execute`.
 - Fix: update README to document the real migration flow and separate "local dev bootstrap" from "schema authoring" instructions.
@@ -56,6 +34,18 @@
 - Requires scheduled job. Deferred.
 
 # Fixed
+
+## Version 0.18.6
+
+### Non-atomic match confirmation (race condition)
+- `confirmMatchResult` reads the pending submission outside any transaction; `applyRatingResult` runs in a separate step. Two near-simultaneous confirmations could double-apply ratings.
+- Fix: `confirmSubmission` now uses a conditional `updateMany WHERE status = PENDING`. If count=0, throws `ALREADY_CONFIRMED` and rolls back the entire transaction. `applyRatingResult` only runs after the transaction commits.
+
+### Concurrent match submissions race condition
+- `submitMatchResult` checks match status before creating the submission, outside the write transaction. Two near-simultaneous submits could create two pending submissions for one match.
+- Fix: `createSubmission` now uses a conditional `updateMany WHERE status IN (PENDING, IN_PROGRESS)` to flip the match status. If count=0, throws `MATCH_ALREADY_SUBMITTED` and rolls back the transaction including the just-created submission row.
+
+---
 
 ## Version 0.17.3
 
