@@ -597,35 +597,34 @@ describe("Match result confirmation — BOTH verification", () => {
     if ("submission" in result) bthCode1 = result.submission.confirmationCode;
   });
 
-  it("rejects non-self confirm with wrong code", async () => {
+  // BOTH non-self-confirm uses OR logic: either code OR birth year is sufficient
+
+  it("rejects non-self confirm with wrong code and no birth year", async () => {
     const result = await confirmMatchResult({
       matchId: bthR1P1MatchId,
       confirmingProfileId: bthProfiles[3],
       confirmationCode: "0000",
-      birthYear: "2002", // correct birth year — but code check fires first
     });
     expect("error" in result).toBe(true);
     if ("error" in result) expect(result.error).toMatch(/invalid.*code/i);
   });
 
-  it("rejects non-self confirm with correct code but wrong birth year", async () => {
+  it("rejects non-self confirm with no code and wrong birth year", async () => {
     const result = await confirmMatchResult({
       matchId: bthR1P1MatchId,
       confirmingProfileId: bthProfiles[3],
-      confirmationCode: bthCode1,
       birthYear: "1900",
     });
     expect("error" in result).toBe(true);
     if ("error" in result) expect(result.error).toMatch(/incorrect birth year/i);
   });
 
-  it("accepts non-self confirm with correct code and correct birth year", async () => {
-    // bthProfiles[0] submitted; non-submitter = bthProfiles[3], birth year = "2002"
+  it("accepts non-self confirm with correct code alone (no birth year required)", async () => {
+    // OR logic: correct code alone is sufficient; birth year not needed
     const result = await confirmMatchResult({
       matchId: bthR1P1MatchId,
       confirmingProfileId: bthProfiles[3],
       confirmationCode: bthCode1,
-      birthYear: "2002",
     });
     expect("success" in result).toBe(true);
   });

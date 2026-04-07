@@ -8,16 +8,19 @@ interface Props {
   tournamentId: string;
   eventId: string;
   verificationMethod: "CODE" | "BIRTH_YEAR" | "BOTH";
+  isSelfConfirm: boolean;
 }
 
-export function ConfirmResultForm({ matchId, tournamentId, eventId, verificationMethod }: Props) {
+export function ConfirmResultForm({ matchId, tournamentId, eventId, verificationMethod, isSelfConfirm }: Props) {
   const boundAction = confirmResultAction.bind(null, matchId, tournamentId, eventId);
   const [state, dispatch, isPending] = useActionState<MatchActionState, FormData>(
     boundAction,
     null,
   );
 
-  const showCode = verificationMethod === "CODE" || verificationMethod === "BOTH";
+  // BOTH + self-confirm: only birth year (submitter can't use the code they generated)
+  // BOTH + opponent: both fields shown as alternatives (either is sufficient)
+  const showCode = verificationMethod === "CODE" || (verificationMethod === "BOTH" && !isSelfConfirm);
   const showBirthYear = verificationMethod === "BIRTH_YEAR" || verificationMethod === "BOTH";
 
   return (

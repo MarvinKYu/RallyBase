@@ -2,6 +2,7 @@ import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
 import { auth } from "@clerk/nextjs/server";
 import { getMatchWithSubmission, isMatchParticipantOrTD } from "@/server/services/match.service";
+import { getProfileIdByClerkId } from "@/server/services/player.service";
 import { ConfirmResultForm } from "@/components/matches/ConfirmResultForm";
 
 type Props = { params: Promise<{ matchId: string }> };
@@ -30,6 +31,8 @@ export default async function ConfirmResultPage({ params }: Props) {
   if (!authorized) redirect(`/tournaments/${tournamentId}/events/${eventId}/bracket`);
 
   const submission = match.submissions[0]!;
+  const viewerProfileId = await getProfileIdByClerkId(userId);
+  const isSelfConfirm = viewerProfileId === submission.submittedById;
 
   return (
     <main className="mx-auto max-w-lg px-4 py-16">
@@ -76,17 +79,18 @@ export default async function ConfirmResultPage({ params }: Props) {
       {/* Confirmation entry */}
       <div className="mb-6">
         <h2 className="mb-3 text-sm font-medium text-text-2">
-          {match.event.tournament.verificationMethod === "BIRTH_YEAR"
-            ? "Enter your opponent's birth year to confirm these scores"
-            : match.event.tournament.verificationMethod === "BOTH"
-              ? "Enter the confirmation code and your opponent's birth year"
-              : "Enter the confirmation code to confirm these scores"}
+          {match.event.tournament.verificationMethod === "CODE"
+            ? "Enter the confirmation code to confirm these scores"
+            : match.event.tournament.verificationMethod === "BIRTH_YEAR" || isSelfConfirm
+              ? "Enter your opponent's birth year to confirm these scores"
+              : "Enter the confirmation code or your opponent's birth year to confirm these scores"}
         </h2>
         <ConfirmResultForm
           matchId={matchId}
           tournamentId={tournamentId}
           eventId={eventId}
           verificationMethod={match.event.tournament.verificationMethod}
+          isSelfConfirm={isSelfConfirm}
         />
       </div>
 
