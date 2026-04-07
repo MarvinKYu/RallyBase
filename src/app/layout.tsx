@@ -71,6 +71,7 @@ export default async function RootLayout({
 
           <footer className="border-t border-border bg-surface px-4 py-6 text-center text-sm text-text-2">
             <div className="flex flex-wrap items-center justify-center gap-6">
+              <Link href="/terms" className="transition-colors hover:text-text-1">Terms of Use</Link>
               <Link href="/privacy" className="transition-colors hover:text-text-1">Privacy Policy</Link>
               <Link href="/cookies" className="transition-colors hover:text-text-1">Cookie Policy</Link>
               <a href="#" className="termly-display-preferences transition-colors hover:text-text-1">Consent Preferences</a>
