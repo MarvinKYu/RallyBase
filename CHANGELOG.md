@@ -10,6 +10,17 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 ---
 
+## [0.21.2] - 2026-04-07
+
+### Added
+- **Right-to-erasure (GDPR/CCPA)** — self-service account deletion via the Edit Profile page. On confirmation, PII fields (`displayName`, `bio`, `gender`, `birthDate`) are nulled/replaced with "Deleted User", `isDeleted` and `deletedAt` are set on `PlayerProfile`, and the Clerk auth record is deleted. Match history and ratings are retained anonymized.
+- **Active-tournament guard** — deletion is blocked with a clear error if the player has any `EventEntry` in an `IN_PROGRESS` tournament.
+- **Deleted profile page** — navigating to a deleted player's public profile shows "This account has been deleted." instead of the full profile.
+- **Search exclusion** — deleted profiles are excluded from all player search results (`isDeleted: false` filter in `searchProfiles`).
+- **`PlayerProfile` schema** — added `isDeleted Boolean @default(false)` and `deletedAt DateTime?` fields; migration `v0.21.2_delete_account.sql` applied.
+
+---
+
 ## [0.21.1] - 2026-04-07
 
 ### Added

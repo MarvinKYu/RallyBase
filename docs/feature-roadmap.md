@@ -1,10 +1,5 @@
 # Planned Features Roadmap
 
-## v0.21.2 — Legal & Compliance (continued)
-
-> Plan mode: **Yes** — GDPR/CCPA data deletion touches user, profile, ratings, and match data; needs schema and service design upfront.
-
-- **GDPR/CCPA**: implement right-to-erasure flow (data deletion request); document what personal data is collected, stored, and how it's used
 
 ## v1.0.0 — Public Release
 
