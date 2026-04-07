@@ -10,6 +10,14 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 ---
 
+## [0.21.1] - 2026-04-07
+
+### Added
+- **Terms of Use page** — `/terms` with 13 sections covering eligibility, account rules, acceptable use, TD responsibilities, ratings disclaimer, IP, third-party services, warranty disclaimer, liability cap, termination, and governing law (New Jersey).
+- **Terms of Use footer link** — added to site footer alongside Privacy Policy and Cookie Policy.
+
+---
+
 ## [0.21.0] - 2026-04-07
 
 ### Added
