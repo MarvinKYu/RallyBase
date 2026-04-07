@@ -21,7 +21,7 @@ Do this automatically for every shipped change — no need to ask.
 
 ## Project Status
 
-**Current version: v0.19.0.** The app is live on Vercel at https://rally-base.vercel.app. Next target: v1.0.0 (public release).
+**Current version: v0.20.0.** The app is live on Vercel at https://rally-base.vercel.app. Next target: v1.0.0 (public release).
 
 ### Upcoming
 - v1.0.0 — Public release (final polish, mobile UI review)

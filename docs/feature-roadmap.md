@@ -1,14 +1,5 @@
 # Planned Features Roadmap
 
-## v0.20.0 — Reliability & Performance
-
-- **Frontend error fallback**: add a catch-all error boundary so users never see raw stack traces from crashes
-- **Database indexing**: add indexes on most commonly queried fields (player lookups, tournament/event queries, match queries by tournamentId)
-- **Product analytics**: integrate Vercel Analytics for baseline click-through, time on site, and conversion tracking
-- **Capacity planning**: document current Vercel/Neon tier limits, costs, and upgrade path before traffic grows
-
----
-
 ## v0.21.0 — Legal & Compliance
 
 > Plan mode: **Yes** — GDPR/CCPA data deletion touches user, profile, ratings, and match data; needs schema and service design upfront.

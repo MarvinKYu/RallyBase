@@ -10,6 +10,16 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 ---
 
+## [0.20.0] - 2026-04-07
+
+### Added
+- **Global error boundary** — `src/app/error.tsx` catches unhandled route errors and shows a generic "Something went wrong" message with a Go Home link instead of a raw stack trace.
+- **Database indexes** — 9 new indexes applied via migration (`prisma/migrations/manual/v0.20.0_indexes.sql`): `Match(eventId)`, `Match(eventId, status)`, `Match(player1Id)`, `Match(player2Id)`, `EventEntry(playerProfileId)`, `RatingTransaction(playerProfileId)`, `RatingTransaction(matchId)`, `MatchResultSubmission(matchId)`, `Tournament(createdByClerkId)`. PostgreSQL does not auto-index FK columns; these cover the hottest query paths.
+- **Vercel Analytics + Speed Insights** — `@vercel/analytics` and `@vercel/speed-insights` added to root layout. Custom `tournament_start` event tracked (with `event_format` property) when a TD generates a bracket/schedule.
+- **Capacity planning doc** — `docs/capacity-planning.md` documents current Vercel Hobby and Neon free tier limits, usage estimates, and upgrade triggers.
+
+---
+
 ## [0.19.0] - 2026-04-06
 
 ### Security
