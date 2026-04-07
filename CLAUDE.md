@@ -37,6 +37,7 @@ Do this automatically for every shipped change — no need to ask.
 - **Auth**: Clerk (`@clerk/nextjs` v7)
 - **Validation**: Zod v4 (react-hook-form removed — all forms use plain `useActionState` + native FormData)
 - **Testing**: Vitest v4 (unit + integration against real DB)
+- **Rate limiting**: `@upstash/ratelimit` + `@upstash/redis` (requires `UPSTASH_REDIS_REST_URL` + `UPSTASH_REDIS_REST_TOKEN` env vars)
 - **Hosting**: Vercel (configured via `vercel.json`)
 
 ## Commands
@@ -166,4 +167,6 @@ Submitted scores live in `match_result_submission_games`. Official scores are on
 - **`prisma migrate dev` unavailable**: non-interactive terminal requires writing migration SQL manually and applying via `prisma db execute --file <path> --schema prisma/schema.prisma`.
 - **`checkSEStageStatus` vacuous rrComplete**: `countIncompleteRRMatches` returns 0 for events with no schedule at all. `rrComplete` is guarded by `rrMatchCount > 0 && incompleteRR === 0` — do not revert this to just `incompleteRR === 0` or a fresh RR_TO_SE event will stack-overflow via `bracketSeedOrder(1)` infinite recursion.
 - **Codex runtime artifacts**: `.agents/`, `.codex-gitops/`, `.codex-gitops2/`, `AGENTS.md` are not in `.gitignore` — repo hygiene issue, deferred to v1.0.0 polish.
+- **RLS table owner bypass**: RLS is enabled on key tables (`PlayerProfile`, `PlayerRating`, `RatingTransaction`, `MatchResultSubmission`, `EventEntry`, `Match`) but `neondb_owner` is the table owner and bypasses RLS by default. The app DB connection has full access. To add restrictive policies for a future read-only analytics role, add `CREATE POLICY` statements — no schema changes needed.
+- **Rate limiting env vars**: `UPSTASH_REDIS_REST_URL` and `UPSTASH_REDIS_REST_TOKEN` must be set in both `.env.local` and Vercel project settings. Missing vars will cause `Redis.fromEnv()` to throw at runtime on any rate-limited action.
 
