@@ -2,7 +2,7 @@
 
 import { redirect } from "next/navigation";
 import { auth } from "@clerk/nextjs/server";
-import { createPlayerProfile, updatePlayerProfile } from "@/server/services/player.service";
+import { createPlayerProfile, updatePlayerProfile, deleteAccount } from "@/server/services/player.service";
 
 export type ProfileActionState = {
   error?: string;
@@ -26,6 +26,16 @@ export async function createProfileAction(
   if ("error" in result) return { error: result.error };
 
   redirect(`/profile/${result.profile.id}`);
+}
+
+export async function deleteAccountAction(): Promise<{ error: string } | null> {
+  const { userId } = await auth();
+  if (!userId) return { error: "You must be signed in." };
+
+  const result = await deleteAccount(userId);
+  if ("error" in result) return { error: result.error };
+
+  redirect("/");
 }
 
 // profileId is pre-bound via .bind(null, profileId)

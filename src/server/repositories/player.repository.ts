@@ -1,4 +1,4 @@
-import { Gender, Prisma } from "@prisma/client";
+import { Gender, Prisma, TournamentStatus } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 
 const profileInclude = {
@@ -51,6 +51,16 @@ export async function updatePlayerProfile(
   return prisma.playerProfile.update({ where: { id }, data });
 }
 
+export async function hasActiveEventEntries(profileId: string): Promise<boolean> {
+  const count = await prisma.eventEntry.count({
+    where: {
+      playerProfileId: profileId,
+      event: { tournament: { status: TournamentStatus.IN_PROGRESS } },
+    },
+  });
+  return count > 0;
+}
+
 export interface ProfileFilters {
   query?: string;
   organizationId?: string;
@@ -64,7 +74,7 @@ export async function searchProfiles(filters: ProfileFilters) {
   const { query, organizationId, ratingCategoryId, gender, minAge, maxAge } = filters;
 
   // Build where clause
-  const where: Prisma.PlayerProfileWhereInput = {};
+  const where: Prisma.PlayerProfileWhereInput = { isDeleted: false };
 
   // Text / number search
   if (query) {

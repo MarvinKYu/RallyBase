@@ -3,6 +3,7 @@ import Link from "next/link";
 import { auth } from "@clerk/nextjs/server";
 import { getPlayerProfile } from "@/server/services/player.service";
 import { ProfileEditForm } from "@/components/players/ProfileEditForm";
+import { DeleteAccountSection } from "@/components/players/DeleteAccountSection";
 
 type Props = { params: Promise<{ id: string }> };
 
@@ -56,6 +57,8 @@ export default async function ProfileEditPage({ params }: Props) {
           ← Cancel
         </Link>
       </div>
+
+      <DeleteAccountSection />
     </main>
   );
 }

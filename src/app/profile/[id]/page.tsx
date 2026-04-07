@@ -42,6 +42,14 @@ export default async function ProfilePage({ params }: Props) {
   const profile = await getPlayerProfile(id);
   if (!profile) notFound();
 
+  if (profile.isDeleted) {
+    return (
+      <main className="mx-auto max-w-lg px-4 py-16 text-center">
+        <p className="text-text-2">This account has been deleted.</p>
+      </main>
+    );
+  }
+
   const isOwnProfile = !!userId && profile.user.clerkId === userId;
 
   const upcomingMatches = isOwnProfile

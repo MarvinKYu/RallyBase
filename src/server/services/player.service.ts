@@ -1,4 +1,4 @@
-import { currentUser } from "@clerk/nextjs/server";
+import { currentUser, clerkClient } from "@clerk/nextjs/server";
 import { Gender, RoleName } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { isPlatformAdmin } from "@/server/services/admin.service";
@@ -10,6 +10,7 @@ import {
   findProfileById,
   updatePlayerProfile as dbUpdatePlayerProfile,
   searchProfiles,
+  hasActiveEventEntries,
   type ProfileFilters,
 } from "@/server/repositories/player.repository";
 
@@ -131,6 +132,54 @@ export async function updatePlayerProfile(
 
   const updated = await findProfileById(profileId);
   return { profile: updated! };
+}
+
+export type DeleteAccountResult = { error: string } | { success: true };
+
+export async function deleteAccount(clerkId: string): Promise<DeleteAccountResult> {
+  const user = await prisma.user.findUnique({
+    where: { clerkId },
+    include: { playerProfile: true },
+  });
+  if (!user) return { error: "User not found." };
+  if (!user.playerProfile) return { error: "No player profile found." };
+
+  const profile = user.playerProfile;
+
+  if (await hasActiveEventEntries(profile.id)) {
+    return {
+      error:
+        "You are currently entered in an active tournament. Please contact the tournament director before deleting your account.",
+    };
+  }
+
+  await prisma.$transaction(async (tx) => {
+    await tx.playerProfile.update({
+      where: { id: profile.id },
+      data: {
+        displayName: "Deleted User",
+        bio: null,
+        gender: null,
+        birthDate: null,
+        showGender: false,
+        showAge: false,
+        isDeleted: true,
+        deletedAt: new Date(),
+      },
+    });
+    await tx.user.update({
+      where: { id: user.id },
+      data: {
+        name: "Deleted User",
+        email: `deleted-${user.id}@deleted.invalid`,
+      },
+    });
+  });
+
+  const clerk = await clerkClient();
+  await clerk.users.deleteUser(clerkId);
+
+  return { success: true };
 }
 
 export async function getPlayerMatchHistory(playerProfileId: string) {
