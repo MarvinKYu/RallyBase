@@ -146,7 +146,10 @@ export async function submitMatchResult(
     } catch (e) {
       const isUniqueViolation =
         typeof e === "object" && e !== null && "code" in e && (e as { code: string }).code === "P2002";
-      if (isUniqueViolation) continue;
+      if (isUniqueViolation) continue; // code collision — retry with a new code
+      if (e instanceof Error && e.message === "MATCH_ALREADY_SUBMITTED") {
+        return { error: "A submission is already pending confirmation for this match" };
+      }
       throw e;
     }
   }
@@ -233,20 +236,27 @@ export async function confirmMatchResult(
   // Determine the slot the winner fills in the next match
   const nextMatchSlot = match.nextMatchId ? winnerSlotInNextMatch(match.position) : null;
 
-  await confirmSubmission({
-    submissionId: submission.id,
-    matchId,
-    winnerId,
-    nextMatchId: match.nextMatchId,
-    nextMatchSlot,
-    games: submission.games.map((g) => ({
-      gameNumber: g.gameNumber,
-      player1Points: g.player1Points,
-      player2Points: g.player2Points,
-    })),
-  });
+  try {
+    await confirmSubmission({
+      submissionId: submission.id,
+      matchId,
+      winnerId,
+      nextMatchId: match.nextMatchId,
+      nextMatchSlot,
+      games: submission.games.map((g) => ({
+        gameNumber: g.gameNumber,
+        player1Points: g.player1Points,
+        player2Points: g.player2Points,
+      })),
+    });
+  } catch (e) {
+    if (e instanceof Error && e.message === "ALREADY_CONFIRMED") {
+      return { error: "This match result has already been confirmed" };
+    }
+    throw e;
+  }
 
-  // Apply Elo rating changes for both players
+  // Apply rating changes — runs only after confirmSubmission succeeds
   const loserId = winnerId === match.player1Id ? match.player2Id! : match.player1Id!;
   await applyRatingResult({
     winnerProfileId: winnerId,

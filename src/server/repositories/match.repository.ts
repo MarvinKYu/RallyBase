@@ -89,10 +89,17 @@ export async function createSubmission(data: {
       },
     });
 
-    await tx.match.update({
-      where: { id: data.matchId },
+    // Conditional update: only flip to AWAITING_CONFIRMATION if the match is still submittable.
+    // Guards against two concurrent submitters both passing the service-layer status check.
+    const matchUpdate = await tx.match.updateMany({
+      where: {
+        id: data.matchId,
+        status: { in: [MatchStatus.PENDING, MatchStatus.IN_PROGRESS] },
+      },
       data: { status: MatchStatus.AWAITING_CONFIRMATION },
     });
+
+    if (matchUpdate.count === 0) throw new Error("MATCH_ALREADY_SUBMITTED");
 
     return submission;
   });
@@ -125,11 +132,14 @@ export async function confirmSubmission(data: {
   games: Array<{ gameNumber: number; player1Points: number; player2Points: number }>;
 }) {
   return prisma.$transaction(async (tx) => {
-    // Mark submission CONFIRMED
-    await tx.matchResultSubmission.update({
-      where: { id: data.submissionId },
+    // Conditional update: only confirm if still PENDING.
+    // Guards against two concurrent confirmers both passing the service-layer check.
+    const submissionUpdate = await tx.matchResultSubmission.updateMany({
+      where: { id: data.submissionId, status: SubmissionStatus.PENDING },
       data: { status: SubmissionStatus.CONFIRMED, confirmedAt: new Date() },
     });
+
+    if (submissionUpdate.count === 0) throw new Error("ALREADY_CONFIRMED");
 
     // Clear any in-progress saves before writing official scores
     await tx.matchGame.deleteMany({ where: { matchId: data.matchId } });
