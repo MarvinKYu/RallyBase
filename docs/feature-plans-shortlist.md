@@ -10,6 +10,14 @@
 # Long-term ideas
 - Notes for things we could do in the future
 
+## Figure out observability
+Learn to use/understand:
+- Vercel built-in logs
+- Neon dashboard
+
+## DB branching 
+- Add DEV branch for testing usage when developing future features
+
 ## Add "League" competition format
 - Separate rating scope
 - Essentially a RR but with different group forming logic: given groups of size N, top N rated players are in group 1, then next N are in group 2, etc. 
