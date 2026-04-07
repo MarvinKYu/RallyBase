@@ -18,6 +18,7 @@ import { DeleteEventButton } from "@/components/tournaments/DeleteEventButton";
 import { AdvanceEventStatusButton } from "@/components/tournaments/AdvanceEventStatusButton";
 import { ManageEventRightSection } from "@/components/tournaments/ManageEventRightSection";
 import { TieResolutionPanel } from "@/components/tournaments/TieResolutionPanel";
+import { GenerateBracketButton } from "@/components/tournaments/GenerateBracketButton";
 import type { MatchRow } from "@/components/tournaments/ManageEventMatchList";
 import type { EntryCard } from "@/components/tournaments/ManageEventRightSection";
 
@@ -293,14 +294,11 @@ export default async function ManageEventPage({ params }: Props) {
 
           {/* Generate schedule / bracket */}
           {!hasBracket && event.eventEntries.length >= (isGroupBased ? 3 : 2) && (
-            <form action={generateBracketAction.bind(null, eventId, id)}>
-              <button
-                type="submit"
-                className="rounded-md bg-accent px-4 py-2 text-sm font-medium text-background transition-colors hover:bg-accent-dim"
-              >
-                {isGroupBased ? "Generate schedule" : "Generate bracket"}
-              </button>
-            </form>
+            <GenerateBracketButton
+              action={generateBracketAction.bind(null, eventId, id)}
+              eventFormat={event.eventFormat}
+              label={isGroupBased ? "Generate schedule" : "Generate bracket"}
+            />
           )}
 
           {/* RR → SE: tie resolution */}

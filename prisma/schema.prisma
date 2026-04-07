@@ -171,6 +171,9 @@ model RatingTransaction {
   playerProfile  PlayerProfile  @relation(fields: [playerProfileId], references: [id], onDelete: Cascade)
   ratingCategory RatingCategory @relation(fields: [ratingCategoryId], references: [id], onDelete: Cascade)
   match          Match?         @relation(fields: [matchId], references: [id])
+
+  @@index([playerProfileId])
+  @@index([matchId])
 }
 
 // ─── Tournaments ──────────────────────────────────────────────────────────────
@@ -194,6 +197,7 @@ model Tournament {
   matchResultSubmissions MatchResultSubmission[]
 
   @@unique([organizationId, name])
+  @@index([createdByClerkId])
 }
 
 model Event {
@@ -238,6 +242,7 @@ model EventEntry {
   playerProfile PlayerProfile @relation(fields: [playerProfileId], references: [id], onDelete: Cascade)
 
   @@unique([eventId, playerProfileId])
+  @@index([playerProfileId])
 }
 
 // ─── Matches ─────────────────────────────────────────────────────────────────
@@ -265,6 +270,11 @@ model Match {
   matchGames      MatchGame[]
   submissions     MatchResultSubmission[]
   ratingTransactions RatingTransaction[]
+
+  @@index([eventId])
+  @@index([eventId, status])
+  @@index([player1Id])
+  @@index([player2Id])
 }
 
 model MatchGame {
@@ -297,6 +307,7 @@ model MatchResultSubmission {
   games       MatchResultSubmissionGame[]
 
   @@unique([tournamentId, confirmationCode])
+  @@index([matchId])
 }
 
 model MatchResultSubmissionGame {

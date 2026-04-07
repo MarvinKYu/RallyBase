@@ -6,6 +6,8 @@ import { ClerkProvider, SignInButton, SignUpButton, Show, UserButton } from "@cl
 import { auth } from "@clerk/nextjs/server";
 import { MobileNav } from "@/components/layout/MobileNav";
 import { isAdminUser } from "@/server/services/admin.service";
+import { Analytics } from "@vercel/analytics/react";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -62,6 +64,8 @@ export default async function RootLayout({
 
           <div className="min-h-[calc(100vh-57px)]">{children}</div>
         </ClerkProvider>
+        <Analytics />
+        <SpeedInsights />
       </body>
     </html>
   );
