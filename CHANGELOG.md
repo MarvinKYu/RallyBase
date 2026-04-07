@@ -10,6 +10,51 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 ---
 
+## [0.19.0] - 2026-04-06
+
+### Security
+- **Rate limiting on confirmation and result submission** — added `@upstash/ratelimit` + `@upstash/redis`. `confirmResultAction` is limited to 10 attempts per 10 minutes per player (prevents brute-forcing 4-digit confirmation codes). `submitResultAction` is limited to 30 attempts per minute per player.
+- **Input validation on confirm action** — `confirmResultSchema` (which validates a 4-digit `confirmationCode` and optional 4-digit `birthYear`) is now applied via `safeParse()` in `confirmResultAction` before reaching the service layer. Previously the schema existed but was unused in the action.
+- **Server action payload size cap** — explicit `serverActions.bodySizeLimit: "1mb"` added to `next.config.ts` (matches Next.js default but is now enforced explicitly).
+- **Row-level security enabled** — RLS enabled on `PlayerProfile`, `PlayerRating`, `RatingTransaction`, `MatchResultSubmission`, `EventEntry`, and `Match` tables. The app DB user (`neondb_owner`) is the table owner and bypasses RLS by default; the framework is in place for future restrictive policies (e.g. a read-only analytics role).
+- **Secrets audit** — confirmed no hardcoded secrets in source, `.env` gitignored, no `process.env` references in client-side components, all sensitive keys server-side only.
+- **CORS audit** — no custom API routes exist; Next.js App Router same-origin default applies.
+- **IDOR audit** — `isAuthorizedAsTD`, `isMatchParticipantOrTD`, and `isPlatformAdmin` chain confirmed to cover all mutation paths.
+
+---
+
+## [0.18.7] - 2026-04-06
+
+### Fixed
+- **BOTH verification mode uses OR logic for non-self-confirmers** — previously required both code AND birth year. Now either is sufficient (code OR birth year). Self-confirm via birth year only is unchanged.
+- **Confirm page UI reflects verification method and self-confirm status** — `confirm/page.tsx` computes `isSelfConfirm` and passes it to `ConfirmResultForm`. For BOTH non-self-confirm: heading says "code or birth year"; both fields shown. For BOTH self-confirm: heading says "birth year only"; code field hidden. Removes UI confusion where both fields appeared for self-confirmers even though the code was skipped.
+
+### Tests
+- Updated BOTH non-self-confirm test cases from old AND-required semantics to new OR semantics.
+
+---
+
+## [0.18.6] - 2026-04-06
+
+### Fixed
+- **Concurrent submission race closed** — `createSubmission` in `match.repository.ts` replaced the unconditional match status update with `updateMany WHERE status IN (PENDING, IN_PROGRESS)`. If the updated count is 0 (another submission already moved the match out of that state), a `MATCH_ALREADY_SUBMITTED` sentinel is thrown, rolling back the entire transaction including the newly-created submission row.
+- **Double-confirmation race closed** — `confirmSubmission` in `match.repository.ts` replaced the unconditional submission update with `updateMany WHERE status = PENDING`. If count is 0 (another confirm already ran), an `ALREADY_CONFIRMED` sentinel is thrown, rolling back the transaction and preventing `applyRatingResult` from running twice.
+
+---
+
+## [0.18.5] - 2026-04-06
+
+### Fixed
+- **Submit page restricted to participants and TDs** — `submit/page.tsx` now redirects non-participants and non-TDs to `/pending` instead of rendering the submission form.
+- **Pending page redirect loop fixed** — the no-submission redirect changed from `/submit` to the event bracket page, preventing a redirect loop for non-participants.
+
+### Changed
+- `.gitignore` updated: added Codex artifact dirs (`.agents/`, `.codex-gitops*/`, `AGENTS.md`) and `next-env.d.ts`.
+- Removed unused `react-hook-form` and `@hookform/resolvers` packages (no remaining imports after the form migration).
+- `group-draw.test.ts` describe-block timeout raised to 15s (was intermittently hitting the 5s Vitest default on slow CI).
+
+---
+
 ## [0.18.4] - 2026-04-04
 
 ### Fixed
@@ -965,7 +1010,7 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 ---
 
-[Unreleased]: https://github.com/MarvinKYu/RallyBase/compare/v0.5.2...HEAD
+[Unreleased]: docs/feature-roadmap.md
 [0.5.2]: https://github.com/MarvinKYu/RallyBase/compare/v0.5.1...v0.5.2
 [0.5.1]: https://github.com/MarvinKYu/RallyBase/compare/v0.5.0...v0.5.1
 [0.5.0]: https://github.com/MarvinKYu/RallyBase/compare/v0.4.2...v0.5.0
