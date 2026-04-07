@@ -1,7 +1,7 @@
 import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
 import { auth } from "@clerk/nextjs/server";
-import { getMatchWithSubmission } from "@/server/services/match.service";
+import { getMatchWithSubmission, isMatchParticipantOrTD } from "@/server/services/match.service";
 import { MAX_GAMES } from "@/server/algorithms/match-validation";
 import { SubmitResultForm } from "@/components/matches/SubmitResultForm";
 
@@ -25,6 +25,12 @@ export default async function SubmitResultPage({ params }: Props) {
   }
   if (match.status === "AWAITING_CONFIRMATION") {
     redirect(`/matches/${matchId}/confirm`);
+  }
+
+  // Only participants and TDs can access the submit form
+  const authorized = await isMatchParticipantOrTD(userId, match);
+  if (!authorized) {
+    redirect(`/matches/${matchId}/pending`);
   }
 
   const tournamentId = match.event.tournament.id;

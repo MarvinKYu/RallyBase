@@ -18,7 +18,7 @@ export default async function PendingResultPage({ params }: Props) {
 
   const submission = match.submissions[0];
   if (!submission) {
-    redirect(`/matches/${matchId}/submit`);
+    redirect(`/tournaments/${match.event.tournament.id}/events/${match.event.id}/bracket`);
   }
 
   const tournamentId = match.event.tournament.id;

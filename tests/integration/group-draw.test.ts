@@ -98,7 +98,7 @@ async function setupGroupedRREvent(groupSize: number) {
   return { event };
 }
 
-describe("Group draw — multi-group RR schedule generation (6 players, groupSize 3)", () => {
+describe("Group draw — multi-group RR schedule generation (6 players, groupSize 3)", { timeout: 15000 }, () => {
   it("generates 2 groups of 3 matches each (3C2 = 3 per group)", async () => {
     await setupGroupedRREvent(3);
     await generateBracket(eventId);

@@ -128,18 +128,29 @@ export async function submitMatchResult(
     .map((g, i) => ({ gameNumber: i + 1, ...g }));
 
   const tournamentId = match.event.tournament.id;
-  let confirmationCode: string;
-  do {
-    confirmationCode = Math.floor(Math.random() * 10000).toString().padStart(4, "0");
-  } while (await submissionCodeExistsForTournament(tournamentId, confirmationCode));
 
-  const submission = await createSubmission({
-    matchId,
-    tournamentId,
-    submittedById: submittedByProfileId,
-    confirmationCode,
-    games: playedGames,
-  });
+  // Generate a unique code and insert; retry on the rare concurrent-collision case (P2002).
+  let submission: Awaited<ReturnType<typeof createSubmission>> | undefined;
+  for (let attempt = 0; attempt < 10; attempt++) {
+    const code = Math.floor(Math.random() * 10000).toString().padStart(4, "0");
+    if (await submissionCodeExistsForTournament(tournamentId, code)) continue;
+    try {
+      submission = await createSubmission({
+        matchId,
+        tournamentId,
+        submittedById: submittedByProfileId,
+        confirmationCode: code,
+        games: playedGames,
+      });
+      break;
+    } catch (e) {
+      const isUniqueViolation =
+        typeof e === "object" && e !== null && "code" in e && (e as { code: string }).code === "P2002";
+      if (isUniqueViolation) continue;
+      throw e;
+    }
+  }
+  if (!submission) return { error: "Could not generate a unique confirmation code. Please try again." };
 
   return {
     submission: { id: submission.id, confirmationCode: submission.confirmationCode },

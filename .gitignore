@@ -13,3 +13,11 @@ scripts/
 
 # personal notes
 docs/learning-plan.md
+
+# local codex tooling artifacts
+.agents/
+.codex-gitops*/
+AGENTS.md
+
+# next-env.d.ts references generated .next types — do not track
+next-env.d.ts
