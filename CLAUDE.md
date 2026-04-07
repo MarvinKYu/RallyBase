@@ -21,12 +21,11 @@ Do this automatically for every shipped change — no need to ask.
 
 ## Project Status
 
-**Current version: v0.20.0.** The app is live on Vercel at https://rally-base.vercel.app. Next target: v1.0.0 (public release).
+**Current version: v1.0.0.** The app is live on Vercel at https://rally-base.vercel.app. Publicly released.
 
 ### Upcoming
-- v1.0.0 — Public release (final polish, mobile UI review)
-- v1.1.0 — Tournament Templates (post-public-release)
-- v1.1.1 — Tournament flow reversal (post-public-release)
+- v1.1.0 — Tournament Templates
+- v1.1.1 — Tournament flow reversal
 
 ## Tech Stack
 
