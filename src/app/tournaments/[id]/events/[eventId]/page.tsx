@@ -276,7 +276,7 @@ export default async function EventDetailPage({ params }: Props) {
                 ).toLocaleString()}
               </p>
             )}
-            {eligibilityLines.length > 0 && playerStatus !== "not_signed_in" && (
+            {eligibilityLines.length > 0 && (
               <p className="mt-1 text-xs text-text-3">{eligibilityLines.join(" · ")}</p>
             )}
 

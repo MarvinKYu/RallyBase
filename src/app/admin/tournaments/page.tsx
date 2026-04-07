@@ -14,7 +14,7 @@ const statusBadge: Record<string, string> = {
   DRAFT: "bg-surface border border-border text-text-3",
   PUBLISHED: "bg-blue-950/60 border border-blue-800 text-blue-300",
   IN_PROGRESS: "bg-amber-950/60 border border-amber-800 text-amber-300",
-  COMPLETED: "bg-surface border border-border text-text-2",
+  COMPLETED: "bg-teal-950/60 border border-teal-800 text-teal-300",
 };
 
 type Props = {

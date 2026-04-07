@@ -48,7 +48,7 @@ const STATUS_BADGE_CLASSES: Record<string, string> = {
   DRAFT: "bg-surface border border-border text-text-3",
   REGISTRATION_OPEN: "bg-green-950/60 border border-green-800 text-green-300",
   IN_PROGRESS: "bg-amber-950/60 border border-amber-800 text-amber-300",
-  COMPLETED: "bg-surface border border-border text-text-2",
+  COMPLETED: "bg-teal-950/60 border border-teal-800 text-teal-300",
 };
 
 
@@ -117,7 +117,13 @@ export default async function ManageEventPage({ params }: Props) {
   });
 
   const statusBadgeClass = STATUS_BADGE_CLASSES[event.status] ?? "bg-surface border border-border text-text-3";
-  const statusLabel = event.status.replace(/_/g, " ");
+  const EVENT_STATUS_LABELS: Record<string, string> = {
+    DRAFT: "Draft",
+    REGISTRATION_OPEN: "Registration Open",
+    IN_PROGRESS: "In Progress",
+    COMPLETED: "Completed",
+  };
+  const statusLabel = EVENT_STATUS_LABELS[event.status] ?? event.status.replace(/_/g, " ");
 
   return (
     <main className="mx-auto max-w-7xl px-4 py-12">
