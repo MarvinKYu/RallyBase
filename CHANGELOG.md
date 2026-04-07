@@ -10,6 +10,16 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 ---
 
+## [0.21.0] - 2026-04-07
+
+### Added
+- **Privacy Policy page** — `/privacy` with full Termly-generated policy (13 sections), covering data collection, use, sharing, and US resident rights including a DSAR link for deletion requests.
+- **Cookie Policy page** — `/cookies` with categorized cookie inventory: essential (Cloudflare `__cf_bm`), performance (`_cfuvid`), and unclassified Clerk cookies.
+- **Termly consent banner** — Termly resource-blocker script injected into `<head>` via `next/script` with `strategy="beforeInteractive"`. Supports auto-blocking of non-essential cookies.
+- **Site footer** — added to root layout with links to Privacy Policy, Cookie Policy, and a Consent Preferences toggle (Termly `termly-display-preferences` class).
+
+---
+
 ## [0.20.0] - 2026-04-07
 
 ### Added
