@@ -10,6 +10,19 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 ---
 
+## [1.0.0] - 2026-04-07
+
+### Added
+- **Root 404 page** — `src/app/not-found.tsx` renders a friendly "Page not found" message with a Go Home link instead of falling through to the global error boundary.
+
+### Fixed
+- **COMPLETED status badge** — was visually identical to DRAFT (grey) across all badge maps. Now renders teal (`bg-teal-950/60 border-teal-800 text-teal-300`) so completed tournaments and events are clearly distinguishable from draft/unpublished ones.
+- **Eligibility rules hidden from signed-out users** — min/max rating, age, and gender restrictions on the event detail page are now always visible, not gated behind a sign-in check.
+- **Event status label casing** — event manage page was displaying raw uppercased labels ("REGISTRATION OPEN", "IN PROGRESS") instead of the title-case labels used elsewhere ("Registration Open", "In Progress").
+- **Templates placeholder copy** — updated version reference from v0.16.0 to v1.1.0.
+
+---
+
 ## [0.21.2] - 2026-04-07
 
 ### Added

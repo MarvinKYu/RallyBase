@@ -1,16 +1,6 @@
 # Planned Features Roadmap
 
 
-## v1.0.0 — Public Release
-
-Final polish and infrastructure pass before opening to the public.
-
-### Final polish
-- Audit all pages for consistency: status tags, empty states, error messages, loading states.
-- Review and finalize all copy (labels, tooltips, placeholder text).
-
----
-
 ## v1.1.0 — Tournament Templates
 
 > Plan mode: **Yes** — new schema (templates table + event templates), new service functions, and changes to tournament creation flow and UI. Schema design decisions affect the whole feature; upfront plan avoids mid-implementation pivots.

@@ -25,7 +25,7 @@
 - Latency issue or logic issue? unclear- investigate
 
 ## Mobile UI fixes (ongoing list, needs comprehensive review)
-- *(Comprehensive review pending for v1.0.0)*
+- *(Deferred post-v1.0.0)*
 
 ## Tournaments and events should automatically start at their set startTime
 - Cron-based time-triggered auto-start requires Vercel Pro for sub-daily scheduling. Deferred until plan upgrade.
