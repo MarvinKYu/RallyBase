@@ -12,7 +12,8 @@ export const submitResultSchema = z.object({
 export type SubmitResultInput = z.infer<typeof submitResultSchema>;
 
 export const confirmResultSchema = z.object({
-  confirmationCode: z.string().regex(/^\d{4}$/, "Code must be exactly 4 digits"),
+  confirmationCode: z.string().regex(/^\d{4}$/, "Code must be exactly 4 digits").optional(),
+  birthYear: z.string().regex(/^\d{4}$/, "Birth year must be exactly 4 digits").optional(),
 });
 
 export type ConfirmResultInput = z.infer<typeof confirmResultSchema>;

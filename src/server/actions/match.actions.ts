@@ -7,6 +7,8 @@ import { submitMatchResult, confirmMatchResult, tdSubmitMatch, tdVoidMatch, tdDe
 import { getMatchWithSubmission } from "@/server/services/match.service";
 import { isAuthorizedAsTD } from "@/server/services/admin.service";
 import { MAX_GAMES } from "@/server/algorithms/match-validation";
+import { confirmResultSchema } from "@/lib/schemas/match";
+import { confirmCodeRatelimit, submitResultRatelimit } from "@/lib/rate-limit";
 
 export type MatchActionState = {
   error?: string;
@@ -25,6 +27,9 @@ export async function submitResultAction(
 ): Promise<MatchActionState> {
   const profile = await getMyProfile();
   if (!profile) return { error: "You need a player profile to submit results" };
+
+  const { success: withinLimit } = await submitResultRatelimit.limit(profile.id);
+  if (!withinLimit) return { error: "Too many attempts. Please wait before trying again." };
 
   const maxGames = MAX_GAMES[format] ?? 5;
   const games = Array.from({ length: maxGames }, (_, i) => ({
@@ -84,8 +89,14 @@ export async function confirmResultAction(
   const profile = await getMyProfile();
   if (!profile) return { error: "You need a player profile to confirm results" };
 
+  const { success: withinLimit } = await confirmCodeRatelimit.limit(profile.id);
+  if (!withinLimit) return { error: "Too many attempts. Please wait before trying again." };
+
   const confirmationCode = (formData.get("confirmationCode") as string)?.trim() || undefined;
   const birthYear = (formData.get("birthYear") as string)?.trim() || undefined;
+
+  const parsed = confirmResultSchema.safeParse({ confirmationCode, birthYear });
+  if (!parsed.success) return { error: "Invalid input." };
 
   const result = await confirmMatchResult({
     matchId,
