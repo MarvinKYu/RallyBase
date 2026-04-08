@@ -28,7 +28,7 @@ export default async function RootLayout({
     <html lang="en">
       <body className={`${GeistSans.variable} ${GeistMono.variable} antialiased`}>
         <Script
-          src="https://app.termly.io/resource-blocker/5a9bd49e-cb4e-4d39-b41c-c040c6a535fd?autoBlock=on"
+          src="https://app.termly.io/resource-blocker/5a9bd49e-cb4e-4d39-b41c-c040c6a535fd"
           strategy="beforeInteractive"
         />
         <ClerkProvider>
