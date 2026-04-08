@@ -10,6 +10,13 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 ---
 
+## [1.0.1] - 2026-04-08
+
+### Fixed
+- **Sign-in / sign-up buttons broken** — Termly's `autoBlock=on` mode was automatically blocking Clerk's UI bundle, preventing auth from initializing. Removed `?autoBlock=on` from the Termly script URL; auto-blocking is disabled until Clerk is whitelisted in the Termly dashboard.
+
+---
+
 ## [1.0.0] - 2026-04-07
 
 ### Added
