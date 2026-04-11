@@ -10,6 +10,15 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 ---
 
+## [1.0.3] - 2026-04-10
+
+### Fixed
+- **Unrated players missing from search** — players with no ratings were excluded from public player search (`/players`) when an org or discipline filter was active. Now completely-unrated players are included and sorted to the end of results.
+- **Unrated players interleaved in name sort** — `sortPlayerProfiles` now always pushes unrated players to the end regardless of sort field (rating, lastName, firstName). Within the unrated group, players are sorted alphabetically by last name.
+- **Admin player list label** — players with 0 ratings now show "Unrated" instead of "0 ratings" in the admin player list.
+
+---
+
 ## [1.0.2] - 2026-04-10
 
 ### Added
