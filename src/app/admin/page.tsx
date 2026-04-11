@@ -32,23 +32,21 @@ export default async function AdminDashboardPage() {
           </p>
         </div>
 
-        {/* Quick links — platform admin only */}
-        {platformAdmin && (
-          <section className="flex gap-3">
-            <Link
-              href="/admin/players"
-              className="rounded-md bg-accent px-4 py-2 text-sm font-medium text-background transition-colors hover:bg-accent-dim"
-            >
-              Manage Players
-            </Link>
-            <Link
-              href="/admin/tournaments"
-              className="rounded-md border border-border bg-elevated px-4 py-2 text-sm font-medium text-text-1 transition-colors hover:bg-surface-hover"
-            >
-              All Tournaments
-            </Link>
-          </section>
-        )}
+        {/* Quick links — all admin users */}
+        <section className="flex gap-3">
+          <Link
+            href="/admin/players"
+            className="rounded-md bg-accent px-4 py-2 text-sm font-medium text-background transition-colors hover:bg-accent-dim"
+          >
+            Manage Players
+          </Link>
+          <Link
+            href="/admin/tournaments"
+            className="rounded-md border border-border bg-elevated px-4 py-2 text-sm font-medium text-text-1 transition-colors hover:bg-surface-hover"
+          >
+            {platformAdmin ? "All Tournaments" : "Tournaments"}
+          </Link>
+        </section>
 
         {/* Per-org management cards */}
         <section className="space-y-6">

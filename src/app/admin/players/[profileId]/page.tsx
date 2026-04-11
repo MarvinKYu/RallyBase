@@ -85,19 +85,34 @@ export default async function AdminPlayerDetailPage({ params }: Props) {
           <h2 className="text-base font-medium text-text-1">Ratings</h2>
 
           <div className="space-y-4">
-            {profile.playerRatings.map((rating) => (
-              <div key={rating.id} className="rounded-lg border border-border bg-elevated p-4">
-                <AdminRatingForm
-                  profileId={profile.id}
-                  ratingCategoryId={rating.ratingCategoryId}
-                  orgName={rating.ratingCategory.organization.name}
-                  categoryName={rating.ratingCategory.name}
-                  currentRating={rating.rating}
-                  gamesPlayed={rating.gamesPlayed}
-                  action={adminSetRatingAction.bind(null, profile.id, rating.ratingCategoryId)}
-                />
-              </div>
-            ))}
+            {profile.playerRatings.map((rating) => {
+              const canEdit = managedOrgIds === null || managedOrgIds.includes(rating.ratingCategory.organization.id);
+              return (
+                <div key={rating.id} className="rounded-lg border border-border bg-elevated p-4">
+                  {canEdit ? (
+                    <AdminRatingForm
+                      profileId={profile.id}
+                      ratingCategoryId={rating.ratingCategoryId}
+                      orgName={rating.ratingCategory.organization.name}
+                      categoryName={rating.ratingCategory.name}
+                      currentRating={rating.rating}
+                      gamesPlayed={rating.gamesPlayed}
+                      action={adminSetRatingAction.bind(null, profile.id, rating.ratingCategoryId)}
+                    />
+                  ) : (
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm font-medium text-text-1">
+                          {rating.ratingCategory.organization.name} — {rating.ratingCategory.name}
+                        </p>
+                        <p className="text-xs text-text-3">{rating.gamesPlayed} games played</p>
+                      </div>
+                      <p className="text-sm font-semibold text-text-1">{Math.round(rating.rating)}</p>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
 
             <AdminAddRatingForm
               profileId={profile.id}

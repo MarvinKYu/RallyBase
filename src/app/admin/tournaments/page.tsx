@@ -2,7 +2,7 @@ import { Suspense } from "react";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { auth } from "@clerk/nextjs/server";
-import { isAdminUser, getTournamentCreatorNames } from "@/server/services/admin.service";
+import { isAdminUser, isPlatformAdmin, getAdminManagedOrgIds, getTournamentCreatorNames } from "@/server/services/admin.service";
 import { getTournaments, getOrganizations } from "@/server/services/tournament.service";
 import { TournamentSearchForm } from "@/components/tournaments/TournamentSearchForm";
 import { TournamentPagination } from "@/components/tournaments/TournamentPagination";
@@ -34,10 +34,17 @@ export default async function AdminTournamentsPage({ searchParams }: Props) {
 
   const { q = "", org = "", loc = "", after = "", before = "", page = "1" } = await searchParams;
 
-  const [tournaments, organizations] = await Promise.all([
+  const [allTournaments, organizations, managedOrgIds, platAdmin] = await Promise.all([
     getTournaments(),
     getOrganizations(),
+    getAdminManagedOrgIds(userId),
+    isPlatformAdmin(userId),
   ]);
+
+  // Org admins only see tournaments from their managed orgs
+  const tournaments = managedOrgIds === null
+    ? allTournaments
+    : allTournaments.filter((t) => managedOrgIds.includes(t.organizationId));
 
   const filtered = filterTournaments(tournaments, { q, org, loc, after, before });
   const { items, total, totalPages, page: currentPage } = paginateItems(
@@ -55,13 +62,15 @@ export default async function AdminTournamentsPage({ searchParams }: Props) {
         {/* Left: title + search */}
         <div className="space-y-6">
           <div>
-            <h1 className="text-2xl font-semibold text-text-1">All Tournaments</h1>
+            <h1 className="text-2xl font-semibold text-text-1">
+              {platAdmin ? "All Tournaments" : "Tournaments"}
+            </h1>
             <p className="mt-0.5 text-sm text-text-3">
               {filtered.length} total
             </p>
           </div>
           <Suspense>
-            <TournamentSearchForm organizations={organizations} />
+            <TournamentSearchForm organizations={organizations} hideOrgFilter={!platAdmin} />
           </Suspense>
           <Link
             href="/admin"

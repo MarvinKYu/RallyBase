@@ -8,9 +8,11 @@ type Organization = { id: string; name: string };
 export function TournamentSearchForm({
   organizations,
   pageParams = ["page"],
+  hideOrgFilter = false,
 }: {
   organizations: Organization[];
   pageParams?: string[];
+  hideOrgFilter?: boolean;
 }) {
   const pathname = usePathname();
   const router = useRouter();
@@ -43,18 +45,20 @@ export function TournamentSearchForm({
         className="w-full rounded-md border border-border bg-elevated px-3 py-2 text-sm text-text-1 placeholder:text-text-3 shadow-sm focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
       />
       <div className="grid grid-cols-2 gap-2">
-        <select
-          defaultValue={org}
-          onChange={(e) => pushParams({ org: e.target.value })}
-          className="rounded-md border border-border bg-elevated px-2 py-1.5 text-sm text-text-1 focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
-        >
-          <option value="">All orgs</option>
-          {organizations.map((o) => (
-            <option key={o.id} value={o.id}>
-              {o.name}
-            </option>
-          ))}
-        </select>
+        {!hideOrgFilter && (
+          <select
+            defaultValue={org}
+            onChange={(e) => pushParams({ org: e.target.value })}
+            className="rounded-md border border-border bg-elevated px-2 py-1.5 text-sm text-text-1 focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
+          >
+            <option value="">All orgs</option>
+            {organizations.map((o) => (
+              <option key={o.id} value={o.id}>
+                {o.name}
+              </option>
+            ))}
+          </select>
+        )}
         <input
           type="text"
           placeholder="Location…"
