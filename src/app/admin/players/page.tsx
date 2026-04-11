@@ -92,7 +92,9 @@ export default async function AdminPlayersPage({ searchParams }: Props) {
                     <p className="text-xs text-text-3">#{p.playerNumber}</p>
                   </div>
                   <span className="text-xs text-text-3">
-                    {p.playerRatings.length} rating{p.playerRatings.length !== 1 ? "s" : ""}
+                    {p.playerRatings.length === 0
+                      ? "Unrated"
+                      : `${p.playerRatings.length} rating${p.playerRatings.length !== 1 ? "s" : ""}`}
                   </span>
                 </Link>
               </li>

@@ -73,54 +73,60 @@ export interface ProfileFilters {
 export async function searchProfiles(filters: ProfileFilters) {
   const { query, organizationId, ratingCategoryId, gender, minAge, maxAge } = filters;
 
-  // Build where clause
-  const where: Prisma.PlayerProfileWhereInput = { isDeleted: false };
+  // Build where clause using AND array to avoid OR key conflicts
+  const and: Prisma.PlayerProfileWhereInput[] = [{ isDeleted: false }];
 
   // Text / number search
   if (query) {
     const isNumeric = /^\d+$/.test(query.trim());
     if (isNumeric) {
-      where.OR = [
+      and.push({ OR: [
         { displayName: { contains: query, mode: "insensitive" } },
         { playerNumber: { equals: parseInt(query, 10) } },
-      ];
+      ]});
     } else {
-      where.displayName = { contains: query, mode: "insensitive" };
+      and.push({ displayName: { contains: query, mode: "insensitive" } });
     }
   }
 
   // Gender filter
   if (gender) {
-    where.gender = gender;
+    and.push({ gender });
   }
 
   // Age range filter (computed from birthDate)
   if (minAge !== undefined || maxAge !== undefined) {
     const today = new Date();
-    where.birthDate = {};
+    const birthDateFilter: Prisma.DateTimeFilter<"PlayerProfile"> = {};
     if (minAge !== undefined) {
       // Must be at least minAge: born on or before today - minAge years
-      where.birthDate.lte = new Date(today.getFullYear() - minAge, today.getMonth(), today.getDate());
+      birthDateFilter.lte = new Date(today.getFullYear() - minAge, today.getMonth(), today.getDate());
     }
     if (maxAge !== undefined) {
       // Must be at most maxAge: born on or after today - (maxAge + 1) years + 1 day
       const cutoff = new Date(today.getFullYear() - maxAge - 1, today.getMonth(), today.getDate());
       cutoff.setDate(cutoff.getDate() + 1);
-      where.birthDate.gte = cutoff;
+      birthDateFilter.gte = cutoff;
     }
+    and.push({ birthDate: birthDateFilter });
   }
 
-  // Organization / rating category filter — match players who have a rating in that org/category
+  // Organization / rating category filter — include players rated in the org/category
+  // OR completely unrated players (they appear at the end in sorted results).
   if (ratingCategoryId) {
-    where.playerRatings = { some: { ratingCategoryId } };
+    and.push({ OR: [
+      { playerRatings: { some: { ratingCategoryId } } },
+      { playerRatings: { none: {} } },
+    ]});
   } else if (organizationId) {
-    where.playerRatings = {
-      some: { ratingCategory: { organizationId } },
-    };
+    and.push({ OR: [
+      { playerRatings: { some: { ratingCategory: { organizationId } } } },
+      { playerRatings: { none: {} } },
+    ]});
   }
 
   return prisma.playerProfile.findMany({
-    where,
+    where: { AND: and },
     include: {
       playerRatings: {
         include: {

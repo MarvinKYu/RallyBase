@@ -222,14 +222,33 @@ function sortPlayerProfiles<T extends { displayName: string; playerRatings: { ra
 ): T[] {
   const dir = sort === "rating" ? dirs.rDir : sort === "lastName" ? dirs.lDir : dirs.fDir;
   return [...players].sort((a, b) => {
+    // Determine whether each player is "unrated" in the relevant scope
+    const aUnrated = sortRatingCategoryId
+      ? !a.playerRatings.some((r) => r.ratingCategoryId === sortRatingCategoryId)
+      : a.playerRatings.length === 0;
+    const bUnrated = sortRatingCategoryId
+      ? !b.playerRatings.some((r) => r.ratingCategoryId === sortRatingCategoryId)
+      : b.playerRatings.length === 0;
+
+    // Unrated always sorts to the end
+    if (aUnrated !== bUnrated) return aUnrated ? 1 : -1;
+
+    // Both unrated: sort alphabetically by last name
+    if (aUnrated) {
+      const lastA = (a.displayName.split(" ").pop() ?? a.displayName).toLowerCase();
+      const lastB = (b.displayName.split(" ").pop() ?? b.displayName).toLowerCase();
+      return lastA.localeCompare(lastB);
+    }
+
+    // Both rated: sort by the requested field
     let cmp = 0;
     if (sort === "rating") {
       const rA = sortRatingCategoryId
-        ? (a.playerRatings.find((r) => r.ratingCategoryId === sortRatingCategoryId)?.rating ?? -1)
-        : -1;
+        ? (a.playerRatings.find((r) => r.ratingCategoryId === sortRatingCategoryId)?.rating ?? 0)
+        : 0;
       const rB = sortRatingCategoryId
-        ? (b.playerRatings.find((r) => r.ratingCategoryId === sortRatingCategoryId)?.rating ?? -1)
-        : -1;
+        ? (b.playerRatings.find((r) => r.ratingCategoryId === sortRatingCategoryId)?.rating ?? 0)
+        : 0;
       cmp = rA - rB;
     } else if (sort === "lastName") {
       const lastA = (a.displayName.split(" ").pop() ?? a.displayName).toLowerCase();
