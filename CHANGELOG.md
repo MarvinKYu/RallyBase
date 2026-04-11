@@ -10,6 +10,15 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 ---
 
+## [1.0.2] - 2026-04-10
+
+### Added
+- **Org admin: Manage Players button** — org admins now see a "Manage Players" button on the admin dashboard (previously platform admin only). They can search all players and edit/add ratings for disciplines within their managed org(s).
+- **Org admin: Tournaments button** — org admins see a "Tournaments" button on the admin dashboard that links to a scoped view showing only tournaments from their managed org(s).
+- **Rating read-only view for out-of-scope orgs** — on the player detail admin page, org admins see ratings for disciplines outside their managed orgs as read-only (value displayed, no edit form). Platform admins retain full edit access to all ratings.
+
+---
+
 ## [1.0.1] - 2026-04-08
 
 ### Fixed
