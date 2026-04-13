@@ -1,6 +1,5 @@
 # Planned Features Roadmap
 
-
 ## v1.1.0 — Tournament Templates
 
 > Plan mode: **Yes** — new schema (templates table + event templates), new service functions, and changes to tournament creation flow and UI. Schema design decisions affect the whole feature; upfront plan avoids mid-implementation pivots.

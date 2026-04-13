@@ -10,6 +10,13 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 ---
 
+## [1.0.4] - 2026-04-13
+
+### Added
+- **Per-stage match formats for RR→SE events** — TDs can now set independent match formats and point targets for the RR stage and SE stage of Round Robin → Single Elimination events. The event creation and edit forms show two rows of dropdowns ("RR match format" / "RR points per game" and "SE match format" / "SE points per game") when the RR→SE format is selected; single-format events are unchanged. Match submission and TD score-entry pages display and enforce the correct format for the current stage.
+
+---
+
 ## [1.0.3] - 2026-04-10
 
 ### Fixed

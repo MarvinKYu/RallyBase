@@ -1,5 +1,11 @@
 # Current bugs
 
+## TD manage entrants add entrants pagination error 
+- When attempting to add entrants to an event, selecting entrants across multiple pages of the paginated results does not properly add all of them
+- Looks like right now the only entrants that get added are those who are on the currently displayed page of the paginated results when the add button is clicked
+
+## Manage entrants add sort filters to entered players 
+
 ## README migration instructions describe the wrong workflow
 - `npm run db:migrate` maps to `prisma migrate dev`, which requires an interactive terminal that is unavailable in this environment. Actual workflow requires manual SQL + `prisma db execute`.
 - Fix: update README to document the real migration flow and separate "local dev bootstrap" from "schema authoring" instructions.
