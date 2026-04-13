@@ -39,6 +39,10 @@ export function AddEntrantForm({ eventId, tournamentId, players }: Props) {
       {state?.error && (
         <p className="mb-3 text-sm text-red-400">{state.error}</p>
       )}
+      {/* Hidden inputs carry ALL selected IDs across pages — checkboxes below are visual only */}
+      {Array.from(selectedIds).map((id) => (
+        <input key={id} type="hidden" name="playerProfileIds" value={id} />
+      ))}
       <ul className="overflow-hidden rounded-lg border border-border">
         {players.map((player) => (
           <li
@@ -48,8 +52,6 @@ export function AddEntrantForm({ eventId, tournamentId, players }: Props) {
             <label className="flex cursor-pointer items-center gap-3">
               <input
                 type="checkbox"
-                name="playerProfileIds"
-                value={player.id}
                 checked={selectedIds.has(player.id)}
                 onChange={() => toggle(player.id)}
                 className="accent-accent"
