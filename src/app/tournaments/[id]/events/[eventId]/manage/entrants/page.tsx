@@ -6,7 +6,7 @@ import { getEventManageDetail } from "@/server/services/tournament.service";
 import { searchPlayers, type SortField, type SortDir } from "@/server/services/player.service";
 import { EntrantSearchForm } from "@/components/tournaments/EntrantSearchForm";
 import { AddEntrantForm } from "@/components/tournaments/AddEntrantForm";
-import { RemoveEntrantButton } from "@/components/tournaments/RemoveEntrantButton";
+import { EntrantsList } from "@/components/tournaments/EntrantsList";
 import { PlayerSortControls } from "@/components/players/PlayerSortControls";
 import { PlayerPagination } from "@/components/players/PlayerPagination";
 
@@ -126,49 +126,13 @@ export default async function ManageEntrantsPage({ params, searchParams }: Props
           </section>
 
           {/* Right: Current entrants */}
-          <section>
-            <h2 className="mb-4 text-lg font-medium text-text-1">
-              Entrants ({event.eventEntries.length}
-              {event.maxParticipants ? `/${event.maxParticipants}` : ""})
-            </h2>
-            {event.eventEntries.length === 0 ? (
-              <p className="text-sm text-text-2">No entrants yet.</p>
-            ) : (
-              <div className="max-h-[520px] overflow-y-auto overflow-hidden rounded-lg border border-border">
-                <ul>
-                  {event.eventEntries.map((entry) => {
-                    const rating = entry.playerProfile.playerRatings.find(
-                      (r) => r.ratingCategoryId === event.ratingCategoryId,
-                    );
-                    return (
-                      <li
-                        key={entry.id}
-                        className="flex items-center justify-between border-b border-border-subtle bg-surface px-4 py-3 last:border-b-0"
-                      >
-                        <Link
-                          href={`/profile/${entry.playerProfileId}`}
-                          className="text-sm font-medium text-text-1 transition-colors hover:underline"
-                        >
-                          {entry.playerProfile.displayName}
-                        </Link>
-                        <div className="flex items-center gap-3">
-                          <span className="text-sm text-text-2">
-                            {rating ? Math.round(rating.rating) : "Unrated"}
-                          </span>
-                          <RemoveEntrantButton
-                            eventId={eventId}
-                            tournamentId={id}
-                            playerProfileId={entry.playerProfileId}
-                            playerName={entry.playerProfile.displayName}
-                          />
-                        </div>
-                      </li>
-                    );
-                  })}
-                </ul>
-              </div>
-            )}
-          </section>
+          <EntrantsList
+            entries={event.eventEntries}
+            ratingCategoryId={event.ratingCategoryId}
+            eventId={eventId}
+            tournamentId={id}
+            maxParticipants={event.maxParticipants}
+          />
         </div>
 
         <Link
