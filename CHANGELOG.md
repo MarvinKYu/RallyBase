@@ -10,6 +10,20 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 ---
 
+## [1.0.6] - 2026-04-13
+
+### Added
+- **Sort controls for entered players** — the "Entrants" panel on the Manage Entrants page now has Name (A→Z / Z→A) and Rating (↑ / ↓) sort buttons. Unrated players always sort to the end when sorting by rating. Sort state is client-side and resets on page refresh.
+
+---
+
+## [1.0.5] - 2026-04-13
+
+### Fixed
+- **Cross-page entrant selection** — selecting players across multiple pages of the add-entrant search and then clicking "Add" now correctly submits all selected players, not just those visible on the current page. Root cause: the form relied on checked checkboxes (DOM-only) for submission; those from previous pages weren't in the DOM. Fixed by using hidden inputs for all selections.
+
+---
+
 ## [1.0.4] - 2026-04-13
 
 ### Added
