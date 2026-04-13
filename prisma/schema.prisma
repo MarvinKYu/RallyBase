@@ -212,6 +212,8 @@ model Event {
   groupSize         Int?
   advancersPerGroup Int?
   gamePointTarget   Int         @default(11)
+  rrFormat          MatchFormat?
+  rrGamePointTarget Int?
   startTime        DateTime?
   status           EventStatus @default(DRAFT)
   maxParticipants  Int?

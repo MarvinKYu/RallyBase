@@ -33,6 +33,13 @@ export const createEventSchema = z
       .number()
       .int()
       .pipe(z.union([z.literal(11), z.literal(21)])),
+    rrFormat: z.enum(["BEST_OF_3", "BEST_OF_5", "BEST_OF_7"]).optional().or(z.literal("")),
+    rrGamePointTarget: z.coerce
+      .number()
+      .int()
+      .pipe(z.union([z.literal(11), z.literal(21)]))
+      .optional()
+      .or(z.literal("")),
     // Eligibility settings (all optional)
     maxParticipants: z.coerce.number().int().positive().optional().or(z.literal("")),
     minRating: z.coerce.number().positive().optional().or(z.literal("")),
@@ -87,6 +94,13 @@ export const updateEventSchema = z.object({
     .number()
     .int()
     .pipe(z.union([z.literal(11), z.literal(21)])),
+  rrFormat: z.enum(["BEST_OF_3", "BEST_OF_5", "BEST_OF_7"]).optional().or(z.literal("")),
+  rrGamePointTarget: z.coerce
+    .number()
+    .int()
+    .pipe(z.union([z.literal(11), z.literal(21)]))
+    .optional()
+    .or(z.literal("")),
   maxParticipants: z.coerce.number().int().positive().optional().or(z.literal("")),
   minRating: z.coerce.number().positive().optional().or(z.literal("")),
   maxRating: z.coerce.number().positive().optional().or(z.literal("")),

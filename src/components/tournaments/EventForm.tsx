@@ -16,6 +16,8 @@ type EventDefaultValues = {
   groupSize?: number | null;
   advancersPerGroup?: number | null;
   gamePointTarget?: number;
+  rrFormat?: string | null;
+  rrGamePointTarget?: number | null;
   startTime?: string;
   maxParticipants?: number | null;
   minRating?: number | null;
@@ -217,41 +219,112 @@ export function EventForm({
         </div>
       )}
 
-      <div className="grid grid-cols-2 gap-4">
-        <div className="space-y-1">
-          <label htmlFor="format" className="block text-sm font-medium text-text-2">
-            Match format
-          </label>
-          <select
-            id="format"
-            name="format"
-            defaultValue={isEditMode ? defaultValues?.format ?? "BEST_OF_5" : state?.fields?.["format"] ?? "BEST_OF_5"}
-            className="w-full rounded-md border border-border bg-elevated px-3 py-2 text-sm text-text-1 shadow-sm focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
-          >
-            <option value="BEST_OF_3">Best of 3</option>
-            <option value="BEST_OF_5">Best of 5</option>
-            <option value="BEST_OF_7">Best of 7</option>
-          </select>
+      {/* Match format — two rows for RR→SE, one row for all other formats */}
+      {selectedEventFormat === "RR_TO_SE" || defaultValues?.eventFormat === "RR_TO_SE" ? (
+        <div className="space-y-3">
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-1">
+              <label htmlFor="rrFormat" className="block text-sm font-medium text-text-2">
+                RR match format
+              </label>
+              <select
+                id="rrFormat"
+                name="rrFormat"
+                defaultValue={isEditMode ? defaultValues?.rrFormat ?? "BEST_OF_5" : state?.fields?.["rrFormat"] ?? "BEST_OF_5"}
+                className="w-full rounded-md border border-border bg-elevated px-3 py-2 text-sm text-text-1 shadow-sm focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
+              >
+                <option value="BEST_OF_3">Best of 3</option>
+                <option value="BEST_OF_5">Best of 5</option>
+                <option value="BEST_OF_7">Best of 7</option>
+              </select>
+            </div>
+            <div className="space-y-1">
+              <label htmlFor="rrGamePointTarget" className="block text-sm font-medium text-text-2">
+                RR points per game
+              </label>
+              <select
+                id="rrGamePointTarget"
+                name="rrGamePointTarget"
+                defaultValue={isEditMode ? String(defaultValues?.rrGamePointTarget ?? 11) : state?.fields?.["rrGamePointTarget"] ?? "11"}
+                className="w-full rounded-md border border-border bg-elevated px-3 py-2 text-sm text-text-1 shadow-sm focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
+              >
+                <option value="11">First to 11</option>
+                <option value="21">First to 21</option>
+              </select>
+            </div>
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-1">
+              <label htmlFor="format" className="block text-sm font-medium text-text-2">
+                SE match format
+              </label>
+              <select
+                id="format"
+                name="format"
+                defaultValue={isEditMode ? defaultValues?.format ?? "BEST_OF_5" : state?.fields?.["format"] ?? "BEST_OF_5"}
+                className="w-full rounded-md border border-border bg-elevated px-3 py-2 text-sm text-text-1 shadow-sm focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
+              >
+                <option value="BEST_OF_3">Best of 3</option>
+                <option value="BEST_OF_5">Best of 5</option>
+                <option value="BEST_OF_7">Best of 7</option>
+              </select>
+            </div>
+            <div className="space-y-1">
+              <label htmlFor="gamePointTarget" className="block text-sm font-medium text-text-2">
+                SE points per game
+              </label>
+              <select
+                id="gamePointTarget"
+                name="gamePointTarget"
+                defaultValue={isEditMode ? String(defaultValues?.gamePointTarget ?? 11) : state?.fields?.["gamePointTarget"] ?? "11"}
+                className="w-full rounded-md border border-border bg-elevated px-3 py-2 text-sm text-text-1 shadow-sm focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
+              >
+                <option value="11">First to 11</option>
+                <option value="21">First to 21</option>
+              </select>
+              {state?.fieldErrors?.gamePointTarget && (
+                <p className="text-sm text-red-400">{state.fieldErrors.gamePointTarget[0]}</p>
+              )}
+            </div>
+          </div>
         </div>
+      ) : (
+        <div className="grid grid-cols-2 gap-4">
+          <div className="space-y-1">
+            <label htmlFor="format" className="block text-sm font-medium text-text-2">
+              Match format
+            </label>
+            <select
+              id="format"
+              name="format"
+              defaultValue={isEditMode ? defaultValues?.format ?? "BEST_OF_5" : state?.fields?.["format"] ?? "BEST_OF_5"}
+              className="w-full rounded-md border border-border bg-elevated px-3 py-2 text-sm text-text-1 shadow-sm focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
+            >
+              <option value="BEST_OF_3">Best of 3</option>
+              <option value="BEST_OF_5">Best of 5</option>
+              <option value="BEST_OF_7">Best of 7</option>
+            </select>
+          </div>
 
-        <div className="space-y-1">
-          <label htmlFor="gamePointTarget" className="block text-sm font-medium text-text-2">
-            Points per game
-          </label>
-          <select
-            id="gamePointTarget"
-            name="gamePointTarget"
-            defaultValue={isEditMode ? String(defaultValues?.gamePointTarget ?? 11) : state?.fields?.["gamePointTarget"] ?? "11"}
-            className="w-full rounded-md border border-border bg-elevated px-3 py-2 text-sm text-text-1 shadow-sm focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
-          >
-            <option value="11">First to 11</option>
-            <option value="21">First to 21</option>
-          </select>
-          {state?.fieldErrors?.gamePointTarget && (
-            <p className="text-sm text-red-400">{state.fieldErrors.gamePointTarget[0]}</p>
-          )}
+          <div className="space-y-1">
+            <label htmlFor="gamePointTarget" className="block text-sm font-medium text-text-2">
+              Points per game
+            </label>
+            <select
+              id="gamePointTarget"
+              name="gamePointTarget"
+              defaultValue={isEditMode ? String(defaultValues?.gamePointTarget ?? 11) : state?.fields?.["gamePointTarget"] ?? "11"}
+              className="w-full rounded-md border border-border bg-elevated px-3 py-2 text-sm text-text-1 shadow-sm focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
+            >
+              <option value="11">First to 11</option>
+              <option value="21">First to 21</option>
+            </select>
+            {state?.fieldErrors?.gamePointTarget && (
+              <p className="text-sm text-red-400">{state.fieldErrors.gamePointTarget[0]}</p>
+            )}
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Start time */}
       <div className="space-y-1">

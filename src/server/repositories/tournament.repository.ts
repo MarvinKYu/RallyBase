@@ -321,6 +321,8 @@ export async function createEvent(data: {
   groupSize?: number;
   advancersPerGroup?: number;
   gamePointTarget: number;
+  rrFormat?: MatchFormat;
+  rrGamePointTarget?: number;
   startTime?: Date;
   maxParticipants?: number;
   minRating?: number;
@@ -341,6 +343,8 @@ export async function updateEventById(
     groupSize?: number | null;
     advancersPerGroup?: number | null;
     gamePointTarget: number;
+    rrFormat?: MatchFormat | null;
+    rrGamePointTarget?: number | null;
     startTime?: Date | null;
     maxParticipants?: number | null;
     minRating?: number | null;

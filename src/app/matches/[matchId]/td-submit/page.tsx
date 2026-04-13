@@ -47,7 +47,12 @@ export default async function TdSubmitResultPage({ params, searchParams }: Props
     redirect(backHref);
   }
 
-  const maxGames = MAX_GAMES[match.event.format] ?? 5;
+  const isRRMatch = match.groupNumber !== null && !!match.event.rrFormat;
+  const effectiveFormat = isRRMatch ? match.event.rrFormat! : match.event.format;
+  const effectivePointTarget = isRRMatch
+    ? (match.event.rrGamePointTarget ?? match.event.gamePointTarget)
+    : match.event.gamePointTarget;
+  const maxGames = MAX_GAMES[effectiveFormat] ?? 5;
   const player1Id = match.player1Id!;
   const player2Id = match.player2Id!;
 
@@ -74,7 +79,7 @@ export default async function TdSubmitResultPage({ params, searchParams }: Props
           {match.player1?.displayName ?? "TBD"} vs {match.player2?.displayName ?? "TBD"}
         </p>
         <p className="text-xs text-text-3">
-          {match.event.format.replace("_", " ")} · First to {match.event.gamePointTarget}
+          {effectiveFormat.replace("_", " ")} · First to {effectivePointTarget}
         </p>
       </div>
 
@@ -82,7 +87,7 @@ export default async function TdSubmitResultPage({ params, searchParams }: Props
         matchId={matchId}
         tournamentId={tournamentId}
         eventId={eventId}
-        format={match.event.format}
+        format={effectiveFormat}
         redirectTo={backHref}
         maxGames={maxGames}
         player1Name={match.player1?.displayName ?? "Player 1"}

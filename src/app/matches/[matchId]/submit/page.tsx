@@ -35,7 +35,12 @@ export default async function SubmitResultPage({ params }: Props) {
 
   const tournamentId = match.event.tournament.id;
   const eventId = match.event.id;
-  const maxGames = MAX_GAMES[match.event.format] ?? 5;
+  const isRRMatch = match.groupNumber !== null && !!match.event.rrFormat;
+  const effectiveFormat = isRRMatch ? match.event.rrFormat! : match.event.format;
+  const effectivePointTarget = isRRMatch
+    ? (match.event.rrGamePointTarget ?? match.event.gamePointTarget)
+    : match.event.gamePointTarget;
+  const maxGames = MAX_GAMES[effectiveFormat] ?? 5;
 
   return (
     <main className="mx-auto max-w-lg px-4 py-16">
@@ -53,7 +58,7 @@ export default async function SubmitResultPage({ params }: Props) {
           {match.player1?.displayName ?? "TBD"} vs {match.player2?.displayName ?? "TBD"}
         </p>
         <p className="text-xs text-text-3">
-          {match.event.format.replace("_", " ")} · First to {match.event.gamePointTarget}
+          {effectiveFormat.replace("_", " ")} · First to {effectivePointTarget}
         </p>
       </div>
 
@@ -61,7 +66,7 @@ export default async function SubmitResultPage({ params }: Props) {
         matchId={matchId}
         tournamentId={tournamentId}
         eventId={eventId}
-        format={match.event.format}
+        format={effectiveFormat}
         maxGames={maxGames}
         player1Name={match.player1?.displayName ?? "Player 1"}
         player2Name={match.player2?.displayName ?? "Player 2"}

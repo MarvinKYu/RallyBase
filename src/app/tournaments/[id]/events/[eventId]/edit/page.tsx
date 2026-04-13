@@ -48,6 +48,8 @@ export default async function EditEventPage({ params }: Props) {
           groupSize: event.groupSize,
           advancersPerGroup: event.advancersPerGroup,
           gamePointTarget: event.gamePointTarget,
+          rrFormat: event.rrFormat,
+          rrGamePointTarget: event.rrGamePointTarget,
           startTime: toDatetimeLocal(event.startTime),
           maxParticipants: event.maxParticipants,
           minRating: event.minRating,

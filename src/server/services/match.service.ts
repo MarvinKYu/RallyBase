@@ -28,6 +28,28 @@ import {
 import { generateSEStage } from "@/server/services/bracket.service";
 import { prisma } from "@/lib/prisma";
 
+// ── Stage-aware format resolution ─────────────────────────────────────────────
+
+/**
+ * Returns the effective match format and point target for a given match.
+ * For RR_TO_SE events, RR-stage matches (groupNumber != null) use rrFormat/rrGamePointTarget
+ * when set; SE-stage matches always use format/gamePointTarget.
+ */
+function getMatchEffectiveFormat(match: {
+  groupNumber: number | null;
+  event: {
+    format: string;
+    gamePointTarget: number;
+    rrFormat: string | null;
+    rrGamePointTarget: number | null;
+  };
+}): { format: string; gamePointTarget: number } {
+  if (match.groupNumber !== null && match.event.rrFormat && match.event.rrGamePointTarget != null) {
+    return { format: match.event.rrFormat, gamePointTarget: match.event.rrGamePointTarget };
+  }
+  return { format: match.event.format, gamePointTarget: match.event.gamePointTarget };
+}
+
 // ── Authorization ─────────────────────────────────────────────────────────────
 
 export async function isMatchParticipantOrTD(
@@ -114,12 +136,10 @@ export async function submitMatchResult(
     return { error: "You are not a player in this match" };
   }
 
-  // Validate game scores against the event's format and point target
-  const validation = validateMatchSubmission(
-    games,
-    match.event.format,
-    match.event.gamePointTarget,
-  );
+  // Validate game scores against the effective format for this match's stage
+  const { format: effectiveFormat, gamePointTarget: effectivePointTarget } =
+    getMatchEffectiveFormat(match);
+  const validation = validateMatchSubmission(games, effectiveFormat, effectivePointTarget);
   if (!validation.valid) return { error: validation.error };
 
   // Only persist the games that were actually played
@@ -249,13 +269,15 @@ export async function confirmMatchResult(
   }
 
   // Re-validate to ensure submission is still coherent
+  const { format: effectiveFormat, gamePointTarget: effectivePointTarget } =
+    getMatchEffectiveFormat(match);
   const validation = validateMatchSubmission(
     submission.games.map((g) => ({
       player1Points: g.player1Points,
       player2Points: g.player2Points,
     })),
-    match.event.format,
-    match.event.gamePointTarget,
+    effectiveFormat,
+    effectivePointTarget,
   );
   if (!validation.valid) {
     return { error: `Submission is invalid: ${validation.error}` };
@@ -346,11 +368,9 @@ export async function tdSubmitMatch(params: TdSubmitParams): Promise<TdSubmitRes
     return { error: "Both players must be set before submitting a result" };
   }
 
-  const validation = validateMatchSubmission(
-    games,
-    match.event.format,
-    match.event.gamePointTarget,
-  );
+  const { format: effectiveFormat, gamePointTarget: effectivePointTarget } =
+    getMatchEffectiveFormat(match);
+  const validation = validateMatchSubmission(games, effectiveFormat, effectivePointTarget);
   if (!validation.valid) return { error: validation.error };
 
   const winnerId =
