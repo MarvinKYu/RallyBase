@@ -10,6 +10,15 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 ---
 
+## [1.0.7] - 2026-04-14
+
+### Fixed
+- **Player removal error display** — attempting to remove a player when removal is blocked now shows a readable error banner on the Manage Entrants page instead of crashing to the generic "Something went wrong" screen.
+- **SE removal always blocked after bracket generation** — `countProgressedMatches` previously counted structural bye matches (created as COMPLETED when bracket sizes are not a power of 2) as progressed results. Byes are now excluded from the count, so removal correctly becomes unblocked when no real matches have been played.
+- **Orphaned matches after player removal** — removing a player now deletes all existing matches for the event and re-generates the bracket/schedule with the updated player pool, instead of leaving stale matches visible and submittable. Removal is blocked if the remaining player count would fall below the format minimum (≥ 2 for SE, ≥ 3 for RR/RR→SE).
+
+---
+
 ## [1.0.6] - 2026-04-13
 
 ### Added

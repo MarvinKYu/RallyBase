@@ -1,5 +1,7 @@
 # Current bugs
 
+## Rating graphs show rating updates from voided matches
+
 ## README migration instructions describe the wrong workflow
 - `npm run db:migrate` maps to `prisma migrate dev`, which requires an interactive terminal that is unavailable in this environment. Actual workflow requires manual SQL + `prisma db execute`.
 - Fix: update README to document the real migration flow and separate "local dev bootstrap" from "schema authoring" instructions.
@@ -45,6 +47,17 @@
 
 ### Manage entrants add sort filters to entered players
 - Entered players list had no sort controls; players appeared in insertion order only
+
+## Version 1.0.7
+
+### Player removal crashes to generic error screen
+- Pattern B action threw `new Error(result.error)` on failure; Next.js rendered this as the full generic error page with no readable message for the TD.
+
+### Unable to remove player from SE event after bracket has been generated
+- `countProgressedMatches` counted structural bye matches (player2Id=null, status=COMPLETED) as progressed results. Any SE bracket with an odd player count always had byes, so removal was always blocked even when no real matches had been played.
+
+### Orphaned PENDING matches remain after player removal
+- `deleteEventEntry` only removed the EventEntry row; Match rows for that player were untouched. Ghost matches remained visible in the manage page and standings, and TDs could still submit scores for matches involving the removed player.
 
 ---
 
