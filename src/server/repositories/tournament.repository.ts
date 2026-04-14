@@ -205,13 +205,11 @@ export async function deleteTournamentById(id: string) {
     }
 
     if (allMatchIds.length > 0) {
+      // Delete rating transactions before breaking the nextMatchId FK cycle
+      await tx.ratingTransaction.deleteMany({ where: { matchId: { in: allMatchIds } } });
       await tx.match.updateMany({
         where: { id: { in: allMatchIds } },
         data: { nextMatchId: null },
-      });
-      await tx.ratingTransaction.updateMany({
-        where: { matchId: { in: allMatchIds } },
-        data: { matchId: null },
       });
     }
     await tx.tournament.delete({ where: { id } });
@@ -255,12 +253,8 @@ export async function deleteEventById(eventId: string) {
     }
 
     if (allMatchIds.length > 0) {
-      // Detach rating transactions from matches before cascade
-      await tx.ratingTransaction.updateMany({
-        where: { matchId: { in: allMatchIds } },
-        data: { matchId: null },
-      });
-      // Break nextMatchId FK cycle (onDelete: NoAction)
+      // Delete rating transactions, then break the nextMatchId FK cycle (onDelete: NoAction)
+      await tx.ratingTransaction.deleteMany({ where: { matchId: { in: allMatchIds } } });
       await tx.match.updateMany({
         where: { id: { in: allMatchIds } },
         data: { nextMatchId: null },

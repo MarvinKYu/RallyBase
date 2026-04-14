@@ -230,11 +230,8 @@ export async function directCompleteMatch(data: {
 
 export async function voidMatch(matchId: string) {
   return prisma.$transaction(async (tx) => {
-    // Detach rating transactions from match
-    await tx.ratingTransaction.updateMany({
-      where: { matchId },
-      data: { matchId: null },
-    });
+    // Delete rating transactions for this match (ratings already restored by caller)
+    await tx.ratingTransaction.deleteMany({ where: { matchId } });
 
     // Get current match to find the next match slot to clear
     const match = await tx.match.findUnique({

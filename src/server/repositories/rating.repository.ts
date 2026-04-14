@@ -30,7 +30,7 @@ export async function findPlayerRatingByCategory(
 
 export async function findAllRatingTransactionsByProfile(playerProfileId: string) {
   return prisma.ratingTransaction.findMany({
-    where: { playerProfileId },
+    where: { playerProfileId, matchId: { not: null } },
     include: {
       ratingCategory: {
         select: {
@@ -49,7 +49,7 @@ export async function findRatingTransactionsByProfileAndCategory(
   ratingCategoryId: string,
 ) {
   return prisma.ratingTransaction.findMany({
-    where: { playerProfileId, ratingCategoryId },
+    where: { playerProfileId, ratingCategoryId, matchId: { not: null } },
     orderBy: { createdAt: "desc" },
   });
 }
