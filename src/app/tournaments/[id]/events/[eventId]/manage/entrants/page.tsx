@@ -19,6 +19,7 @@ type Props = {
     lDir?: string;
     fDir?: string;
     page?: string;
+    error?: string;
   }>;
 };
 
@@ -39,6 +40,7 @@ export default async function ManageEntrantsPage({ params, searchParams }: Props
     lDir = "asc",
     fDir = "asc",
     page = "1",
+    error,
   } = await searchParams;
   const { userId } = await auth();
   if (!userId) redirect("/sign-in");
@@ -91,6 +93,13 @@ export default async function ManageEntrantsPage({ params, searchParams }: Props
           </p>
           <h1 className="mt-1 text-2xl font-semibold text-text-1">Manage Entrants</h1>
         </div>
+
+        {/* Error banner */}
+        {error && (
+          <div className="rounded-md border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-400">
+            {error}
+          </div>
+        )}
 
         {/* 2-column body */}
         <div className="grid grid-cols-1 gap-8 lg:grid-cols-[1fr_300px]">

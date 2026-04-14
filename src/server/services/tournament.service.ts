@@ -36,6 +36,7 @@ import {
   countMatchesByEventId,
   findEventSummariesByTournament,
   countProgressedMatches,
+  deleteAllMatchesForEvent,
 } from "@/server/repositories/tournament.repository";
 import { generateBracket } from "@/server/services/bracket.service";
 import { findPlayerRatingByCategory } from "@/server/repositories/rating.repository";
@@ -726,12 +727,51 @@ export async function tdRemoveEntrant(
 
   const progressed = await countProgressedMatches(eventId);
   if (progressed > 0) {
-    return { error: "Cannot remove an entrant after matches have started." };
+    return {
+      error:
+        "Cannot remove a player after matches have been played in this event. To handle a player withdrawal, use 'Record result as default' for their remaining matches.",
+    };
   }
 
   const existing = await findEventEntry(eventId, playerProfileId);
   if (!existing) return { error: "Player is not entered in this event." };
 
-  await deleteEventEntry(eventId, playerProfileId);
+  const matchCount = await countMatchesByEventId(eventId);
+  if (matchCount > 0) {
+    // A schedule/bracket has been generated. Validate that removing this player
+    // still leaves enough participants to regenerate.
+    const currentCount = await countEventEntries(eventId);
+    const remaining = currentCount - 1;
+    const { eventFormat, groupSize, maxParticipants } = event;
+
+    const minRequired = eventFormat === "SINGLE_ELIMINATION" ? 2 : 3;
+    if (remaining < minRequired) {
+      return {
+        error:
+          "Removing this player would leave fewer than the minimum required players. Add a replacement first.",
+      };
+    }
+
+    if (groupSize) {
+      const numGroups =
+        maxParticipants != null
+          ? maxParticipants / groupSize
+          : Math.ceil(remaining / groupSize);
+      if (Math.floor(remaining / numGroups) < 3) {
+        return {
+          error:
+            "Removing this player would leave fewer than the minimum required players. Add a replacement first.",
+        };
+      }
+    }
+
+    // Remove the player, wipe the stale schedule, and regenerate with the updated pool.
+    await deleteEventEntry(eventId, playerProfileId);
+    await deleteAllMatchesForEvent(eventId);
+    await generateBracket(eventId);
+  } else {
+    await deleteEventEntry(eventId, playerProfileId);
+  }
+
   return { success: true };
 }

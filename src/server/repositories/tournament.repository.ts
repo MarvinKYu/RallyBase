@@ -387,9 +387,19 @@ export async function countNonCompletedMatches(eventId: string) {
 }
 
 export async function countProgressedMatches(eventId: string) {
+  // Excludes structural bye matches (player2Id = null, isDefault = false, status = COMPLETED)
+  // which are created automatically when bracket sizes are not a power of 2.
   return prisma.match.count({
-    where: { eventId, status: { not: "PENDING" } },
+    where: {
+      eventId,
+      status: { not: "PENDING" },
+      OR: [{ player2Id: { not: null } }, { isDefault: true }],
+    },
   });
+}
+
+export async function deleteAllMatchesForEvent(eventId: string) {
+  return prisma.match.deleteMany({ where: { eventId } });
 }
 
 export async function findEventSummariesByTournament(

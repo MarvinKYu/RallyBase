@@ -339,7 +339,11 @@ export async function removeEntrantAction(
   if (!userId) redirect("/sign-in");
 
   const result = await tdRemoveEntrant(eventId, playerProfileId, userId);
-  if ("error" in result) throw new Error(result.error);
+  if ("error" in result) {
+    redirect(
+      `/tournaments/${tournamentId}/events/${eventId}/manage/entrants?error=${encodeURIComponent(result.error)}`,
+    );
+  }
 
   redirect(`/tournaments/${tournamentId}/events/${eventId}/manage/entrants`);
 }
