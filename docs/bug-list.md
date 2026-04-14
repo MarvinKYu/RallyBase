@@ -1,6 +1,5 @@
 # Current bugs
 
-## Rating graphs show rating updates from voided matches
 
 ## README migration instructions describe the wrong workflow
 - `npm run db:migrate` maps to `prisma migrate dev`, which requires an interactive terminal that is unavailable in this environment. Actual workflow requires manual SQL + `prisma db execute`.
@@ -47,6 +46,11 @@
 
 ### Manage entrants add sort filters to entered players
 - Entered players list had no sort controls; players appeared in insertion order only
+
+## Version 1.0.8
+
+### Rating graphs show rating updates from voided matches
+- `voidMatch` set `RatingTransaction.matchId = null` (orphaned rows) instead of deleting them. Graph query had no `matchId` filter, so voided-match transactions were plotted as real data points.
 
 ## Version 1.0.7
 

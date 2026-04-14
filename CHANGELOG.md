@@ -10,6 +10,13 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 ---
 
+## [1.0.8] - 2026-04-14
+
+### Fixed
+- **Rating graph shows voided match data** — voiding a match now deletes its `RatingTransaction` rows instead of orphaning them (setting `matchId = null`). The same change applies to the tournament and event delete paths. Rating history queries also gained a `matchId IS NOT NULL` filter as a bridge for any orphaned rows already in the database. Run `DELETE FROM "RatingTransaction" WHERE "matchId" IS NULL` on the production DB to remove pre-existing orphaned rows.
+
+---
+
 ## [1.0.7] - 2026-04-14
 
 ### Fixed
