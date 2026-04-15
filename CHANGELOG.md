@@ -10,6 +10,13 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 ---
 
+## [1.1.3] - 2026-04-15
+
+### Fixed
+- **Confusing /pending page shown after submitting results for BIRTH_YEAR tournaments** — `submitResultAction` now redirects directly to `/matches/[id]/confirm` when the tournament's verification method is `BIRTH_YEAR`, skipping the `/pending` page that displayed an irrelevant confirmation code. `CODE` and `BOTH` verification methods continue to redirect to `/pending` as before.
+
+---
+
 ## [1.1.2] - 2026-04-15
 
 ### Fixed
