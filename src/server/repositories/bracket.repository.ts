@@ -151,6 +151,14 @@ export async function setEntryAdvancesToSE(
   );
 }
 
+/** Find the 3rd/4th place match for an event (isThirdPlaceMatch = true). */
+export async function findThirdPlaceMatch(eventId: string) {
+  return prisma.match.findFirst({
+    where: { eventId, isThirdPlaceMatch: true },
+    select: { id: true, player1Id: true, player2Id: true },
+  });
+}
+
 /** Find the maximum round among SE matches (groupNumber IS NULL) for seTotalRounds. */
 export async function findSETotalRounds(eventId: string): Promise<number | null> {
   const result = await prisma.match.aggregate({

@@ -233,6 +233,7 @@ export async function updateEvent(
   const {
     name,
     format,
+    hasThirdPlaceMatch,
     groupSize,
     advancersPerGroup,
     gamePointTarget,
@@ -249,6 +250,8 @@ export async function updateEvent(
 
   const isGroupBased =
     event.eventFormat === "ROUND_ROBIN" || event.eventFormat === "RR_TO_SE";
+  const isSEBased =
+    event.eventFormat === "SINGLE_ELIMINATION" || event.eventFormat === "RR_TO_SE";
 
   if (isGroupBased && groupSize && maxParticipants && maxParticipants % groupSize !== 0) {
     return {
@@ -262,6 +265,7 @@ export async function updateEvent(
     await updateEventById(eventId, {
       name,
       format: format as MatchFormat,
+      hasThirdPlaceMatch: isSEBased ? (hasThirdPlaceMatch ?? false) : false,
       groupSize: isGroupBased ? (groupSize || null) : undefined,
       advancersPerGroup:
         event.eventFormat === "RR_TO_SE" ? (advancersPerGroup || null) : undefined,
@@ -414,6 +418,7 @@ export async function createEvent(
     gamePointTarget,
     rrFormat,
     rrGamePointTarget,
+    hasThirdPlaceMatch,
     startTime,
     maxParticipants,
     minRating,
@@ -429,6 +434,8 @@ export async function createEvent(
     tournament?.status === TournamentStatus.IN_PROGRESS;
 
   const isGroupBased = eventFormat === "ROUND_ROBIN" || eventFormat === "RR_TO_SE";
+  // hasThirdPlaceMatch only applies to SE-based formats
+  const isSEBased = eventFormat === "SINGLE_ELIMINATION" || eventFormat === "RR_TO_SE";
 
   try {
     const event = await dbCreateEvent({
@@ -443,6 +450,7 @@ export async function createEvent(
       gamePointTarget,
       rrFormat: eventFormat === "RR_TO_SE" ? ((rrFormat || undefined) as MatchFormat | undefined) : undefined,
       rrGamePointTarget: eventFormat === "RR_TO_SE" ? (rrGamePointTarget || undefined) : undefined,
+      hasThirdPlaceMatch: isSEBased ? (hasThirdPlaceMatch ?? false) : false,
       startTime: startTime ? new Date(startTime) : undefined,
       maxParticipants: maxParticipants || undefined,
       minRating: minRating || undefined,

@@ -24,6 +24,7 @@ import {
   countIncompleteRRMatches,
   countSEMatches,
   countNonCompletedSEMatches,
+  findThirdPlaceMatch,
 } from "@/server/repositories/bracket.repository";
 import { generateSEStage } from "@/server/services/bracket.service";
 import { prisma } from "@/lib/prisma";
@@ -318,6 +319,11 @@ export async function confirmMatchResult(
     matchId,
   });
 
+  // Route SF loser to 3rd/4th place match (no-op if not applicable)
+  if (match.event.hasThirdPlaceMatch) {
+    await routeLoserToThirdPlace(match.eventId, loserId, match.nextMatch ?? null);
+  }
+
   // RR → SE: auto-generate SE bracket when last RR group match completes
   await tryAutoGenerateSEStage(match.eventId, match.event.eventFormat);
 
@@ -398,6 +404,11 @@ export async function tdSubmitMatch(params: TdSubmitParams): Promise<TdSubmitRes
     matchId,
   });
 
+  // Route SF loser to 3rd/4th place match (no-op if not applicable)
+  if (match.event.hasThirdPlaceMatch && loserId) {
+    await routeLoserToThirdPlace(match.eventId, loserId, match.nextMatch ?? null);
+  }
+
   // RR → SE: auto-generate SE bracket when last RR group match completes
   await tryAutoGenerateSEStage(match.eventId, match.event.eventFormat);
 
@@ -455,6 +466,14 @@ export async function tdDefaultMatch(params: {
     nextMatchId: match.nextMatchId,
     nextMatchSlot,
   });
+
+  // Route SF loser to 3rd/4th place match (no-op if not applicable)
+  if (match.event.hasThirdPlaceMatch) {
+    const loserId = winnerId === match.player1Id ? match.player2Id : match.player1Id;
+    if (loserId) {
+      await routeLoserToThirdPlace(match.eventId, loserId, match.nextMatch ?? null);
+    }
+  }
 
   if (match.event.status === "IN_PROGRESS") {
     const shouldComplete = await checkEventComplete(match.eventId, match.event.eventFormat);
@@ -514,7 +533,16 @@ export async function tdVoidMatch(matchId: string): Promise<TdVoidResult> {
     }
   });
 
+  // Capture loser before voiding (winnerId is cleared by voidMatch)
+  const loserId =
+    match.winnerId === match.player1Id ? match.player2?.id ?? null : match.player1?.id ?? null;
+
   await voidMatch(matchId);
+
+  // Clear loser from 3rd/4th place match if this was an SF (no-op otherwise)
+  if (match.event.hasThirdPlaceMatch && loserId) {
+    await clearLoserFromThirdPlace(match.eventId, loserId, match.nextMatch ?? null);
+  }
 
   return {
     success: true,
@@ -548,6 +576,59 @@ async function tryAutoGenerateSEStage(
     await generateSEStage(eventId);
   } catch {
     // Silently ignore — TD will see the state on the manage page
+  }
+}
+
+/**
+ * If the just-completed match was a semifinal in an event with hasThirdPlaceMatch,
+ * routes the loser into the 3rd/4th place match (filling whichever player slot is empty).
+ *
+ * A match is a semifinal when its nextMatch exists, has no further advancement
+ * (nextMatch.nextMatchId === null), and is not itself the 3rd place match.
+ */
+async function routeLoserToThirdPlace(
+  eventId: string,
+  loserId: string,
+  nextMatch: { nextMatchId: string | null; isThirdPlaceMatch: boolean } | null,
+): Promise<void> {
+  if (!nextMatch) return; // this IS the Final or 3rd place match — not an SF
+  if (nextMatch.nextMatchId !== null) return; // nextMatch is not the Final (QF or earlier)
+  if (nextMatch.isThirdPlaceMatch) return; // this match feeds into 3rd place, not SF
+
+  // nextMatch is the Final → current match is an SF. Route loser to 3rd place match.
+  const thirdPlaceMatch = await findThirdPlaceMatch(eventId);
+  if (!thirdPlaceMatch) return;
+  if (thirdPlaceMatch.player1Id !== null && thirdPlaceMatch.player2Id !== null) return;
+
+  const slot = thirdPlaceMatch.player1Id === null ? "player1Id" : "player2Id";
+  await prisma.match.update({
+    where: { id: thirdPlaceMatch.id },
+    data: { [slot]: loserId },
+  });
+}
+
+/**
+ * If the just-voided match was a semifinal in an event with hasThirdPlaceMatch,
+ * clears the corresponding player from the 3rd/4th place match.
+ */
+async function clearLoserFromThirdPlace(
+  eventId: string,
+  loserId: string | null,
+  nextMatch: { nextMatchId: string | null; isThirdPlaceMatch: boolean } | null,
+): Promise<void> {
+  if (!loserId) return;
+  if (!nextMatch) return;
+  if (nextMatch.nextMatchId !== null) return;
+  if (nextMatch.isThirdPlaceMatch) return;
+
+  const thirdPlaceMatch = await findThirdPlaceMatch(eventId);
+  if (!thirdPlaceMatch) return;
+
+  const updates: Record<string, null> = {};
+  if (thirdPlaceMatch.player1Id === loserId) updates.player1Id = null;
+  if (thirdPlaceMatch.player2Id === loserId) updates.player2Id = null;
+  if (Object.keys(updates).length > 0) {
+    await prisma.match.update({ where: { id: thirdPlaceMatch.id }, data: updates });
   }
 }
 

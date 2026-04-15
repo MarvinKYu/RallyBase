@@ -221,8 +221,9 @@ model Event {
   maxRating        Float?
   minAge           Int?
   maxAge           Int?
-  allowedGender    Gender?
-  createdAt        DateTime    @default(now())
+  allowedGender       Gender?
+  hasThirdPlaceMatch  Boolean  @default(false)
+  createdAt           DateTime @default(now())
 
   tournament     Tournament     @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
   ratingCategory RatingCategory @relation(fields: [ratingCategoryId], references: [id])
@@ -261,9 +262,10 @@ model Match {
   player2Id   String?
   winnerId    String?
   nextMatchId String?
-  status      MatchStatus @default(PENDING)
-  isDefault   Boolean     @default(false)
-  createdAt   DateTime    @default(now())
+  status            MatchStatus @default(PENDING)
+  isDefault         Boolean     @default(false)
+  isThirdPlaceMatch Boolean     @default(false)
+  createdAt         DateTime    @default(now())
 
   event           Event                   @relation(fields: [eventId], references: [id], onDelete: Cascade)
   player1         PlayerProfile?          @relation("Player1", fields: [player1Id], references: [id])

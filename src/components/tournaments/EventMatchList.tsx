@@ -8,6 +8,7 @@ type Match = {
   id: string;
   round: number;
   groupNumber: number | null;
+  isThirdPlaceMatch?: boolean;
   status: MatchStatus;
   player1: { displayName: string } | null;
   player2: { displayName: string } | null;
@@ -92,8 +93,12 @@ export function EventMatchList({
 
   type Section = { label: string; matches: Match[] };
 
-  const rrMatches = matches.filter((m) => m.groupNumber !== null);
-  const seMatches = matches.filter((m) => m.groupNumber === null);
+  // Separate 3rd/4th place match (always its own section)
+  const thirdPlaceMatch = matches.find((m) => m.isThirdPlaceMatch);
+  const regularMatches = matches.filter((m) => !m.isThirdPlaceMatch);
+
+  const rrMatches = regularMatches.filter((m) => m.groupNumber !== null);
+  const seMatches = regularMatches.filter((m) => m.groupNumber === null);
 
   const rrSections: Section[] = [];
   const seSections: Section[] = [];
@@ -118,32 +123,38 @@ export function EventMatchList({
         matches: seMatches.filter((m) => m.round === r),
       });
     }
+    if (thirdPlaceMatch) {
+      seSections.push({ label: "3rd/4th Place", matches: [thirdPlaceMatch] });
+    }
   } else if (isGroupedRR) {
     const groupNums = [
       ...new Set(
-        matches.map((m) => m.groupNumber).filter((g): g is number => g !== null),
+        regularMatches.map((m) => m.groupNumber).filter((g): g is number => g !== null),
       ),
     ].sort((a, b) => a - b);
     for (const g of groupNums) {
       rrSections.push({
         label: `Group ${g}`,
-        matches: matches.filter((m) => m.groupNumber === g),
+        matches: regularMatches.filter((m) => m.groupNumber === g),
       });
     }
   } else if (isSE) {
-    const rounds = [...new Set(matches.map((m) => m.round))].sort((a, b) => a - b);
+    const rounds = [...new Set(regularMatches.map((m) => m.round))].sort((a, b) => a - b);
     const totalRounds = rounds.length > 0 ? Math.max(...rounds) : 1;
     for (const r of rounds) {
       seSections.push({
         label: getRoundLabel(r, totalRounds),
-        matches: matches.filter((m) => m.round === r),
+        matches: regularMatches.filter((m) => m.round === r),
       });
+    }
+    if (thirdPlaceMatch) {
+      seSections.push({ label: "3rd/4th Place", matches: [thirdPlaceMatch] });
     }
   } else {
     // Single-group RR: by round
-    const rounds = [...new Set(matches.map((m) => m.round))].sort((a, b) => a - b);
+    const rounds = [...new Set(regularMatches.map((m) => m.round))].sort((a, b) => a - b);
     for (const r of rounds) {
-      rrSections.push({ label: `Round ${r}`, matches: matches.filter((m) => m.round === r) });
+      rrSections.push({ label: `Round ${r}`, matches: regularMatches.filter((m) => m.round === r) });
     }
   }
 

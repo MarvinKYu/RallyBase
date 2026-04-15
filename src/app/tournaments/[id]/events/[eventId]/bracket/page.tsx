@@ -392,10 +392,13 @@ function BracketColumn({
 
 // ── Stacked bracket center column ────────────────────────────────────────────
 
+const INLINE_LABEL_H = 20; // px reserved for inline match-type labels
+
 function StackedCenterColumn({
   sfLeftMatch,
   finalMatch,
   sfRightMatch,
+  thirdPlaceMatch = null,
   H,
   tournamentId,
   eventId,
@@ -406,6 +409,7 @@ function StackedCenterColumn({
   sfLeftMatch: BracketMatch | undefined;
   finalMatch: BracketMatch | undefined;
   sfRightMatch: BracketMatch | undefined;
+  thirdPlaceMatch?: BracketMatch | null;
   H: number;
   tournamentId: string;
   eventId: string;
@@ -421,24 +425,113 @@ function StackedCenterColumn({
   const conn2Top = finalTopOffset + CARD_H;
   const conn2H = sfBotOffset - conn2Top;
 
+  // 3rd/4th place match positioned after SF2 with a half-card gap
+  const thirdGap = CARD_H / 2;
+  const thirdTopOffset = sfBotOffset + CARD_H + thirdGap;
+  const totalContentH = thirdPlaceMatch ? thirdTopOffset + CARD_H : 2 * H;
+
+  const emptyCard = (
+    <div className="w-44 overflow-hidden rounded-md border border-border bg-surface shadow-sm" style={{ height: CARD_H }} />
+  );
+
   return (
-    <div className="shrink-0" style={{ position: "relative", width: CARD_W, height: 2 * H + LABEL_H }}>
+    <div className="shrink-0" style={{ position: "relative", width: CARD_W, height: totalContentH + LABEL_H }}>
       <div style={{ height: LABEL_H }} className="flex items-end pb-3">
         <p className="text-xs font-bold uppercase tracking-wide text-text-1">Semifinals / Final</p>
       </div>
+
+      {/* SF1 */}
       <div style={{ position: "absolute", top: LABEL_H + sfTopOffset, left: 0, width: CARD_W }}>
         {sfLeftMatch ? (
           <MatchCard match={sfLeftMatch} tournamentId={tournamentId} eventId={eventId} isTD={isTD} voidReturnTo={voidReturnTo} viewerProfileId={viewerProfileId} />
-        ) : (
-          <div className="w-44 overflow-hidden rounded-md border border-border bg-surface shadow-sm" style={{ height: CARD_H }} />
-        )}
+        ) : emptyCard}
       </div>
-      <svg
-        className="text-border"
-        style={{ position: "absolute", top: LABEL_H + conn1Top, left: Math.floor(CARD_W / 2), width: 1, height: conn1H, display: "block" }}
-      >
+
+      <svg className="text-border" style={{ position: "absolute", top: LABEL_H + conn1Top, left: Math.floor(CARD_W / 2), width: 1, height: conn1H, display: "block" }}>
         <line x1={0.5} y1={0} x2={0.5} y2={conn1H} stroke="currentColor" strokeWidth={1} />
       </svg>
+
+      {/* Final — inline label only when 3rd/4th match is also shown */}
+      {thirdPlaceMatch && (
+        <div style={{ position: "absolute", top: LABEL_H + finalTopOffset - INLINE_LABEL_H, left: 0 }}>
+          <p className="text-[10px] uppercase tracking-wide text-text-3">Final</p>
+        </div>
+      )}
+      <div style={{ position: "absolute", top: LABEL_H + finalTopOffset, left: 0, width: CARD_W }}>
+        {finalMatch ? (
+          <MatchCard match={finalMatch} tournamentId={tournamentId} eventId={eventId} isTD={isTD} voidReturnTo={voidReturnTo} viewerProfileId={viewerProfileId} />
+        ) : emptyCard}
+      </div>
+
+      <svg className="text-border" style={{ position: "absolute", top: LABEL_H + conn2Top, left: Math.floor(CARD_W / 2), width: 1, height: conn2H, display: "block" }}>
+        <line x1={0.5} y1={0} x2={0.5} y2={conn2H} stroke="currentColor" strokeWidth={1} />
+      </svg>
+
+      {/* SF2 */}
+      <div style={{ position: "absolute", top: LABEL_H + sfBotOffset, left: 0, width: CARD_W }}>
+        {sfRightMatch ? (
+          <MatchCard match={sfRightMatch} tournamentId={tournamentId} eventId={eventId} isTD={isTD} voidReturnTo={voidReturnTo} viewerProfileId={viewerProfileId} />
+        ) : emptyCard}
+      </div>
+
+      {/* 3rd/4th Place match */}
+      {thirdPlaceMatch && (
+        <>
+          <div style={{ position: "absolute", top: LABEL_H + thirdTopOffset - INLINE_LABEL_H, left: 0 }}>
+            <p className="text-[10px] uppercase tracking-wide text-text-3">3rd/4th Place</p>
+          </div>
+          <div style={{ position: "absolute", top: LABEL_H + thirdTopOffset, left: 0, width: CARD_W }}>
+            <MatchCard match={thirdPlaceMatch} tournamentId={tournamentId} eventId={eventId} isTD={isTD} voidReturnTo={voidReturnTo} viewerProfileId={viewerProfileId} />
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
+// ── Final + 3rd/4th Place column (small brackets) ───────────────────────────
+
+/**
+ * Center column for small brackets (totalRounds ≤ 3) when a 3rd/4th place match
+ * exists. Stacks the Final on top (centered within H) and the 3rd/4th Place match
+ * below it with a half-card gap.
+ */
+function FinalAndThirdColumn({
+  finalMatch,
+  thirdPlaceMatch,
+  H,
+  tournamentId,
+  eventId,
+  isTD,
+  voidReturnTo,
+  viewerProfileId = null,
+}: {
+  finalMatch: BracketMatch | undefined;
+  thirdPlaceMatch: BracketMatch;
+  H: number;
+  tournamentId: string;
+  eventId: string;
+  isTD: boolean;
+  voidReturnTo: string;
+  viewerProfileId?: string | null;
+}) {
+  const thirdGap = CARD_H / 2; // 52px gap between Final bottom and "3rd/4th Place" label
+  const finalTopOffset = Math.max(0, H / 2 - CARD_H / 2);
+  const thirdTopOffset = finalTopOffset + CARD_H + thirdGap;
+
+  // Connector from bottom of Final to just above the 3rd label
+  const connTop = finalTopOffset + CARD_H;
+  const connH = Math.max(0, thirdTopOffset - INLINE_LABEL_H - connTop);
+
+  const totalContentH = thirdTopOffset + CARD_H;
+
+  return (
+    <div className="shrink-0" style={{ position: "relative", width: CARD_W, height: totalContentH + LABEL_H }}>
+      <div style={{ height: LABEL_H }} className="flex items-end pb-3">
+        <p className="text-xs font-bold uppercase tracking-wide text-text-1">Final</p>
+      </div>
+
+      {/* Final card */}
       <div style={{ position: "absolute", top: LABEL_H + finalTopOffset, left: 0, width: CARD_W }}>
         {finalMatch ? (
           <MatchCard match={finalMatch} tournamentId={tournamentId} eventId={eventId} isTD={isTD} voidReturnTo={voidReturnTo} viewerProfileId={viewerProfileId} />
@@ -446,18 +539,25 @@ function StackedCenterColumn({
           <div className="w-44 overflow-hidden rounded-md border border-border bg-surface shadow-sm" style={{ height: CARD_H }} />
         )}
       </div>
-      <svg
-        className="text-border"
-        style={{ position: "absolute", top: LABEL_H + conn2Top, left: Math.floor(CARD_W / 2), width: 1, height: conn2H, display: "block" }}
-      >
-        <line x1={0.5} y1={0} x2={0.5} y2={conn2H} stroke="currentColor" strokeWidth={1} />
-      </svg>
-      <div style={{ position: "absolute", top: LABEL_H + sfBotOffset, left: 0, width: CARD_W }}>
-        {sfRightMatch ? (
-          <MatchCard match={sfRightMatch} tournamentId={tournamentId} eventId={eventId} isTD={isTD} voidReturnTo={voidReturnTo} viewerProfileId={viewerProfileId} />
-        ) : (
-          <div className="w-44 overflow-hidden rounded-md border border-border bg-surface shadow-sm" style={{ height: CARD_H }} />
-        )}
+
+      {/* Vertical connector */}
+      {connH > 0 && (
+        <svg
+          className="text-border"
+          style={{ position: "absolute", top: LABEL_H + connTop, left: Math.floor(CARD_W / 2), width: 1, height: connH, display: "block" }}
+        >
+          <line x1={0.5} y1={0} x2={0.5} y2={connH} stroke="currentColor" strokeWidth={1} />
+        </svg>
+      )}
+
+      {/* "3rd/4th Place" inline label */}
+      <div style={{ position: "absolute", top: LABEL_H + thirdTopOffset - INLINE_LABEL_H, left: 0 }}>
+        <p className="text-[10px] uppercase tracking-wide text-text-3">3rd/4th Place</p>
+      </div>
+
+      {/* 3rd/4th place match card */}
+      <div style={{ position: "absolute", top: LABEL_H + thirdTopOffset, left: 0, width: CARD_W }}>
+        <MatchCard match={thirdPlaceMatch} tournamentId={tournamentId} eventId={eventId} isTD={isTD} voidReturnTo={voidReturnTo} viewerProfileId={viewerProfileId} />
       </div>
     </div>
   );
@@ -710,6 +810,14 @@ export default async function BracketPage({ params, searchParams }: Props) {
       ? matches.filter((m) => m.groupNumber === null)
       : matches;
 
+  // Separate 3rd/4th place match from the main bracket
+  const thirdPlaceMatch = event.hasThirdPlaceMatch
+    ? (bracketMatches.find((m) => m.isThirdPlaceMatch) ?? null)
+    : null;
+  const regularBracketMatches = thirdPlaceMatch
+    ? bracketMatches.filter((m) => !m.isThirdPlaceMatch)
+    : bracketMatches;
+
   const backHref =
     from === "manage"
       ? `/tournaments/${id}/events/${eventId}/manage`
@@ -718,7 +826,7 @@ export default async function BracketPage({ params, searchParams }: Props) {
   const eventHref = from === "manage" ? `/tournaments/${id}/events/${eventId}/manage` : `/tournaments/${id}/events/${eventId}`;
   const voidReturnTo = `/tournaments/${id}/events/${eventId}/bracket${from ? `?from=${from}` : ""}`;
 
-  if (bracketMatches.length === 0) {
+  if (regularBracketMatches.length === 0) {
     // For RR→SE: show placeholder bracket if RR has been generated
     const rrMatchesExist = matches.length > 0;
     const numGroups =
@@ -846,7 +954,7 @@ export default async function BracketPage({ params, searchParams }: Props) {
   // ── Derive bracket dimensions ─────────────────────────────────────────────
 
   const roundMap = new Map<number, BracketMatch[]>();
-  for (const m of bracketMatches) {
+  for (const m of regularBracketMatches) {
     if (!roundMap.has(m.round)) roundMap.set(m.round, []);
     roundMap.get(m.round)!.push(m);
   }
@@ -958,11 +1066,12 @@ export default async function BracketPage({ params, searchParams }: Props) {
                 );
               })}
 
-              {/* ── STACKED CENTER (SF1 / Final / SF2) ── */}
+              {/* ── STACKED CENTER (SF1 / Final / SF2 [/ 3rd/4th]) ── */}
               <StackedCenterColumn
                 sfLeftMatch={sfLeftMatch}
                 finalMatch={finalMatch}
                 sfRightMatch={sfRightMatch}
+                thirdPlaceMatch={thirdPlaceMatch}
                 H={H}
                 tournamentId={id}
                 eventId={eventId}
@@ -1064,20 +1173,33 @@ export default async function BracketPage({ params, searchParams }: Props) {
             );
           })}
 
-          {/* ── FINAL ── */}
-          <BracketColumn
-            label="Final"
-            labelVariant="final"
-            round={totalRounds}
-            matches={finalMatch ? [finalMatch] : []}
-            H={H}
-            isCenter={true}
-            tournamentId={id}
-            eventId={eventId}
-            isTD={isTD}
-            voidReturnTo={voidReturnTo}
-            viewerProfileId={viewerProfileId}
-          />
+          {/* ── FINAL (± 3rd/4th Place) ── */}
+          {thirdPlaceMatch ? (
+            <FinalAndThirdColumn
+              finalMatch={finalMatch}
+              thirdPlaceMatch={thirdPlaceMatch}
+              H={H}
+              tournamentId={id}
+              eventId={eventId}
+              isTD={isTD}
+              voidReturnTo={voidReturnTo}
+              viewerProfileId={viewerProfileId}
+            />
+          ) : (
+            <BracketColumn
+              label="Final"
+              labelVariant="final"
+              round={totalRounds}
+              matches={finalMatch ? [finalMatch] : []}
+              H={H}
+              isCenter={true}
+              tournamentId={id}
+              eventId={eventId}
+              isTD={isTD}
+              voidReturnTo={voidReturnTo}
+              viewerProfileId={viewerProfileId}
+            />
+          )}
 
           {/* ── RIGHT SIDE ── */}
           {rightRounds.map((round, idx) => {

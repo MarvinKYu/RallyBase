@@ -212,6 +212,14 @@ export default async function ManageTournamentPage({ params, searchParams }: Pro
                           </Link>
                         </span>
                       )}
+                      {podium.third && (
+                        <span>
+                          <span className="mr-1.5 text-text-3">3rd</span>
+                          <Link href={`/profile/${podium.third.id}`} className="hover:underline">
+                            {podium.third.displayName}
+                          </Link>
+                        </span>
+                      )}
                     </div>
                   )}
 

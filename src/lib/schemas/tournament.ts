@@ -40,6 +40,7 @@ export const createEventSchema = z
       .pipe(z.union([z.literal(11), z.literal(21)]))
       .optional()
       .or(z.literal("")),
+    hasThirdPlaceMatch: z.boolean().optional(),
     // Eligibility settings (all optional)
     maxParticipants: z.coerce.number().int().positive().optional().or(z.literal("")),
     minRating: z.coerce.number().positive().optional().or(z.literal("")),
@@ -88,6 +89,7 @@ export const updateEventSchema = z.object({
     .min(2, "Name must be at least 2 characters")
     .max(100, "Name must be 100 characters or fewer"),
   format: z.enum(["BEST_OF_3", "BEST_OF_5", "BEST_OF_7"]),
+  hasThirdPlaceMatch: z.boolean().optional(),
   groupSize: z.coerce.number().int().min(3).max(6).optional().or(z.literal("")),
   advancersPerGroup: z.coerce.number().int().min(1).max(2).optional().or(z.literal("")),
   gamePointTarget: z.coerce

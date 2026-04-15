@@ -23,6 +23,7 @@ import {
   clearEntrySeeds,
   setEntryAdvancesToSE,
   findSETotalRounds,
+  findThirdPlaceMatch,
 } from "@/server/repositories/bracket.repository";
 import { getEventDetail } from "@/server/services/tournament.service";
 
@@ -45,6 +46,7 @@ export async function bracketExists(eventId: string) {
 export interface EventPodium {
   first: { id: string; displayName: string } | null;
   second: { id: string; displayName: string } | null;
+  third: { id: string; displayName: string } | null;
 }
 
 export async function getEventPodium(
@@ -54,7 +56,7 @@ export async function getEventPodium(
 ): Promise<EventPodium> {
   if (eventFormat === "ROUND_ROBIN") {
     // Multi-group events have no cross-group ranking — podium is not defined
-    if (groupSize) return { first: null, second: null };
+    if (groupSize) return { first: null, second: null, third: null };
 
     const standings = await getRoundRobinStandings(eventId);
     return {
@@ -64,19 +66,21 @@ export async function getEventPodium(
       second: standings[1]
         ? { id: standings[1].playerProfileId, displayName: standings[1].displayName }
         : null,
+      third: null,
     };
   }
 
   if (eventFormat === "RR_TO_SE") {
     // Podium comes from the SE stage final (SE matches have groupNumber = null)
     const seExists = (await countSEMatches(eventId)) > 0;
-    if (!seExists) return { first: null, second: null };
+    if (!seExists) return { first: null, second: null, third: null };
     // Fall through to SE bracket logic below
   }
 
-  // Single elimination (and RR_TO_SE SE stage): final = highest-round completed SE match
+  // Single elimination (and RR_TO_SE SE stage):
+  // final = highest-round completed non-3rd-place SE match
   const finalMatch = await prisma.match.findFirst({
-    where: { eventId, groupNumber: null, winnerId: { not: null } },
+    where: { eventId, groupNumber: null, winnerId: { not: null }, isThirdPlaceMatch: false },
     include: {
       player1: { select: { id: true, displayName: true } },
       player2: { select: { id: true, displayName: true } },
@@ -85,14 +89,21 @@ export async function getEventPodium(
     orderBy: { round: "desc" },
   });
 
-  if (!finalMatch?.winner) return { first: null, second: null };
+  if (!finalMatch?.winner) return { first: null, second: null, third: null };
 
   const loser =
     finalMatch.player1Id === finalMatch.winnerId
       ? finalMatch.player2
       : finalMatch.player1;
 
-  return { first: finalMatch.winner, second: loser };
+  // 3rd place: winner of the isThirdPlaceMatch match (if any)
+  const thirdPlaceMatch = await prisma.match.findFirst({
+    where: { eventId, isThirdPlaceMatch: true, winnerId: { not: null } },
+    include: { winner: { select: { id: true, displayName: true } } },
+  });
+  const third = thirdPlaceMatch?.winner ?? null;
+
+  return { first: finalMatch.winner, second: loser, third };
 }
 
 // ── Standings ─────────────────────────────────────────────────────────────────
@@ -301,7 +312,7 @@ export async function generateBracket(eventId: string): Promise<void> {
         });
       }),
     );
-    await generateSingleEliminationBracket(eventId, event.eventEntries);
+    await generateSingleEliminationBracket(eventId, event.eventEntries, event.hasThirdPlaceMatch);
   }
 }
 
@@ -382,6 +393,7 @@ async function generateRoundRobinBracket(
 async function generateSingleEliminationBracket(
   eventId: string,
   eventEntries: Array<{ playerProfileId: string; seed: number | null }>,
+  hasThirdPlaceMatch = false,
 ): Promise<void> {
   // Sort by seed (ascending), unseeded entries go last
   const sorted = [...eventEntries].sort((a, b) => {
@@ -393,6 +405,12 @@ async function generateSingleEliminationBracket(
 
   const playerIds = sorted.map((e) => e.playerProfileId);
   const { totalRounds, matches } = buildSingleEliminationBlueprint(playerIds);
+
+  if (hasThirdPlaceMatch && totalRounds < 2) {
+    throw new Error(
+      "A 3rd/4th place match requires at least 4 players so there is a semifinal round.",
+    );
+  }
 
   // Index blueprints by "round-position" for quick lookup
   const blueprintMap = new Map(
@@ -456,6 +474,25 @@ async function generateSingleEliminationBracket(
       }
     }
   });
+
+  // Create the 3rd/4th place match after the main bracket transaction.
+  // It sits at the same round as the Final (round = totalRounds, position = 2)
+  // with both player slots empty — they are filled in as semifinals complete.
+  if (hasThirdPlaceMatch) {
+    await prisma.match.create({
+      data: {
+        eventId,
+        round: totalRounds,
+        position: 2,
+        isThirdPlaceMatch: true,
+        player1Id: null,
+        player2Id: null,
+        nextMatchId: null,
+        status: MatchStatus.PENDING,
+        winnerId: null,
+      },
+    });
+  }
 }
 
 // ── RR → SE stage ─────────────────────────────────────────────────────────────
@@ -507,6 +544,7 @@ export async function generateSEStage(eventId: string): Promise<GenerateSEStageR
   await generateSingleEliminationBracket(
     eventId,
     advancers.map((a) => ({ playerProfileId: a.playerProfileId, seed: a.seSeed })),
+    event.hasThirdPlaceMatch,
   );
 
   return { ok: true };

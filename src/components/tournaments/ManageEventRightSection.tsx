@@ -159,18 +159,24 @@ export function ManageEventRightSection({
   const matchPages = useMemo(() => {
     // RR→SE SE phase: SE matches (groupNumber === null) with round labels
     if (showSEPhase && phase === "se") {
-      const seMatches = matches.filter((m) => m.groupNumber === null);
+      const seAll = matches.filter((m) => m.groupNumber === null);
+      const thirdPlace = seAll.find((m) => m.isThirdPlaceMatch);
+      const seMatches = seAll.filter((m) => !m.isThirdPlaceMatch);
       const rounds = [...new Set(seMatches.map((m) => m.round))].sort((a, b) => a - b);
       const totalRounds = seTotalRounds ?? Math.max(...rounds, 1);
-      return rounds.map((r) => ({
+      const pages = rounds.map((r) => ({
         label: getRoundLabel(r, totalRounds),
         matches: seMatches.filter((m) => m.round === r),
       }));
+      if (thirdPlace) pages.push({ label: "3rd/4th Place", matches: [thirdPlace] });
+      return pages;
     }
 
     // RR phase (or pure RR/SE): filter to RR matches only when in hybrid mode
-    const activeMatches =
+    const rawActive =
       isRRToSE ? matches.filter((m) => m.groupNumber !== null) : matches;
+    const thirdPlace = rawActive.find((m) => m.isThirdPlaceMatch);
+    const activeMatches = rawActive.filter((m) => !m.isThirdPlaceMatch);
 
     if (sortBy === "group" && isGrouped) {
       const groupNums = [
@@ -180,18 +186,22 @@ export function ManageEventRightSection({
             .filter((g): g is number => g !== null),
         ),
       ].sort((a, b) => a - b);
-      return groupNums.map((gNum) => ({
+      const pages = groupNums.map((gNum) => ({
         label: `Group ${gNum}`,
         matches: activeMatches.filter((m) => m.groupNumber === gNum),
       }));
+      if (thirdPlace) pages.push({ label: "3rd/4th Place", matches: [thirdPlace] });
+      return pages;
     }
     // By round — SE events get proper labels; RR "by round" keeps "Round N"
     const rounds = [...new Set(activeMatches.map((m) => m.round))].sort((a, b) => a - b);
     const totalRounds = !isGrouped && rounds.length > 0 ? Math.max(...rounds) : null;
-    return rounds.map((r) => ({
+    const pages = rounds.map((r) => ({
       label: totalRounds !== null ? getRoundLabel(r, totalRounds) : `Round ${r}`,
       matches: activeMatches.filter((m) => m.round === r),
     }));
+    if (thirdPlace) pages.push({ label: "3rd/4th Place", matches: [thirdPlace] });
+    return pages;
   }, [sortBy, isGrouped, matches, showSEPhase, phase, isRRToSE, seTotalRounds]);
 
   const totalMatchPages = matchPages.length;

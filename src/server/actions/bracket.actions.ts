@@ -25,7 +25,14 @@ export async function generateBracketAction(
     redirect(`/tournaments/${tournamentId}/events/${eventId}`);
   }
 
-  await generateBracket(eventId);
+  try {
+    await generateBracket(eventId);
+  } catch (e) {
+    const message = e instanceof Error ? e.message : "Failed to generate bracket";
+    redirect(
+      `/tournaments/${tournamentId}/events/${eventId}/manage?error=${encodeURIComponent(message)}`,
+    );
+  }
 
   const event = await getEventDetail(eventId);
   const dest =

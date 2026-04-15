@@ -175,6 +175,7 @@ export default async function EventDetailPage({ params }: Props) {
     id: m.id,
     round: m.round,
     groupNumber: m.groupNumber,
+    isThirdPlaceMatch: m.isThirdPlaceMatch,
     status: m.status,
     isDefault: m.isDefault,
     player1Id: m.player1Id,
@@ -350,6 +351,17 @@ export default async function EventDetailPage({ params }: Props) {
                       className="text-text-2 transition-colors hover:underline"
                     >
                       {podium.second.displayName}
+                    </Link>
+                  </div>
+                )}
+                {podium.third && (
+                  <div className="flex items-center gap-3 text-sm">
+                    <span className="w-6 shrink-0 text-xs text-text-3">3rd</span>
+                    <Link
+                      href={`/profile/${podium.third.id}`}
+                      className="text-text-2 transition-colors hover:underline"
+                    >
+                      {podium.third.displayName}
                     </Link>
                   </div>
                 )}

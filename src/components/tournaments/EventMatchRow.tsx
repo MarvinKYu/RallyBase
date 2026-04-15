@@ -6,6 +6,7 @@ export type SerializedEventMatch = {
   id: string;
   round: number;
   groupNumber: number | null;
+  isThirdPlaceMatch?: boolean;
   status: string;
   isDefault: boolean;
   player1Id: string | null;

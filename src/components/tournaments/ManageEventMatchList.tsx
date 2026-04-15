@@ -15,6 +15,7 @@ export type MatchRow = {
   id: string;
   round: number;
   groupNumber?: number | null;
+  isThirdPlaceMatch?: boolean;
   status: "PENDING" | "IN_PROGRESS" | "AWAITING_CONFIRMATION" | "COMPLETED";
   isDefault?: boolean;
   player1Id: string | null;

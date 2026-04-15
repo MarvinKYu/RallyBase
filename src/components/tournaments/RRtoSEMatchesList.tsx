@@ -33,9 +33,11 @@ export function RRtoSEMatchesList({
         });
 
   const allRRMatches = matches.filter((match) => match.groupNumber !== null);
-  const allSEMatches = matches.filter((match) => match.groupNumber === null);
+  const allSEMatches = matches.filter((match) => match.groupNumber === null && !match.isThirdPlaceMatch);
+  const allThirdPlaceMatch = matches.find((match) => match.isThirdPlaceMatch) ?? null;
   const rrMatches = filteredMatches.filter((match) => match.groupNumber !== null);
-  const seMatches = filteredMatches.filter((match) => match.groupNumber === null);
+  const seMatches = filteredMatches.filter((match) => match.groupNumber === null && !match.isThirdPlaceMatch);
+  const filteredThirdPlace = filteredMatches.find((match) => match.isThirdPlaceMatch) ?? null;
   const rrGroupNumbers = [
     ...new Set(
       rrMatches
@@ -83,25 +85,37 @@ export function RRtoSEMatchesList({
 
         <section className="space-y-3">
           <h2 className="text-sm font-semibold text-text-1">Single Elimination</h2>
-          {allSEMatches.length === 0 ? (
+          {allSEMatches.length === 0 && !allThirdPlaceMatch ? (
             <p className="text-sm text-text-3">SE bracket not yet generated</p>
-          ) : seMatches.length === 0 ? (
+          ) : seMatches.length === 0 && !filteredThirdPlace ? (
             <p className="text-sm text-text-2">No matches found.</p>
           ) : (
-            seRounds.map((round) => (
-              <div key={round} className="space-y-2">
-                <p className="text-xs font-medium uppercase tracking-wide text-text-3">
-                  {getRoundLabel(round, maxRound)}
-                </p>
-                <ul className="overflow-hidden rounded-lg border border-border">
-                  {seMatches
-                    .filter((match) => match.round === round)
-                    .map((match) => (
-                      <EventMatchRow key={match.id} match={match} showStatus={false} />
-                    ))}
-                </ul>
-              </div>
-            ))
+            <>
+              {seRounds.map((round) => (
+                <div key={round} className="space-y-2">
+                  <p className="text-xs font-medium uppercase tracking-wide text-text-3">
+                    {getRoundLabel(round, maxRound)}
+                  </p>
+                  <ul className="overflow-hidden rounded-lg border border-border">
+                    {seMatches
+                      .filter((match) => match.round === round)
+                      .map((match) => (
+                        <EventMatchRow key={match.id} match={match} showStatus={false} />
+                      ))}
+                  </ul>
+                </div>
+              ))}
+              {filteredThirdPlace && (
+                <div className="space-y-2">
+                  <p className="text-xs font-medium uppercase tracking-wide text-text-3">
+                    3rd/4th Place
+                  </p>
+                  <ul className="overflow-hidden rounded-lg border border-border">
+                    <EventMatchRow match={filteredThirdPlace} showStatus={false} />
+                  </ul>
+                </div>
+              )}
+            </>
           )}
         </section>
       </div>

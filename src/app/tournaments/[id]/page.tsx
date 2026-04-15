@@ -158,6 +158,12 @@ export default async function TournamentDetailPage({ params }: Props) {
                             {podium.second.displayName}
                           </span>
                         )}
+                        {podium.third && (
+                          <span>
+                            <span className="mr-1 text-text-3">3rd</span>
+                            {podium.third.displayName}
+                          </span>
+                        )}
                       </div>
                     )}
                   </li>

@@ -94,6 +94,7 @@ export async function updateEventAction(
   const data = {
     name: formData.get("name") as string,
     format: formData.get("format") as string,
+    hasThirdPlaceMatch: formData.get("hasThirdPlaceMatch") === "true",
     groupSize: (formData.get("groupSize") as string) || undefined,
     advancersPerGroup: (formData.get("advancersPerGroup") as string) || undefined,
     gamePointTarget: formData.get("gamePointTarget") as string,
@@ -170,6 +171,7 @@ export async function createEventAction(
     gamePointTarget: formData.get("gamePointTarget") as string,
     rrFormat: (formData.get("rrFormat") as string) || undefined,
     rrGamePointTarget: (formData.get("rrGamePointTarget") as string) || undefined,
+    hasThirdPlaceMatch: formData.get("hasThirdPlaceMatch") === "true",
     startTime: (formData.get("startTime") as string) || undefined,
     maxParticipants: (formData.get("maxParticipants") as string) || undefined,
     minRating: (formData.get("minRating") as string) || undefined,

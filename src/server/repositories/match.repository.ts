@@ -20,8 +20,12 @@ export async function findMatchById(id: string) {
           rrFormat: true,
           rrGamePointTarget: true,
           ratingCategoryId: true,
+          hasThirdPlaceMatch: true,
           tournament: { select: { id: true, name: true, createdByClerkId: true, organizationId: true, verificationMethod: true } },
         },
+      },
+      nextMatch: {
+        select: { id: true, nextMatchId: true, isThirdPlaceMatch: true },
       },
       submissions: {
         where: { status: SubmissionStatus.PENDING },
@@ -66,8 +70,12 @@ export async function findPendingSubmissionByMatchId(matchId: string) {
               rrFormat: true,
               rrGamePointTarget: true,
               ratingCategoryId: true,
+              hasThirdPlaceMatch: true,
               tournament: { select: { id: true, verificationMethod: true } },
             },
+          },
+          nextMatch: {
+            select: { id: true, nextMatchId: true, isThirdPlaceMatch: true },
           },
         },
       },

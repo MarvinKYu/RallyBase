@@ -18,6 +18,7 @@ type EventDefaultValues = {
   gamePointTarget?: number;
   rrFormat?: string | null;
   rrGamePointTarget?: number | null;
+  hasThirdPlaceMatch?: boolean;
   startTime?: string;
   maxParticipants?: number | null;
   minRating?: number | null;
@@ -324,6 +325,32 @@ export function EventForm({
             )}
           </div>
         </div>
+      )}
+
+      {/* 3rd/4th place match — SE and RR→SE only */}
+      {(selectedEventFormat === "SINGLE_ELIMINATION" ||
+        selectedEventFormat === "RR_TO_SE" ||
+        defaultValues?.eventFormat === "SINGLE_ELIMINATION" ||
+        defaultValues?.eventFormat === "RR_TO_SE") && (
+        <label className="flex cursor-pointer items-center gap-3">
+          <input
+            type="hidden"
+            name="hasThirdPlaceMatch"
+            value="false"
+          />
+          <input
+            id="hasThirdPlaceMatch"
+            name="hasThirdPlaceMatch"
+            type="checkbox"
+            value="true"
+            defaultChecked={defaultValues?.hasThirdPlaceMatch ?? false}
+            className="h-4 w-4 rounded border-border accent-accent"
+          />
+          <span className="text-sm text-text-1">
+            Include 3rd/4th place match
+            <span className="ml-1 text-xs text-text-3">(requires at least 4 players)</span>
+          </span>
+        </label>
       )}
 
       {/* Start time */}

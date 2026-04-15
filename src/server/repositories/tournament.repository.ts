@@ -312,6 +312,7 @@ export async function createEvent(data: {
   name: string;
   format: MatchFormat;
   eventFormat: EventFormat;
+  hasThirdPlaceMatch?: boolean;
   groupSize?: number;
   advancersPerGroup?: number;
   gamePointTarget: number;
@@ -334,6 +335,7 @@ export async function updateEventById(
   data: {
     name: string;
     format: MatchFormat;
+    hasThirdPlaceMatch?: boolean;
     groupSize?: number | null;
     advancersPerGroup?: number | null;
     gamePointTarget: number;
