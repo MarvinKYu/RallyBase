@@ -10,6 +10,13 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 ---
 
+## [1.1.1] - 2026-04-15
+
+### Fixed
+- **Group standings page unusable on mobile** — the multi-group layout now shows one group at a time on mobile with a `‹ Group N ›` navigation bar between the page header and the group card. Desktop retains the full grid view. No behavior changes on desktop.
+
+---
+
 ## [1.1.0] - 2026-04-15
 
 ### Added
