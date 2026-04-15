@@ -1,6 +1,6 @@
 # Planned Features Roadmap
 
-## v1.1.0 — Tournament Templates
+## v1.2.0 — Tournament Templates
 
 > Plan mode: **Yes** — new schema (templates table + event templates), new service functions, and changes to tournament creation flow and UI. Schema design decisions affect the whole feature; upfront plan avoids mid-implementation pivots.
 
@@ -13,7 +13,7 @@
 
 ---
 
-## v1.1.1 — Tournament flow reversal
+## v1.2.1 — Tournament flow reversal
 
 ### Tournament flow reversal
 - Give TD option to move from "published" back to "draft" through a "Retract" button

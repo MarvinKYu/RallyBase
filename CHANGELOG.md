@@ -10,6 +10,13 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 ---
 
+## [1.1.0] - 2026-04-15
+
+### Added
+- **3rd/4th place match** — SE and RR→SE events can now include a 3rd/4th place match. TDs opt in via a checkbox on the create/edit event form (requires ≥ 4 players). SF losers are automatically routed to the match as semifinals complete. Voiding an SF clears the loser slot. The match is displayed in the bracket below the Final (small brackets) or extending the stacked center column (large brackets), with inline round labels "Final" and "3rd/4th Place". Match history lists, the TD manage view, event detail, and tournament detail all show the match in a dedicated "3rd/4th Place" section. The event podium now includes the 3rd-place finisher. Events only auto-complete when the 3rd/4th match is also finished.
+
+---
+
 ## [1.0.9] - 2026-04-15
 
 ### Fixed
