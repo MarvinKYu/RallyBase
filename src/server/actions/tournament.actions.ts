@@ -18,6 +18,7 @@ import {
   getEventDetail,
   getTournamentDetail,
   tdRemoveEntrant,
+  regenEventScheduleIfStale,
 } from "@/server/services/tournament.service";
 import { getMyProfile } from "@/server/services/player.service";
 import { findPlayerRatingByCategory } from "@/server/repositories/rating.repository";
@@ -231,6 +232,7 @@ export async function addEntrantAction(
   if (playerProfileId) {
     const result = await addEntrant(eventId, { playerProfileId });
     if ("error" in result) return { error: result.error };
+    await regenEventScheduleIfStale(eventId);
   }
 
   redirect(`/tournaments/${tournamentId}/events/${eventId}/manage/entrants`);
@@ -265,6 +267,8 @@ export async function addBulkEntrantsAction(
       return { error: result.error };
     }
   }
+
+  await regenEventScheduleIfStale(eventId);
 
   redirect(`/tournaments/${tournamentId}/events/${eventId}/manage/entrants`);
 }

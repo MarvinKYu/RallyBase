@@ -775,3 +775,19 @@ export async function tdRemoveEntrant(
 
   return { success: true };
 }
+
+/**
+ * If a schedule exists for the event but no matches have been played,
+ * wipes the stale schedule and regenerates it with the current entrant pool.
+ * No-op if no schedule exists or if any match has already been played.
+ */
+export async function regenEventScheduleIfStale(eventId: string): Promise<void> {
+  const [matchCount, progressed] = await Promise.all([
+    countMatchesByEventId(eventId),
+    countProgressedMatches(eventId),
+  ]);
+  if (matchCount > 0 && progressed === 0) {
+    await deleteAllMatchesForEvent(eventId);
+    await generateBracket(eventId);
+  }
+}
