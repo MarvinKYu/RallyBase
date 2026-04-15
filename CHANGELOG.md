@@ -10,6 +10,13 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 ---
 
+## [1.0.9] - 2026-04-15
+
+### Fixed
+- **Bracket/schedule not updated when entrant added before matches start** — adding a player (single or bulk) to an event that already has a generated bracket/schedule but no played matches now automatically wipes the stale schedule and regenerates it with the updated player pool. Mirrors the same auto-regen behavior that was added to player removal in v1.0.7.
+
+---
+
 ## [1.0.8] - 2026-04-14
 
 ### Fixed

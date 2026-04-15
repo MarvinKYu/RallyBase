@@ -36,6 +36,11 @@
 
 # Fixed
 
+## Version 1.0.9
+
+### Bracket/schedule not updated when entrant added before matches start
+- Adding a player to an event with an existing bracket/schedule (but no played matches) left the schedule stale — the new player was not included until the event was manually restarted or the bracket re-generated.
+
 ## Version 1.0.5
 
 ### TD manage entrants add entrants pagination error
