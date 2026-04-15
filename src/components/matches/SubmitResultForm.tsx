@@ -9,6 +9,7 @@ interface Props {
   tournamentId: string;
   eventId: string;
   format: string;
+  verificationMethod: string;
   maxGames: number;
   player1Name: string;
   player2Name: string;
@@ -26,12 +27,13 @@ export function SubmitResultForm({
   tournamentId,
   eventId,
   format,
+  verificationMethod,
   maxGames,
   player1Name,
   player2Name,
   savedScores,
 }: Props) {
-  const boundAction = submitResultAction.bind(null, matchId, tournamentId, eventId, format);
+  const boundAction = submitResultAction.bind(null, matchId, tournamentId, eventId, format, verificationMethod);
   const [state, dispatch, isPending] = useActionState<MatchActionState, FormData>(
     boundAction,
     null,

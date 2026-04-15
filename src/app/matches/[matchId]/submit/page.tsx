@@ -67,6 +67,7 @@ export default async function SubmitResultPage({ params }: Props) {
         tournamentId={tournamentId}
         eventId={eventId}
         format={effectiveFormat}
+        verificationMethod={match.event.tournament.verificationMethod}
         maxGames={maxGames}
         player1Name={match.player1?.displayName ?? "Player 1"}
         player2Name={match.player2?.displayName ?? "Player 2"}

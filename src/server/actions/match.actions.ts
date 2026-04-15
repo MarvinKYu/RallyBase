@@ -16,12 +16,13 @@ export type MatchActionState = {
   fieldErrors?: Record<string, string[]>;
 } | null;
 
-// matchId, tournamentId, eventId, format are pre-bound via .bind()
+// matchId, tournamentId, eventId, format, verificationMethod are pre-bound via .bind()
 export async function submitResultAction(
   matchId: string,
   tournamentId: string,
   eventId: string,
   format: string,
+  verificationMethod: string,
   _prevState: MatchActionState,
   formData: FormData,
 ): Promise<MatchActionState> {
@@ -47,7 +48,11 @@ export async function submitResultAction(
 
   if ("error" in result) return { error: result.error };
 
-  redirect(`/matches/${matchId}/pending`);
+  redirect(
+    verificationMethod === "BIRTH_YEAR"
+      ? `/matches/${matchId}/confirm`
+      : `/matches/${matchId}/pending`,
+  );
 }
 
 // matchId, maxGames are pre-bound via .bind()
