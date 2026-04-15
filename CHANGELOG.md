@@ -10,6 +10,13 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 ---
 
+## [1.1.2] - 2026-04-15
+
+### Fixed
+- **"Include 3rd/4th place match" checkbox always saved as false** — `formData.get()` returns the first value for a given name; the hidden `value="false"` input always preceded the checkbox, so the checked state was never read. Both `createEventAction` and `updateEventAction` now use `formData.getAll("hasThirdPlaceMatch").includes("true")`.
+
+---
+
 ## [1.1.1] - 2026-04-15
 
 ### Fixed
