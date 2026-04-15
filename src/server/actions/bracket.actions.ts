@@ -39,7 +39,7 @@ export async function generateBracketAction(
     event?.eventFormat === "ROUND_ROBIN" || event?.eventFormat === "RR_TO_SE"
       ? "standings"
       : "bracket";
-  redirect(`/tournaments/${tournamentId}/events/${eventId}/${dest}`);
+  redirect(`/tournaments/${tournamentId}/events/${eventId}/${dest}?from=manage`);
 }
 
 // ── RR → SE stage actions ────────────────────────────────────────────────────

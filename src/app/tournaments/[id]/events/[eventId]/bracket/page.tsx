@@ -60,6 +60,7 @@ function MatchCard({
   eventId,
   isTD,
   voidReturnTo,
+  tdReturnTo,
   viewerProfileId = null,
 }: {
   match: BracketMatch;
@@ -67,6 +68,7 @@ function MatchCard({
   eventId: string;
   isTD: boolean;
   voidReturnTo: string;
+  tdReturnTo: string;
   viewerProfileId?: string | null;
 }) {
   const isBye = match.player2Id === null && match.status === "COMPLETED";
@@ -168,7 +170,7 @@ function MatchCard({
             match.player1Id &&
             match.player2Id && (
               <Link
-                href={`/matches/${match.id}/td-submit`}
+                href={`/matches/${match.id}/td-submit?returnTo=${encodeURIComponent(tdReturnTo)}`}
                 className="text-[10px] font-medium text-accent underline-offset-2 hover:underline"
               >
                 Enter result
@@ -328,6 +330,7 @@ function BracketColumn({
   isTD,
   stackingFactor,
   voidReturnTo,
+  tdReturnTo,
   viewerProfileId = null,
 }: {
   label: string;
@@ -341,6 +344,7 @@ function BracketColumn({
   isTD: boolean;
   stackingFactor?: number;
   voidReturnTo: string;
+  tdReturnTo: string;
   viewerProfileId?: string | null;
 }) {
   const factor = stackingFactor ?? Math.pow(2, round - 1);
@@ -382,6 +386,7 @@ function BracketColumn({
             eventId={eventId}
             isTD={isTD}
             voidReturnTo={voidReturnTo}
+            tdReturnTo={tdReturnTo}
             viewerProfileId={viewerProfileId}
           />
         ))}
@@ -404,6 +409,7 @@ function StackedCenterColumn({
   eventId,
   isTD,
   voidReturnTo,
+  tdReturnTo,
   viewerProfileId = null,
 }: {
   sfLeftMatch: BracketMatch | undefined;
@@ -415,6 +421,7 @@ function StackedCenterColumn({
   eventId: string;
   isTD: boolean;
   voidReturnTo: string;
+  tdReturnTo: string;
   viewerProfileId?: string | null;
 }) {
   const sfTopOffset = H / 2 - CARD_H / 2;
@@ -443,7 +450,7 @@ function StackedCenterColumn({
       {/* SF1 */}
       <div style={{ position: "absolute", top: LABEL_H + sfTopOffset, left: 0, width: CARD_W }}>
         {sfLeftMatch ? (
-          <MatchCard match={sfLeftMatch} tournamentId={tournamentId} eventId={eventId} isTD={isTD} voidReturnTo={voidReturnTo} viewerProfileId={viewerProfileId} />
+          <MatchCard match={sfLeftMatch} tournamentId={tournamentId} eventId={eventId} isTD={isTD} voidReturnTo={voidReturnTo} tdReturnTo={tdReturnTo} viewerProfileId={viewerProfileId} />
         ) : emptyCard}
       </div>
 
@@ -459,7 +466,7 @@ function StackedCenterColumn({
       )}
       <div style={{ position: "absolute", top: LABEL_H + finalTopOffset, left: 0, width: CARD_W }}>
         {finalMatch ? (
-          <MatchCard match={finalMatch} tournamentId={tournamentId} eventId={eventId} isTD={isTD} voidReturnTo={voidReturnTo} viewerProfileId={viewerProfileId} />
+          <MatchCard match={finalMatch} tournamentId={tournamentId} eventId={eventId} isTD={isTD} voidReturnTo={voidReturnTo} tdReturnTo={tdReturnTo} viewerProfileId={viewerProfileId} />
         ) : emptyCard}
       </div>
 
@@ -470,7 +477,7 @@ function StackedCenterColumn({
       {/* SF2 */}
       <div style={{ position: "absolute", top: LABEL_H + sfBotOffset, left: 0, width: CARD_W }}>
         {sfRightMatch ? (
-          <MatchCard match={sfRightMatch} tournamentId={tournamentId} eventId={eventId} isTD={isTD} voidReturnTo={voidReturnTo} viewerProfileId={viewerProfileId} />
+          <MatchCard match={sfRightMatch} tournamentId={tournamentId} eventId={eventId} isTD={isTD} voidReturnTo={voidReturnTo} tdReturnTo={tdReturnTo} viewerProfileId={viewerProfileId} />
         ) : emptyCard}
       </div>
 
@@ -481,7 +488,7 @@ function StackedCenterColumn({
             <p className="text-[10px] uppercase tracking-wide text-text-3">3rd/4th Place</p>
           </div>
           <div style={{ position: "absolute", top: LABEL_H + thirdTopOffset, left: 0, width: CARD_W }}>
-            <MatchCard match={thirdPlaceMatch} tournamentId={tournamentId} eventId={eventId} isTD={isTD} voidReturnTo={voidReturnTo} viewerProfileId={viewerProfileId} />
+            <MatchCard match={thirdPlaceMatch} tournamentId={tournamentId} eventId={eventId} isTD={isTD} voidReturnTo={voidReturnTo} tdReturnTo={tdReturnTo} viewerProfileId={viewerProfileId} />
           </div>
         </>
       )}
@@ -504,6 +511,7 @@ function FinalAndThirdColumn({
   eventId,
   isTD,
   voidReturnTo,
+  tdReturnTo,
   viewerProfileId = null,
 }: {
   finalMatch: BracketMatch | undefined;
@@ -513,6 +521,7 @@ function FinalAndThirdColumn({
   eventId: string;
   isTD: boolean;
   voidReturnTo: string;
+  tdReturnTo: string;
   viewerProfileId?: string | null;
 }) {
   const thirdGap = CARD_H / 2; // 52px gap between Final bottom and "3rd/4th Place" label
@@ -534,7 +543,7 @@ function FinalAndThirdColumn({
       {/* Final card */}
       <div style={{ position: "absolute", top: LABEL_H + finalTopOffset, left: 0, width: CARD_W }}>
         {finalMatch ? (
-          <MatchCard match={finalMatch} tournamentId={tournamentId} eventId={eventId} isTD={isTD} voidReturnTo={voidReturnTo} viewerProfileId={viewerProfileId} />
+          <MatchCard match={finalMatch} tournamentId={tournamentId} eventId={eventId} isTD={isTD} voidReturnTo={voidReturnTo} tdReturnTo={tdReturnTo} viewerProfileId={viewerProfileId} />
         ) : (
           <div className="w-44 overflow-hidden rounded-md border border-border bg-surface shadow-sm" style={{ height: CARD_H }} />
         )}
@@ -557,7 +566,7 @@ function FinalAndThirdColumn({
 
       {/* 3rd/4th place match card */}
       <div style={{ position: "absolute", top: LABEL_H + thirdTopOffset, left: 0, width: CARD_W }}>
-        <MatchCard match={thirdPlaceMatch} tournamentId={tournamentId} eventId={eventId} isTD={isTD} voidReturnTo={voidReturnTo} viewerProfileId={viewerProfileId} />
+        <MatchCard match={thirdPlaceMatch} tournamentId={tournamentId} eventId={eventId} isTD={isTD} voidReturnTo={voidReturnTo} tdReturnTo={tdReturnTo} viewerProfileId={viewerProfileId} />
       </div>
     </div>
   );
@@ -784,6 +793,48 @@ function PlaceholderBracketColumn({
   );
 }
 
+function PlaceholderFinalAndThirdColumn({ H }: { H: number }) {
+  const thirdGap = CARD_H / 2;
+  const finalTopOffset = Math.max(0, H / 2 - CARD_H / 2);
+  const thirdTopOffset = finalTopOffset + CARD_H + thirdGap;
+  const connTop = finalTopOffset + CARD_H;
+  const connH = Math.max(0, thirdTopOffset - INLINE_LABEL_H - connTop);
+  const totalContentH = thirdTopOffset + CARD_H;
+
+  return (
+    <div className="shrink-0" style={{ position: "relative", width: CARD_W, height: totalContentH + LABEL_H }}>
+      <div style={{ height: LABEL_H }} className="flex items-end pb-3">
+        <p className="text-xs font-bold uppercase tracking-wide text-text-1">Final</p>
+      </div>
+
+      {/* Final placeholder card */}
+      <div style={{ position: "absolute", top: LABEL_H + finalTopOffset, left: 0, width: CARD_W }}>
+        <PlaceholderCard p1="TBD" p2="TBD" />
+      </div>
+
+      {/* Vertical connector */}
+      {connH > 0 && (
+        <svg
+          className="text-border"
+          style={{ position: "absolute", top: LABEL_H + connTop, left: Math.floor(CARD_W / 2), width: 1, height: connH, display: "block" }}
+        >
+          <line x1={0.5} y1={0} x2={0.5} y2={connH} stroke="currentColor" strokeWidth={1} />
+        </svg>
+      )}
+
+      {/* "3rd/4th Place" inline label */}
+      <div style={{ position: "absolute", top: LABEL_H + thirdTopOffset - INLINE_LABEL_H, left: 0 }}>
+        <p className="text-[10px] uppercase tracking-wide text-text-3">3rd/4th Place</p>
+      </div>
+
+      {/* 3rd/4th place placeholder card */}
+      <div style={{ position: "absolute", top: LABEL_H + thirdTopOffset, left: 0, width: CARD_W }}>
+        <PlaceholderCard p1="TBD" p2="TBD" />
+      </div>
+    </div>
+  );
+}
+
 // ── Page ──────────────────────────────────────────────────────────────────────
 
 export default async function BracketPage({ params, searchParams }: Props) {
@@ -825,6 +876,9 @@ export default async function BracketPage({ params, searchParams }: Props) {
   const tournamentHref = from === "manage" ? `/tournaments/${id}/manage` : `/tournaments/${id}`;
   const eventHref = from === "manage" ? `/tournaments/${id}/events/${eventId}/manage` : `/tournaments/${id}/events/${eventId}`;
   const voidReturnTo = `/tournaments/${id}/events/${eventId}/bracket${from ? `?from=${from}` : ""}`;
+  const tdReturnTo = from === "manage"
+    ? `/tournaments/${id}/events/${eventId}/manage`
+    : `/tournaments/${id}/events/${eventId}/bracket`;
 
   if (regularBracketMatches.length === 0) {
     // For RR→SE: show placeholder bracket if RR has been generated
@@ -908,15 +962,19 @@ export default async function BracketPage({ params, searchParams }: Props) {
               );
             })}
 
-            {/* FINAL */}
-            <PlaceholderBracketColumn
-              label="Final"
-              labelVariant="final"
-              round={ph.totalRounds}
-              slots={[ph.finalSlot]}
-              H={ph.H}
-              isCenter={true}
-            />
+            {/* FINAL (± 3rd/4th place placeholder) */}
+            {event.hasThirdPlaceMatch ? (
+              <PlaceholderFinalAndThirdColumn H={ph.H} />
+            ) : (
+              <PlaceholderBracketColumn
+                label="Final"
+                labelVariant="final"
+                round={ph.totalRounds}
+                slots={[ph.finalSlot]}
+                H={ph.H}
+                isCenter={true}
+              />
+            )}
 
             {/* RIGHT SIDE */}
             {rightRounds.map((round, idx) => {
@@ -1055,6 +1113,7 @@ export default async function BracketPage({ params, searchParams }: Props) {
                       isTD={isTD}
                       stackingFactor={sf}
                       voidReturnTo={voidReturnTo}
+                      tdReturnTo={tdReturnTo}
                       viewerProfileId={viewerProfileId}
                     />
                     {isLastLeft ? (
@@ -1077,6 +1136,7 @@ export default async function BracketPage({ params, searchParams }: Props) {
                 eventId={eventId}
                 isTD={isTD}
                 voidReturnTo={voidReturnTo}
+                tdReturnTo={tdReturnTo}
                 viewerProfileId={viewerProfileId}
               />
 
@@ -1104,6 +1164,7 @@ export default async function BracketPage({ params, searchParams }: Props) {
                       isTD={isTD}
                       stackingFactor={sf}
                       voidReturnTo={voidReturnTo}
+                      tdReturnTo={tdReturnTo}
                       viewerProfileId={viewerProfileId}
                     />
                   </div>
@@ -1162,6 +1223,7 @@ export default async function BracketPage({ params, searchParams }: Props) {
                   eventId={eventId}
                   isTD={isTD}
                   voidReturnTo={voidReturnTo}
+                  tdReturnTo={tdReturnTo}
                   viewerProfileId={viewerProfileId}
                 />
                 {isLastLeft ? (
@@ -1183,6 +1245,7 @@ export default async function BracketPage({ params, searchParams }: Props) {
               eventId={eventId}
               isTD={isTD}
               voidReturnTo={voidReturnTo}
+              tdReturnTo={tdReturnTo}
               viewerProfileId={viewerProfileId}
             />
           ) : (
@@ -1197,6 +1260,7 @@ export default async function BracketPage({ params, searchParams }: Props) {
               eventId={eventId}
               isTD={isTD}
               voidReturnTo={voidReturnTo}
+              tdReturnTo={tdReturnTo}
               viewerProfileId={viewerProfileId}
             />
           )}
@@ -1224,6 +1288,7 @@ export default async function BracketPage({ params, searchParams }: Props) {
                   eventId={eventId}
                   isTD={isTD}
                   voidReturnTo={voidReturnTo}
+                  tdReturnTo={tdReturnTo}
                   viewerProfileId={viewerProfileId}
                 />
               </div>
