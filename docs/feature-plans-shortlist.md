@@ -10,6 +10,10 @@
 # Long-term ideas
 - Notes for things we could do in the future
 
+## TD manual draw modifications
+- Allow TD to manually change draws/groups/brackets auto-generated at event start
+- Think about how to do this- drag and replace? type?
+
 ## Figure out observability
 Learn to use/understand:
 - Vercel built-in logs
