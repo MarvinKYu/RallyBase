@@ -1,6 +1,8 @@
 # Planned features shortlist
 - TODO: Analyze and decide where to place into existing feature roadmap.
 
+## Batch rating updates per tournament 
+
 ## For players: think about displayed name vs actual name + edge cases
 
 ## Publish tournament 
