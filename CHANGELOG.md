@@ -10,6 +10,15 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 ---
 
+## [1.1.4] - 2026-04-15
+
+### Fixed
+- **Back nav on bracket/standings page linked to event detail after generating from manage event** — `generateBracketAction` now appends `?from=manage` to its success redirect so the back button on the bracket/standings page correctly links to the manage event page.
+- **TD "Enter result" link on bracket page lost manage-event back nav context** — the link now passes `?returnTo=/manage` when the bracket page was opened from manage event, so the back button on the td-submit page links directly to the manage event page instead of the plain bracket page.
+- **Placeholder bracket for RR→SE events missing 3rd/4th place card** — when `hasThirdPlaceMatch` is enabled and the SE bracket has not yet been generated, a `PlaceholderFinalAndThirdColumn` is now rendered beneath the Final placeholder, matching the layout of the real bracket.
+
+---
+
 ## [1.1.3] - 2026-04-15
 
 ### Fixed
