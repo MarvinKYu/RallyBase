@@ -22,7 +22,10 @@ import { GenerateBracketButton } from "@/components/tournaments/GenerateBracketB
 import type { MatchRow } from "@/components/tournaments/ManageEventMatchList";
 import type { EntryCard } from "@/components/tournaments/ManageEventRightSection";
 
-type Props = { params: Promise<{ id: string; eventId: string }> };
+type Props = {
+  params: Promise<{ id: string; eventId: string }>;
+  searchParams: Promise<{ error?: string }>;
+};
 
 export async function generateMetadata({ params }: Props) {
   const { id, eventId } = await params;
@@ -52,8 +55,9 @@ const STATUS_BADGE_CLASSES: Record<string, string> = {
 };
 
 
-export default async function ManageEventPage({ params }: Props) {
+export default async function ManageEventPage({ params, searchParams }: Props) {
   const { id, eventId } = await params;
+  const { error } = await searchParams;
   const { userId } = await auth();
   if (!userId) redirect("/sign-in");
 
@@ -128,6 +132,11 @@ export default async function ManageEventPage({ params }: Props) {
 
   return (
     <main className="mx-auto max-w-7xl px-4 py-12">
+      {error && (
+        <div className="mb-6 rounded-md border border-red-800 bg-red-950/60 px-4 py-3 text-sm text-red-300">
+          {error}
+        </div>
+      )}
       <div className="grid grid-cols-1 gap-8 lg:grid-cols-[380px_1fr]">
 
         {/* ── Left column ── */}
