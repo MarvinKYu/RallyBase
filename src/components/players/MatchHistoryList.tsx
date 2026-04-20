@@ -21,9 +21,10 @@ export default function MatchHistoryList({ matches, playerProfileId, limit }: Pr
     <div className="overflow-x-auto">
       <table className="w-full table-fixed text-sm">
         <colgroup>
-          <col className="w-[45%]" />
-          <col className="w-[25%]" />
-          <col className="w-[18%]" />
+          <col className="w-[38%]" />
+          <col className="w-[22%]" />
+          <col className="w-[16%]" />
+          <col className="w-[12%]" />
           <col className="w-[12%]" />
         </colgroup>
         <thead>
@@ -31,6 +32,7 @@ export default function MatchHistoryList({ matches, playerProfileId, limit }: Pr
             <th className="pb-2 pr-4 font-medium">Tournament · Event</th>
             <th className="pb-2 pr-4 font-medium">Opponent</th>
             <th className="pb-2 pr-4 font-medium">Result</th>
+            <th className="pb-2 pr-4 font-medium">Opp. Rating</th>
             <th className="pb-2 font-medium">Δ Rating</th>
           </tr>
         </thead>
@@ -38,7 +40,6 @@ export default function MatchHistoryList({ matches, playerProfileId, limit }: Pr
           {displayMatches.map((m) => {
             const won = m.winnerId === playerProfileId;
             const opponent = m.player1Id === playerProfileId ? m.player2 : m.player1;
-            const isDefault = m.isDefault;
 
             // Count game wins from official matchGames
             let p1Wins = 0;
@@ -50,7 +51,10 @@ export default function MatchHistoryList({ matches, playerProfileId, limit }: Pr
             const myWins = m.player1Id === playerProfileId ? p1Wins : p2Wins;
             const oppWins = m.player1Id === playerProfileId ? p2Wins : p1Wins;
 
-            const delta = m.ratingTransactions[0]?.delta ?? null;
+            const myTx = m.ratingTransactions.find(tx => tx.playerProfileId === playerProfileId);
+            const oppTx = m.ratingTransactions.find(tx => tx.playerProfileId !== playerProfileId);
+            const delta = myTx?.delta ?? null;
+            const opponentRatingBefore = oppTx?.ratingBefore ?? null;
 
             return (
               <tr key={m.id} className="border-b border-border-subtle last:border-b-0">
@@ -79,10 +83,13 @@ export default function MatchHistoryList({ matches, playerProfileId, limit }: Pr
                   >
                     {won ? "W" : "L"}
                   </span>
-                  {isDefault ? (
-                    <span className="ml-1 text-text-3">by default</span>
+                  <span className="ml-1 text-text-2">{myWins}–{oppWins}</span>
+                </td>
+                <td className="py-3 pr-4">
+                  {opponentRatingBefore === null ? (
+                    <span className="text-text-3">—</span>
                   ) : (
-                    <span className="ml-1 text-text-2">{myWins}–{oppWins}</span>
+                    <span className="text-text-2">{Math.round(opponentRatingBefore)}</span>
                   )}
                 </td>
                 <td className="py-3">

@@ -126,7 +126,7 @@ afterAll(async () => {
 });
 
 describe("getPlayerMatchHistory", () => {
-  it("returns completed matches with correct W/L, score, and delta", async () => {
+  it("returns completed matches with correct W/L, score, delta, and opponent ratingBefore", async () => {
     const history = await getPlayerMatchHistory(profileIds[0]);
 
     expect(history.length).toBeGreaterThanOrEqual(1);
@@ -134,16 +134,20 @@ describe("getPlayerMatchHistory", () => {
     expect(match).toBeDefined();
     expect(match!.winnerId).toBe(profileIds[0]);
     expect(match!.matchGames).toHaveLength(4);
-    expect(match!.ratingTransactions).toHaveLength(1);
-    expect(match!.ratingTransactions[0].delta).toBe(16);
+    expect(match!.ratingTransactions).toHaveLength(2);
+    const myTx = match!.ratingTransactions.find((tx) => tx.playerProfileId === profileIds[0]);
+    const oppTx = match!.ratingTransactions.find((tx) => tx.playerProfileId !== profileIds[0]);
+    expect(myTx?.delta).toBe(16);
+    expect(oppTx?.ratingBefore).toBe(1500);
   });
 
-  it("only returns transactions for the queried player", async () => {
+  it("returns both players' transactions for the match", async () => {
     const history = await getPlayerMatchHistory(profileIds[1]);
     const match = history.find((m) => m.id === matchId);
     expect(match).toBeDefined();
-    expect(match!.ratingTransactions).toHaveLength(1);
-    expect(match!.ratingTransactions[0].delta).toBe(-16);
+    expect(match!.ratingTransactions).toHaveLength(2);
+    const myTx = match!.ratingTransactions.find((tx) => tx.playerProfileId === profileIds[1]);
+    expect(myTx?.delta).toBe(-16);
   });
 
   it("does not return non-COMPLETED matches", async () => {

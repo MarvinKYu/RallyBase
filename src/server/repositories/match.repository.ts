@@ -273,13 +273,17 @@ export async function findCompletedMatchesByPlayerId(playerProfileId: string) {
     where: {
       OR: [{ player1Id: playerProfileId }, { player2Id: playerProfileId }],
       status: "COMPLETED",
+      player2Id: { not: null },
+      isDefault: false,
     },
     include: {
       player1: playerSelect,
       player2: playerSelect,
       winner: playerSelect,
       matchGames: { orderBy: { gameNumber: "asc" } },
-      ratingTransactions: { where: { playerProfileId } },
+      ratingTransactions: {
+        select: { playerProfileId: true, delta: true, ratingBefore: true },
+      },
       event: {
         select: {
           id: true,
