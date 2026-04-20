@@ -408,7 +408,7 @@ async function generateSingleEliminationBracket(
 
   if (hasThirdPlaceMatch && totalRounds < 2) {
     throw new Error(
-      "A 3rd/4th place match requires at least 4 players so there is a semifinal round.",
+      "A 3rd/4th place match requires at least 3 players so there is a semifinal round.",
     );
   }
 

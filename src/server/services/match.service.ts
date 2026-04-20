@@ -1,3 +1,4 @@
+import { MatchStatus } from "@prisma/client";
 import { validateMatchSubmission } from "@/server/algorithms/match-validation";
 import { winnerSlotInNextMatch } from "@/server/algorithms/bracket";
 import {
@@ -585,11 +586,15 @@ async function tryAutoGenerateSEStage(
  *
  * A match is a semifinal when its nextMatch exists, has no further advancement
  * (nextMatch.nextMatchId === null), and is not itself the 3rd place match.
+ *
+ * Special case (3 advancers): one SF is a structural bye so only one real loser exists.
+ * After placing the loser, if the other slot is still empty and no pending SFs remain,
+ * the 3rd place match auto-completes as a bye with the loser as winner.
  */
 async function routeLoserToThirdPlace(
   eventId: string,
   loserId: string,
-  nextMatch: { nextMatchId: string | null; isThirdPlaceMatch: boolean } | null,
+  nextMatch: { id: string; nextMatchId: string | null; isThirdPlaceMatch: boolean } | null,
 ): Promise<void> {
   if (!nextMatch) return; // this IS the Final or 3rd place match — not an SF
   if (nextMatch.nextMatchId !== null) return; // nextMatch is not the Final (QF or earlier)
@@ -605,16 +610,39 @@ async function routeLoserToThirdPlace(
     where: { id: thirdPlaceMatch.id },
     data: { [slot]: loserId },
   });
+
+  // If the other slot is still empty, check whether any SFs feeding into the Final
+  // are still pending. If none remain (e.g. the other SF was a structural bye),
+  // auto-complete the 3rd place match — this player wins uncontested.
+  const otherSlotValue = slot === "player1Id" ? thirdPlaceMatch.player2Id : thirdPlaceMatch.player1Id;
+  if (otherSlotValue === null) {
+    const pendingSFs = await prisma.match.count({
+      where: {
+        eventId,
+        nextMatchId: nextMatch.id,
+        isThirdPlaceMatch: false,
+        status: { not: MatchStatus.COMPLETED },
+      },
+    });
+    if (pendingSFs === 0) {
+      await prisma.match.update({
+        where: { id: thirdPlaceMatch.id },
+        data: { status: MatchStatus.COMPLETED, winnerId: loserId },
+      });
+    }
+  }
 }
 
 /**
  * If the just-voided match was a semifinal in an event with hasThirdPlaceMatch,
  * clears the corresponding player from the 3rd/4th place match.
+ * If the 3rd place match was auto-completed as a bye (one player, no opponent),
+ * also resets it back to PENDING.
  */
 async function clearLoserFromThirdPlace(
   eventId: string,
   loserId: string | null,
-  nextMatch: { nextMatchId: string | null; isThirdPlaceMatch: boolean } | null,
+  nextMatch: { id: string; nextMatchId: string | null; isThirdPlaceMatch: boolean } | null,
 ): Promise<void> {
   if (!loserId) return;
   if (!nextMatch) return;
@@ -624,10 +652,15 @@ async function clearLoserFromThirdPlace(
   const thirdPlaceMatch = await findThirdPlaceMatch(eventId);
   if (!thirdPlaceMatch) return;
 
-  const updates: Record<string, null> = {};
+  const updates: Record<string, null | string> = {};
   if (thirdPlaceMatch.player1Id === loserId) updates.player1Id = null;
   if (thirdPlaceMatch.player2Id === loserId) updates.player2Id = null;
   if (Object.keys(updates).length > 0) {
+    // If the 3rd place match was auto-completed as a bye for this player, reset it to pending
+    if (thirdPlaceMatch.status === MatchStatus.COMPLETED && thirdPlaceMatch.winnerId === loserId) {
+      updates.status = MatchStatus.PENDING;
+      updates.winnerId = null;
+    }
     await prisma.match.update({ where: { id: thirdPlaceMatch.id }, data: updates });
   }
 }

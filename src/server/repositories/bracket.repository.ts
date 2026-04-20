@@ -155,7 +155,7 @@ export async function setEntryAdvancesToSE(
 export async function findThirdPlaceMatch(eventId: string) {
   return prisma.match.findFirst({
     where: { eventId, isThirdPlaceMatch: true },
-    select: { id: true, player1Id: true, player2Id: true },
+    select: { id: true, player1Id: true, player2Id: true, status: true, winnerId: true },
   });
 }
 
