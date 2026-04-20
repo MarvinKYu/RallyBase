@@ -10,6 +10,20 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 ---
 
+## [1.1.7] - 2026-04-25
+
+### Fixed
+- **3rd place match shows TBD opponent when only 3 advancers in RR→SE** — with exactly 3 advancers, seed 1 receives a structural bye into the final, leaving only one real semifinal. The loser of that semi was placed in the 3rd place match but the other slot stayed null (TBD). `routeLoserToThirdPlace` now detects when all SF feeders are complete and the other slot is still empty, then auto-completes the 3rd place match as a bye with that player as the uncontested winner. `clearLoserFromThirdPlace` (void path) reverses this auto-complete by resetting the match to PENDING. Error message for too-few-players updated from "at least 4" to "at least 3".
+
+---
+
+## [1.1.6] - 2026-04-20
+
+### Fixed
+- **Error banner not shown when RR group generation fails** — `manage/page.tsx` now reads the `?error=` query param from `searchParams` and renders a red error banner. `generateBracketAction` was already redirecting with `?error=<message>` on failure; the manage page was silently ignoring it.
+
+---
+
 ## [1.1.5] - 2026-04-20
 
 ### Fixed

@@ -1,9 +1,5 @@
 # Current bugs
 
-## 3rd/4th place check for RR -> SE
-- Check that the number of advancers is at least 3 in order to have 3rd/4th place match
-- If the number of advancers is exactly 3, e.g. players A, B, and C where A gets a bye into the final and B/C play in a semifinal, the 3rd/4th place match should be a BYE for the loser of the semifinal between B/C. Right now in this situation the 3rd/4th shows TBD as the opponent for the loser of B/C semi. 
-
 ## Allow bracket regeneration if TD modifies result of group-stage matches prior to any bracket matches being played
 
 ## Revert auto-event-complete if TD voids result of final
@@ -42,6 +38,12 @@
 - Requires scheduled job. Deferred.
 
 # Fixed
+
+## Version 1.1.7
+
+### 3rd/4th place match shows TBD opponent for 3-advancer RR→SE
+- With exactly 3 advancers, seed 1 gets a structural bye into the final. Only one real SF exists (seeds 2 vs 3). The loser of that SF was placed in the 3rd place match but the other slot remained null (TBD).
+- Fix: `routeLoserToThirdPlace` now counts pending SF feeders after placing the loser; if none remain (other SF was a bye), auto-completes the 3rd place match with that player as uncontested winner. `clearLoserFromThirdPlace` reverses this on void. Error message corrected from "at least 4 players" to "at least 3".
 
 ## Version 1.1.6
 
