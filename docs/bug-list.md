@@ -1,5 +1,7 @@
 # Current bugs
 
+## Remove BYEs and matches won/lost by default from player match history 
+
 ## Improve error handling for invalid RR group generation
 - Currently, when the number of entrants and number of players per group interact in such a way that some group would have 2 or fewer players, client-side error occurs
 - For example, 10 entrants in an event where it's set to 3 players per group. 
