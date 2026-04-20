@@ -10,6 +10,14 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 ---
 
+## [1.1.5] - 2026-04-20
+
+### Fixed
+- **BYE matches and default wins/losses appearing in player match history** — `findCompletedMatchesByPlayerId` now filters out structural BYE matches (`player2Id = null`) and default matches (`isDefault = true`) so only real, scored matches appear in a player's history.
+- **No opponent rating in match history** — added an "Opp. Rating" column showing the opponent's rating at the time of the match (`ratingBefore` from their rating transaction). `findCompletedMatchesByPlayerId` now returns both players' transactions per match instead of only the queried player's.
+
+---
+
 ## [1.1.4] - 2026-04-15
 
 ### Fixed
