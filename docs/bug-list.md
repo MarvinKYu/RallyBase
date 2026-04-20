@@ -1,10 +1,5 @@
 # Current bugs
 
-## Improve error handling for invalid RR group generation
-- Currently, when the number of entrants and number of players per group interact in such a way that some group would have 2 or fewer players, client-side error occurs
-- For example, 10 entrants in an event where it's set to 3 players per group. 
-- Instead of generic "something went wrong" error page, display descriptive error banner on page: "Current entrant number and group size would result in invalid group population (groups with less than 3 players)."
-
 ## 3rd/4th place check for RR -> SE
 - Check that the number of advancers is at least 3 in order to have 3rd/4th place match
 - If the number of advancers is exactly 3, e.g. players A, B, and C where A gets a bye into the final and B/C play in a semifinal, the 3rd/4th place match should be a BYE for the loser of the semifinal between B/C. Right now in this situation the 3rd/4th shows TBD as the opponent for the loser of B/C semi. 
@@ -47,6 +42,12 @@
 - Requires scheduled job. Deferred.
 
 # Fixed
+
+## Version 1.1.6
+
+### Error banner for invalid RR group generation
+- `manage/page.tsx` now reads `?error=` from `searchParams` and renders a red error banner
+- `generateBracketAction` already caught the `assignGroups` throw and redirected with the descriptive message; the page was silently ignoring it
 
 ## Version 1.1.5
 
