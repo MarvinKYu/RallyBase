@@ -1,5 +1,10 @@
 # Current bugs
 
+## Clerk production instance requires a custom domain
+- `*.vercel.app` domains are blocked by Clerk for production instances. The app currently runs on the Clerk **development** instance.
+- Fix: purchase a custom domain, add it to Vercel, then create a Clerk production instance using that domain. See full migration plan in session log.
+- Deferred until a custom domain is purchased.
+
 ## Allow bracket regeneration if TD modifies result of group-stage matches prior to any bracket matches being played
 
 ## Revert auto-event-complete if TD voids result of final
