@@ -21,7 +21,7 @@ Do this automatically for every shipped change — no need to ask.
 
 ## Project Status
 
-**Current version: v1.1.4.** The app is live on Vercel at https://rally-base.vercel.app. Publicly released.
+**Current version: v1.1.7.** The app is live on Vercel at https://rally-base.vercel.app. Publicly released. Running on Clerk development instance — production instance requires a custom domain (*.vercel.app blocked by Clerk).
 
 ### Upcoming
 - v1.2.0 — Tournament Templates
